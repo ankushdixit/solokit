@@ -128,9 +128,8 @@ sk init --template=<category> --tier=<tier> --coverage=<coverage> --options=<opt
 - "GitHub Actions CI/CD" → `ci_cd`
 - "Docker Support" → `docker`
 - "Environment Templates" → `env_templates`
-- "Accessibility Testing" → `a11y`
 
-Combine multiple options with commas: `--options=ci_cd,docker,env_templates,a11y`
+Combine multiple options with commas: `--options=ci_cd,docker,env_templates`
 
 **Important:** The Python command handles ALL validation and setup deterministically:
 

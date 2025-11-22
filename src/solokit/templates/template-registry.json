@@ -280,14 +280,6 @@
       "name": "Environment Templates",
       "description": ".env files and .editorconfig for all editors",
       "files_created": [".env.example", ".env.local.example", ".editorconfig"]
-    },
-    "a11y": {
-      "name": "Accessibility Testing",
-      "description": "WCAG compliance testing with axe-core and Lighthouse",
-      "files_created": [
-        ".github/workflows/a11y.yml",
-        ".axe-config.json"
-      ]
     }
   }
 }
