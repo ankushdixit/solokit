@@ -6,8 +6,9 @@ import time
 from collections.abc import Callable
 
 from fastapi import Request, Response
-from src.core.logging import logger
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from src.core.logging import logger
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):

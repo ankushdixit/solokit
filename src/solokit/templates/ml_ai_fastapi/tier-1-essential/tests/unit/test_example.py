@@ -4,6 +4,7 @@ Unit tests for example service
 
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession  # type: ignore[import-not-found]
+
 from src.models.example import ItemCreate, ItemUpdate  # type: ignore[import-not-found]
 from src.services.example import ItemService  # type: ignore[import-not-found]
 

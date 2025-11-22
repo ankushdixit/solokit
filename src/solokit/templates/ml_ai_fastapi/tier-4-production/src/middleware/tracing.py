@@ -10,8 +10,9 @@ from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import (
     FastAPIInstrumentor,
 )
-from src.core.config import settings
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from src.core.config import settings
 
 
 class TracingMiddleware(BaseHTTPMiddleware):

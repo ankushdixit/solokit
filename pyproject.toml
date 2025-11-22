@@ -99,6 +99,10 @@ ignore = [
     "N801",  # Class name should use CapWords convention (test classes use descriptive names)
 ]
 
+[tool.ruff.lint.isort]
+# Match the ml_ai_fastapi template's isort config for consistent import ordering
+known-first-party = ["src"]
+
 [tool.coverage.run]
 source = ["src/solokit"]
 omit = ["tests/*", "src/solokit/templates/*"]

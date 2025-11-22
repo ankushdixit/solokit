@@ -4,6 +4,7 @@ Example CRUD endpoints demonstrating SQLModel usage
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.api.dependencies import get_db
 from src.models.example import Item, ItemCreate, ItemRead, ItemUpdate
 from src.services.example import ItemService

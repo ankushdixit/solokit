@@ -157,6 +157,7 @@ class TestHealthRoutes:
         from unittest.mock import AsyncMock
 
         from sqlmodel.ext.asyncio.session import AsyncSession
+
         from src.api.routes.health import readiness_check
 
         # Create a mock session that raises an exception

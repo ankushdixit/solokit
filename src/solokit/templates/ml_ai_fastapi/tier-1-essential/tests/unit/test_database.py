@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession  # type: ignore[import-not-found]
+
 from src.api.dependencies import get_db  # type: ignore[import-not-found]
 
 

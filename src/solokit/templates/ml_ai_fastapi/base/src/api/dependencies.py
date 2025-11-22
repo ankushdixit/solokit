@@ -5,6 +5,7 @@ FastAPI dependency injection - provides shared dependencies like database sessio
 from collections.abc import AsyncGenerator
 
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.core.database import async_session_maker
 
 

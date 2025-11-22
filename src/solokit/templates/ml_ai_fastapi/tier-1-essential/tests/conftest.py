@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import (  # type: ignore[import-not-found]
 )
 from sqlmodel import SQLModel  # type: ignore[import-not-found]
 from sqlmodel.ext.asyncio.session import AsyncSession  # type: ignore[import-not-found]
+
 from src.api.dependencies import get_db  # type: ignore[import-not-found]
 from src.main import app  # type: ignore[import-not-found]
 

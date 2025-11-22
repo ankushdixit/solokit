@@ -36,8 +36,8 @@ describe("Example Router", () => {
   const createCaller = createCallerFactory(exampleRouter);
 
   // Helper to create test context with mocked db
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createTestContext = () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     db: mockDb as any,
     headers: new Headers(),
   });

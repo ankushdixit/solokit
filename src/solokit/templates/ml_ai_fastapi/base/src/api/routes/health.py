@@ -5,6 +5,7 @@ Health check endpoints for monitoring and load balancers
 from fastapi import APIRouter, Depends
 from sqlmodel import text
 from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.api.dependencies import get_db
 from src.core.config import settings
 

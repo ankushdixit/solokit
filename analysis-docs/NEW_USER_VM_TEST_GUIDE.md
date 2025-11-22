@@ -75,7 +75,33 @@ git config --global user.name "New User"
 
 ---
 
-## Step 3: Upload Solokit from Local Machine (with uncommitted changes)
+## Step 3: Install Solokit
+
+### Option A: Clone from GitHub (Recommended for testing released code)
+
+**On the VM**, run:
+
+```bash
+# Clone solokit from GitHub
+cd ~
+git clone https://github.com/ankushdixit/solokit.git solokit-source
+
+# Create a Python virtual environment for solokit
+python3 -m venv ~/solokit-env
+source ~/solokit-env/bin/activate
+
+# Install solokit from source
+cd ~/solokit-source
+pip install -e .
+
+# Verify installation
+sk --version
+sk --help
+```
+
+### Option B: Upload from Local Machine (For testing uncommitted changes)
+
+Use this option when you have local changes that haven't been pushed to GitHub yet.
 
 **From your LOCAL machine** (not the VM), run:
 
@@ -455,6 +481,13 @@ gcloud compute instances create solokit-new-user-test \
 ### SSH into VM
 ```bash
 gcloud compute ssh solokit-new-user-test --zone=us-central1-a
+```
+
+### Clone solokit from GitHub (on VM)
+```bash
+cd ~ && git clone https://github.com/ankushdixit/solokit.git solokit-source
+python3 -m venv ~/solokit-env && source ~/solokit-env/bin/activate
+cd ~/solokit-source && pip install -e .
 ```
 
 ### Upload local solokit (with uncommitted changes)

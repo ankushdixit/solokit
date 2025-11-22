@@ -7,8 +7,9 @@ import sys
 from typing import Any
 
 import structlog
-from src.core.config import settings
 from structlog.types import EventDict, Processor
+
+from src.core.config import settings
 
 
 def add_app_context(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:  # noqa: ARG001

@@ -3,6 +3,7 @@ Prometheus metrics endpoint
 """
 
 from fastapi import APIRouter, Response
+
 from src.core.monitoring import get_metrics
 
 router = APIRouter()
