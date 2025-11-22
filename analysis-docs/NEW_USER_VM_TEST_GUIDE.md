@@ -173,7 +173,7 @@ echo "=========================================="
 sk init \
   --template fullstack_nextjs \
   --tier tier-4-production \
-  --options ci_cd,docker,env_templates,a11y \
+  --options ci_cd,docker,env_templates \
   --coverage 80
 
 # Check what was installed
@@ -247,7 +247,7 @@ echo "=========================================="
 sk init \
   --template saas_t3 \
   --tier tier-4-production \
-  --options ci_cd,docker,env_templates,a11y \
+  --options ci_cd,docker,env_templates \
   --coverage 80
 
 # Run same checks
@@ -284,7 +284,7 @@ echo "=========================================="
 sk init \
   --template dashboard_refine \
   --tier tier-4-production \
-  --options ci_cd,docker,env_templates,a11y \
+  --options ci_cd,docker,env_templates \
   --coverage 80
 
 # Run same checks

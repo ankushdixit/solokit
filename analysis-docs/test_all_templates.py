@@ -66,7 +66,7 @@ def signal_handler(signum, frame):
 # Test configuration
 STACKS = ["saas_t3", "ml_ai_fastapi", "dashboard_refine", "fullstack_nextjs"]
 TIERS = ["tier-1-essential", "tier-2-standard", "tier-3-comprehensive", "tier-4-production"]
-OPTIONS = ["ci_cd", "docker", "env_templates", "a11y"]
+OPTIONS = ["ci_cd", "docker", "env_templates"]
 
 # Test workspace
 WORKSPACE_BASE = Path.home() / "solokit_test_workspace"
@@ -478,12 +478,11 @@ class TemplateTestRunner:
             if not (project_path / ".env.example").exists():
                 errors.append(".env.example missing")
 
-        if "a11y" in test_case.options:
-            # a11y workflows should be in .github/workflows/
-            if test_case.stack != "ml_ai_fastapi":  # a11y is only for frontend stacks
-                a11y_workflow = project_path / ".github" / "workflows" / "a11y.yml"
-                if not a11y_workflow.exists():
-                    errors.append("a11y workflow missing")
+        # a11y workflow is automatically included in tier-4 for JS templates
+        if test_case.tier == "tier-4-production" and test_case.stack != "ml_ai_fastapi":
+            a11y_workflow = project_path / ".github" / "workflows" / "a11y.yml"
+            if not a11y_workflow.exists():
+                errors.append("a11y workflow missing (expected for tier-4 JS templates)")
 
         return len(errors) == 0, errors
 
@@ -1038,7 +1037,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
             'test.yml': 'Tests' if has_ci_cd_workflows else None,
             'security.yml': 'Security' if has_ci_cd_workflows else None,
             'build.yml': 'Build & Bundle Analysis' if has_ci_cd_workflows else None,
-            'a11y.yml': 'Accessibility' if 'a11y' in options else None,
+            'a11y.yml': 'Accessibility' if tier == 'tier-4-production' and stack != 'ml_ai_fastapi' else None,
             # Lighthouse CI is only available in tier-4 for Next.js stacks (has .lighthouserc.json)
             # This is installed from tier-4-production directly, not from ci_cd option
             'lighthouse.yml': 'Lighthouse CI' if tier == 'tier-4-production' and stack != 'ml_ai_fastapi' else None,
@@ -1352,17 +1351,11 @@ def generate_test_cases() -> dict[int, list[TestCase]]:
         if tier == "tier-4-production":
             continue  # Skip tier-4, it's tested in Phase 3
 
-        # For tier-1 and tier-2, exclude a11y from options
-        if tier in ['tier-1-essential', 'tier-2-standard']:
-            options_for_tier = [opt for opt in OPTIONS if opt != 'a11y']
-        else:
-            options_for_tier = OPTIONS.copy()
-
         test_cases[2].append(TestCase(
             id=f"p2_{test_id:03d}_saas_t3_{tier}_all_opts",
             stack="saas_t3",
             tier=tier,
-            options=options_for_tier,
+            options=OPTIONS.copy(),
             phase=2,
             description=f"All options with {tier}"
         ))
@@ -1404,13 +1397,14 @@ def generate_test_cases() -> dict[int, list[TestCase]]:
         ))
         test_id += 1
 
-    # Phase 4: Comprehensive Matrix (256 tests - ALL combinations)
+    # Phase 4: Comprehensive Matrix (128 tests - ALL combinations)
+    # 4 stacks × 4 tiers × 8 option subsets (2^3 = 8, since a11y is no longer an option)
     print("Generating Phase 4 test cases...")
-    print("  → This will generate all 256 combinations (4 stacks × 4 tiers × 16 option subsets)")
+    print("  → This will generate all 128 combinations (4 stacks × 4 tiers × 8 option subsets)")
 
-    # Generate all possible option subsets (2^4 = 16 subsets)
+    # Generate all possible option subsets (2^3 = 8 subsets)
     all_option_subsets = []
-    for r in range(len(OPTIONS) + 1):  # r from 0 to 4 (inclusive)
+    for r in range(len(OPTIONS) + 1):  # r from 0 to 3 (inclusive)
         for subset in combinations(OPTIONS, r):
             all_option_subsets.append(list(subset))
 
@@ -1418,10 +1412,6 @@ def generate_test_cases() -> dict[int, list[TestCase]]:
     for stack in STACKS:
         for tier in TIERS:
             for option_subset in all_option_subsets:
-                # Skip invalid combinations: a11y is only available in tier-3 and tier-4
-                if 'a11y' in option_subset and tier in ['tier-1-essential', 'tier-2-standard']:
-                    continue  # Skip this combination
-
                 # Create a short description for the options
                 if not option_subset:
                     opts_desc = "no_opts"

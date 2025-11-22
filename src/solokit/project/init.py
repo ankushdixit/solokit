@@ -114,14 +114,12 @@ def prompt_additional_options() -> list[str]:
         "CI/CD - GitHub Actions workflows",
         "Docker - Container support with docker-compose",
         "Env Templates - .env files and .editorconfig",
-        "A11y - Accessibility testing (axe-core, Lighthouse)",
     ]
 
     option_map = {
         choices[0]: "ci_cd",
         choices[1]: "docker",
         choices[2]: "env_templates",
-        choices[3]: "a11y",
     }
 
     print("\n⚙️  Select additional options (use space to select, enter to confirm):\n")
@@ -166,7 +164,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--options",
-        help="Comma-separated list of additional options (ci_cd,docker,pre_commit,env_templates,a11y)",
+        help="Comma-separated list of additional options (ci_cd,docker,env_templates)",
     )
 
     args = parser.parse_args()

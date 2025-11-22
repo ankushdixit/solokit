@@ -408,7 +408,6 @@ def install_template(
             "ci_cd": "ci-cd",
             "docker": "docker",
             "env_templates": "env-templates",
-            "a11y": "a11y",
         }
         option_dir = option_dir_map.get(option, option)
         total_files += install_additional_option(

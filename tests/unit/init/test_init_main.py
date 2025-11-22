@@ -100,7 +100,7 @@ class TestMain:
             "--template=saas_t3",
             "--tier=tier-1-essential",
             "--coverage=60",
-            "--options=ci_cd,docker,env_templates,a11y",
+            "--options=ci_cd,docker,env_templates",
         ]
 
         with patch.object(sys, "argv", test_args):
@@ -114,7 +114,6 @@ class TestMain:
                     "ci_cd",
                     "docker",
                     "env_templates",
-                    "a11y",
                 ]
 
     def test_template_choices_validation(self):

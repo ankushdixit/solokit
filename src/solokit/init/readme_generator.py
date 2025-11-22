@@ -147,8 +147,8 @@ If browsers need to be reinstalled:
 npx playwright install --with-deps
 ```
 """
-        # Add A11y testing section if a11y option is enabled
-        if "a11y" in additional_options:
+        # Add Lighthouse CI section for tier-4 (includes accessibility testing)
+        if tier == "tier-4-production":
             readme_content += """
 ### Accessibility Testing
 
@@ -157,9 +157,6 @@ npx playwright install --with-deps
 npm run test:a11y
 ```
 """
-
-        # Add Lighthouse CI section for tier-4
-        if tier == "tier-4-production":
             readme_content += """
 ### Lighthouse CI (Performance Testing)
 
