@@ -123,6 +123,55 @@ npm run lint
 npm run type-check
 ```
 """
+        # Add E2E testing section for tier-3+
+        if tier in ["tier-3-comprehensive", "tier-4-production"]:
+            readme_content += """
+### E2E Testing
+
+Playwright browsers are installed during project setup. To run E2E tests:
+
+```bash
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e -- --ui
+
+# Run specific test file
+npm run test:e2e -- tests/e2e/example.spec.ts
+```
+
+If browsers need to be reinstalled:
+
+```bash
+npx playwright install --with-deps
+```
+"""
+        # Add A11y testing section if a11y option is enabled
+        if "a11y" in additional_options:
+            readme_content += """
+### Accessibility Testing
+
+```bash
+# Run accessibility tests
+npm run test:a11y
+```
+"""
+
+        # Add Lighthouse CI section for tier-4
+        if tier == "tier-4-production":
+            readme_content += """
+### Lighthouse CI (Performance Testing)
+
+Lighthouse CI runs performance, accessibility, best practices, and SEO audits:
+
+```bash
+# Run Lighthouse CI
+npm run lighthouse
+```
+
+This uses Playwright's Chromium browser automatically. Results are uploaded to temporary public storage.
+"""
     else:  # Python
         readme_content += """```bash
 # IMPORTANT: Activate virtual environment first

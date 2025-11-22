@@ -7,7 +7,8 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("Sidebar Component", () => {
-  it("renders sidebar navigation", () => {    const { container } = render(<Sidebar />);
+  it("renders sidebar navigation", () => {
+    const { container } = render(<Sidebar />);
     expect(container.querySelector("aside")).toBeInTheDocument();
   });
 
@@ -94,12 +95,14 @@ describe("Sidebar Component", () => {
     expect(settingsLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("has hidden class for mobile viewports", () => {    const { container } = render(<Sidebar />);
+  it("has hidden class for mobile viewports", () => {
+    const { container } = render(<Sidebar />);
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass("hidden");
   });
 
-  it("has md:flex for desktop viewports", () => {    const { container } = render(<Sidebar />);
+  it("has md:flex for desktop viewports", () => {
+    const { container } = render(<Sidebar />);
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass("md:flex");
   });
@@ -112,12 +115,14 @@ describe("Sidebar Component", () => {
     expect(logoLink).toHaveAttribute("href", "/");
   });
 
-  it("has proper sidebar width", () => {    const { container } = render(<Sidebar />);
+  it("has proper sidebar width", () => {
+    const { container } = render(<Sidebar />);
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass("w-64");
   });
 
-  it("has border on the right", () => {    const { container } = render(<Sidebar />);
+  it("has border on the right", () => {
+    const { container } = render(<Sidebar />);
     const aside = container.querySelector("aside");
     expect(aside).toHaveClass("border-r");
   });

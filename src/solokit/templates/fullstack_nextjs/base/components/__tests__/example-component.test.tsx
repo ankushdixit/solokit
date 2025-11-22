@@ -58,7 +58,8 @@ describe("ExampleComponent", () => {
     expect(screen.getByText(/Count: 1/)).toBeInTheDocument();
   });
 
-  it("has proper styling classes", () => {    const { container } = render(<ExampleComponent />);
+  it("has proper styling classes", () => {
+    const { container } = render(<ExampleComponent />);
     const wrapper = container.querySelector(".flex");
     expect(wrapper).toHaveClass("flex-col");
     expect(wrapper).toHaveClass("items-center");

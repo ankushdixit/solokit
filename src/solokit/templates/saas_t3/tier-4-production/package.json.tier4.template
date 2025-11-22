@@ -32,7 +32,7 @@
     "prepare": "husky install && patch-package",
     "audit": "npm audit --audit-level=moderate",
     "analyze": "ANALYZE=true npm run build",
-    "lighthouse": "lhci autorun",
+    "lighthouse": "CHROME_PATH=$(node -e \"console.log(require('playwright').chromium.executablePath())\") lhci autorun",
     "load-test": "k6 run k6/load-test.js"
   },
   "dependencies": {

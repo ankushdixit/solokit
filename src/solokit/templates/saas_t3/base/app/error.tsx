@@ -12,9 +12,7 @@ export default function Error({
       <div className="w-full max-w-md space-y-4 rounded-xl bg-white/10 p-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold">Something went wrong!</h2>
-          <p className="text-sm text-white/70">
-            {error.message || "An unexpected error occurred"}
-          </p>
+          <p className="text-sm text-white/70">{error.message || "An unexpected error occurred"}</p>
         </div>
         <button
           onClick={reset}

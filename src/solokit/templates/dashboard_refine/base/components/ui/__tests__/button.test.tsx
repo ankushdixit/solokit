@@ -8,7 +8,8 @@ describe("Button Component", () => {
     expect(screen.getByText("Click me")).toBeInTheDocument();
   });
 
-  it("applies default variant", () => {    const { container } = render(<Button>Default</Button>);
+  it("applies default variant", () => {
+    const { container } = render(<Button>Default</Button>);
     const button = container.querySelector("button");
     expect(button).toBeInTheDocument();
   });
@@ -81,7 +82,11 @@ describe("Button Component", () => {
   it("does not trigger click when disabled", async () => {
     const user = userEvent.setup();
     const handleClick = jest.fn();
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
+    render(
+      <Button disabled onClick={handleClick}>
+        Disabled
+      </Button>
+    );
 
     const button = screen.getByText("Disabled");
     await user.click(button);
@@ -89,9 +94,8 @@ describe("Button Component", () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it("applies custom className", () => {    const { container } = render(
-      <Button className="custom-class">Custom</Button>
-    );
+  it("applies custom className", () => {
+    const { container } = render(<Button className="custom-class">Custom</Button>);
     const button = container.querySelector(".custom-class");
     expect(button).toBeInTheDocument();
   });

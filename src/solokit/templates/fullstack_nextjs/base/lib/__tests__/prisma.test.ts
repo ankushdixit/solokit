@@ -16,7 +16,7 @@ describe("Prisma Client", () => {
   afterEach(() => {
     // Restore original NODE_ENV
     if (originalEnv !== undefined) {
-      Object.defineProperty(process.env, 'NODE_ENV', {
+      Object.defineProperty(process.env, "NODE_ENV", {
         value: originalEnv,
         writable: true,
         configurable: true,
@@ -37,7 +37,7 @@ describe("Prisma Client", () => {
   });
 
   it("returns same instance on multiple imports in development", () => {
-    Object.defineProperty(process.env, 'NODE_ENV', {
+    Object.defineProperty(process.env, "NODE_ENV", {
       value: "development",
       writable: true,
       configurable: true,
@@ -72,7 +72,7 @@ describe("Prisma Client", () => {
 describe("Prisma Client Configuration", () => {
   it("should configure logging based on environment", () => {
     // Test development environment
-    Object.defineProperty(process.env, 'NODE_ENV', {
+    Object.defineProperty(process.env, "NODE_ENV", {
       value: "development",
       writable: true,
       configurable: true,
@@ -82,7 +82,7 @@ describe("Prisma Client Configuration", () => {
     expect(devPrisma).toBeDefined();
 
     // Test production environment
-    Object.defineProperty(process.env, 'NODE_ENV', {
+    Object.defineProperty(process.env, "NODE_ENV", {
       value: "production",
       writable: true,
       configurable: true,

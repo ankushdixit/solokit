@@ -46,7 +46,8 @@ describe("Error Component", () => {
     expect(screen.getByText("Error with digest")).toBeInTheDocument();
   });
 
-  it("has centered layout", () => {    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
+  it("has centered layout", () => {
+    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
     const wrapper = container.querySelector("div");
     expect(wrapper).toHaveClass("flex");
     expect(wrapper).toHaveClass("min-h-screen");
@@ -54,7 +55,8 @@ describe("Error Component", () => {
     expect(wrapper).toHaveClass("justify-center");
   });
 
-  it("renders with card styling", () => {    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
+  it("renders with card styling", () => {
+    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
     const card = container.querySelector(".rounded-lg");
     expect(card).toBeInTheDocument();
     expect(card).toHaveClass("border");

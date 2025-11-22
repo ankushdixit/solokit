@@ -29,7 +29,8 @@ describe("ClientRefineWrapper Component", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  it("has centered loading layout", () => {    const { container } = render(
+  it("has centered loading layout", () => {
+    const { container } = render(
       <ClientRefineWrapper>
         <div>Child content</div>
       </ClientRefineWrapper>

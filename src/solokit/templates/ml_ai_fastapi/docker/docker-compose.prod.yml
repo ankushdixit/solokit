@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # FastAPI application with Gunicorn
@@ -80,8 +80,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
     restart: unless-stopped
     networks:
       - app-network

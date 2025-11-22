@@ -9,9 +9,7 @@ describe("DashboardPage Component", () => {
 
   it("renders welcome message", () => {
     render(<DashboardPage />);
-    expect(
-      screen.getByText("Welcome to your admin dashboard")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Welcome to your admin dashboard")).toBeInTheDocument();
   });
 
   it("renders Total Users stat card", () => {
@@ -56,7 +54,8 @@ describe("DashboardPage Component", () => {
     expect(trendIndicators).toHaveLength(4);
   });
 
-  it("has grid layout for stat cards", () => {    const { container } = render(<DashboardPage />);
+  it("has grid layout for stat cards", () => {
+    const { container } = render(<DashboardPage />);
     const grid = container.querySelector(".grid");
     expect(grid).toBeInTheDocument();
   });
@@ -67,7 +66,8 @@ describe("DashboardPage Component", () => {
     expect(heading.tagName).toBe("H1");
   });
 
-  it("has proper spacing between sections", () => {    const { container } = render(<DashboardPage />);
+  it("has proper spacing between sections", () => {
+    const { container } = render(<DashboardPage />);
     const wrapper = container.querySelector(".space-y-6");
     expect(wrapper).toBeInTheDocument();
   });

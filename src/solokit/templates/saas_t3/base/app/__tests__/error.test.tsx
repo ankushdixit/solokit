@@ -46,7 +46,8 @@ describe("Error Component", () => {
     expect(screen.getByText("Error with digest")).toBeInTheDocument();
   });
 
-  it("has centered layout", () => {    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
+  it("has centered layout", () => {
+    const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
     const wrapper = container.querySelector("div");
     expect(wrapper).toHaveClass("flex");
     expect(wrapper).toHaveClass("min-h-screen");

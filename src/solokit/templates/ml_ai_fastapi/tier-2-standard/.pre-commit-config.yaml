@@ -10,7 +10,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ["--maxkb=1000"]
       - id: check-json
       - id: check-toml
       - id: check-merge-conflict
@@ -32,7 +32,7 @@ repos:
     rev: 1.8.0
     hooks:
       - id: bandit
-        args: ['-c', '.bandit', '-r', 'src']
+        args: ["-c", ".bandit", "-r", "src"]
         exclude: ^tests/
 
   # detect-secrets - Find secrets in code
@@ -40,7 +40,7 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+        args: ["--baseline", ".secrets.baseline"]
         exclude: package.lock.json
 
   # pyright - Type checker (optional, can be slow)

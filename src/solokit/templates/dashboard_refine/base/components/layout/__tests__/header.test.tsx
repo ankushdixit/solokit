@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { Header } from "../header";
 
 describe("Header Component", () => {
-  it("renders the header element", () => {    const { container } = render(<Header />);
+  it("renders the header element", () => {
+    const { container } = render(<Header />);
     expect(container.querySelector("header")).toBeInTheDocument();
   });
 
@@ -43,17 +44,20 @@ describe("Header Component", () => {
     expect(searchInput).toHaveAttribute("type", "search");
   });
 
-  it("has sticky positioning class", () => {    const { container } = render(<Header />);
+  it("has sticky positioning class", () => {
+    const { container } = render(<Header />);
     const header = container.querySelector("header");
     expect(header).toHaveClass("sticky");
   });
 
-  it("has proper z-index for layering", () => {    const { container } = render(<Header />);
+  it("has proper z-index for layering", () => {
+    const { container } = render(<Header />);
     const header = container.querySelector("header");
     expect(header).toHaveClass("z-50");
   });
 
-  it("renders with border bottom", () => {    const { container } = render(<Header />);
+  it("renders with border bottom", () => {
+    const { container } = render(<Header />);
     const header = container.querySelector("header");
     expect(header).toHaveClass("border-b");
   });

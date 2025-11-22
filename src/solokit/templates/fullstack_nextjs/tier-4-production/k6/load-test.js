@@ -35,10 +35,7 @@ export default function () {
 
   // Optional: Test additional routes if available
   // This will gracefully handle 404s for routes that don't exist
-  const additionalRoutes = [
-    "/dashboard",
-    "/api/health",
-  ];
+  const additionalRoutes = ["/dashboard", "/api/health"];
 
   for (const route of additionalRoutes) {
     const res = http.get(`${BASE_URL}${route}`, {

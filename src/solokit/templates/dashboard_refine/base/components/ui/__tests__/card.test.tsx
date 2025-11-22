@@ -1,12 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "../card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../card";
 
 describe("Card Components", () => {
   describe("Card", () => {
@@ -19,9 +12,8 @@ describe("Card Components", () => {
       expect(screen.getByText("Card content")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <Card className="custom-card">Content</Card>
-      );
+    it("applies custom className", () => {
+      const { container } = render(<Card className="custom-card">Content</Card>);
       const card = container.querySelector(".custom-card");
       expect(card).toBeInTheDocument();
     });
@@ -43,9 +35,8 @@ describe("Card Components", () => {
       expect(screen.getByText("Header content")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <CardHeader className="custom-header">Header</CardHeader>
-      );
+    it("applies custom className", () => {
+      const { container } = render(<CardHeader className="custom-header">Header</CardHeader>);
       const header = container.querySelector(".custom-header");
       expect(header).toBeInTheDocument();
     });
@@ -63,15 +54,15 @@ describe("Card Components", () => {
       expect(screen.getByText("Title Text")).toBeInTheDocument();
     });
 
-    it("renders as h2 element", () => {      const { container } = render(<CardTitle>Title</CardTitle>);
+    it("renders as h2 element", () => {
+      const { container } = render(<CardTitle>Title</CardTitle>);
       const h2 = container.querySelector("h2");
       expect(h2).toBeInTheDocument();
       expect(h2).toHaveTextContent("Title");
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <CardTitle className="custom-title">Title</CardTitle>
-      );
+    it("applies custom className", () => {
+      const { container } = render(<CardTitle className="custom-title">Title</CardTitle>);
       const title = container.querySelector(".custom-title");
       expect(title).toBeInTheDocument();
     });
@@ -89,18 +80,16 @@ describe("Card Components", () => {
       expect(screen.getByText("Description text")).toBeInTheDocument();
     });
 
-    it("renders as p element", () => {      const { container } = render(
-        <CardDescription>Description</CardDescription>
-      );
+    it("renders as p element", () => {
+      const { container } = render(<CardDescription>Description</CardDescription>);
       const p = container.querySelector("p");
       expect(p).toBeInTheDocument();
       expect(p).toHaveTextContent("Description");
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <CardDescription className="custom-description">
-          Description
-        </CardDescription>
+    it("applies custom className", () => {
+      const { container } = render(
+        <CardDescription className="custom-description">Description</CardDescription>
       );
       const description = container.querySelector(".custom-description");
       expect(description).toBeInTheDocument();
@@ -123,9 +112,8 @@ describe("Card Components", () => {
       expect(screen.getByText("Content text")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <CardContent className="custom-content">Content</CardContent>
-      );
+    it("applies custom className", () => {
+      const { container } = render(<CardContent className="custom-content">Content</CardContent>);
       const content = container.querySelector(".custom-content");
       expect(content).toBeInTheDocument();
     });
@@ -147,9 +135,8 @@ describe("Card Components", () => {
       expect(screen.getByText("Footer text")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
-        <CardFooter className="custom-footer">Footer</CardFooter>
-      );
+    it("applies custom className", () => {
+      const { container } = render(<CardFooter className="custom-footer">Footer</CardFooter>);
       const footer = container.querySelector(".custom-footer");
       expect(footer).toBeInTheDocument();
     });

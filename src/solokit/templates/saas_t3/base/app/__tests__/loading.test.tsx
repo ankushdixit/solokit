@@ -7,7 +7,8 @@ describe("Loading Component", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  it("renders spinner element", () => {    const { container } = render(<Loading />);
+  it("renders spinner element", () => {
+    const { container } = render(<Loading />);
     const spinner = container.querySelector(".animate-spin");
     expect(spinner).toBeInTheDocument();
   });

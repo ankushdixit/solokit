@@ -12,7 +12,8 @@ import {
 
 describe("Table Components", () => {
   describe("Table", () => {
-    it("renders table element", () => {      const { container } = render(
+    it("renders table element", () => {
+      const { container } = render(
         <Table>
           <tbody>
             <tr>
@@ -24,7 +25,8 @@ describe("Table Components", () => {
       expect(container.querySelector("table")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <Table className="custom-table">
           <tbody>
             <tr>
@@ -37,7 +39,8 @@ describe("Table Components", () => {
       expect(table).toBeInTheDocument();
     });
 
-    it("wraps table in scrollable div", () => {      const { container } = render(
+    it("wraps table in scrollable div", () => {
+      const { container } = render(
         <Table>
           <tbody>
             <tr>
@@ -66,7 +69,8 @@ describe("Table Components", () => {
   });
 
   describe("TableHeader", () => {
-    it("renders thead element", () => {      const { container } = render(
+    it("renders thead element", () => {
+      const { container } = render(
         <table>
           <TableHeader>
             <tr>
@@ -78,7 +82,8 @@ describe("Table Components", () => {
       expect(container.querySelector("thead")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <TableHeader className="custom-header">
             <tr>
@@ -93,7 +98,8 @@ describe("Table Components", () => {
   });
 
   describe("TableBody", () => {
-    it("renders tbody element", () => {      const { container } = render(
+    it("renders tbody element", () => {
+      const { container } = render(
         <table>
           <TableBody>
             <tr>
@@ -105,7 +111,8 @@ describe("Table Components", () => {
       expect(container.querySelector("tbody")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <TableBody className="custom-body">
             <tr>
@@ -120,7 +127,8 @@ describe("Table Components", () => {
   });
 
   describe("TableFooter", () => {
-    it("renders tfoot element", () => {      const { container } = render(
+    it("renders tfoot element", () => {
+      const { container } = render(
         <table>
           <TableFooter>
             <tr>
@@ -132,7 +140,8 @@ describe("Table Components", () => {
       expect(container.querySelector("tfoot")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <TableFooter className="custom-footer">
             <tr>
@@ -147,7 +156,8 @@ describe("Table Components", () => {
   });
 
   describe("TableRow", () => {
-    it("renders tr element", () => {      const { container } = render(
+    it("renders tr element", () => {
+      const { container } = render(
         <table>
           <tbody>
             <TableRow>
@@ -159,7 +169,8 @@ describe("Table Components", () => {
       expect(container.querySelector("tr")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <tbody>
             <TableRow className="custom-row">
@@ -188,7 +199,8 @@ describe("Table Components", () => {
   });
 
   describe("TableHead", () => {
-    it("renders th element", () => {      const { container } = render(
+    it("renders th element", () => {
+      const { container } = render(
         <table>
           <thead>
             <tr>
@@ -213,7 +225,8 @@ describe("Table Components", () => {
       expect(screen.getByText("Column Header")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <thead>
             <tr>
@@ -242,7 +255,8 @@ describe("Table Components", () => {
   });
 
   describe("TableCell", () => {
-    it("renders td element", () => {      const { container } = render(
+    it("renders td element", () => {
+      const { container } = render(
         <table>
           <tbody>
             <tr>
@@ -267,7 +281,8 @@ describe("Table Components", () => {
       expect(screen.getByText("Cell Content")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <tbody>
             <tr>
@@ -296,7 +311,8 @@ describe("Table Components", () => {
   });
 
   describe("TableCaption", () => {
-    it("renders caption element", () => {      const { container } = render(
+    it("renders caption element", () => {
+      const { container } = render(
         <table>
           <TableCaption>Table Caption</TableCaption>
           <tbody>
@@ -323,7 +339,8 @@ describe("Table Components", () => {
       expect(screen.getByText("User List")).toBeInTheDocument();
     });
 
-    it("applies custom className", () => {      const { container } = render(
+    it("applies custom className", () => {
+      const { container } = render(
         <table>
           <TableCaption className="custom-caption">Caption</TableCaption>
           <tbody>

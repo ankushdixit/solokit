@@ -52,8 +52,18 @@ describe("GET /api/example", () => {
 
   it("returns success message and users", async () => {
     const mockUsers = [
-      { id: 1, name: "John Doe", email: "john@example.com", createdAt: new Date().toISOString() },
-      { id: 2, name: "Jane Smith", email: "jane@example.com", createdAt: new Date().toISOString() },
+      {
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        name: "Jane Smith",
+        email: "jane@example.com",
+        createdAt: new Date().toISOString(),
+      },
     ];
 
     const { prisma } = require("@/lib/prisma");
@@ -237,7 +247,7 @@ describe("POST /api/example", () => {
     const { prisma } = require("@/lib/prisma");
     // Simulate a generic error (not ZodError, not database error)
     const genericError = new Error("Unexpected error");
-    Object.defineProperty(genericError, 'name', { value: 'Error' });
+    Object.defineProperty(genericError, "name", { value: "Error" });
 
     prisma.user.create.mockRejectedValue(genericError);
 

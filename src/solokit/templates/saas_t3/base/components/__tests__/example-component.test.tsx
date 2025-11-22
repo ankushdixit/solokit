@@ -66,7 +66,9 @@ describe("ExampleComponent", () => {
 
     render(<ExampleComponent />);
 
-    expect(api.example.hello.useQuery).toHaveBeenCalledWith({ text: "from tRPC" });
+    expect(api.example.hello.useQuery).toHaveBeenCalledWith({
+      text: "from tRPC",
+    });
   });
 
   it("displays description text", () => {
@@ -76,7 +78,8 @@ describe("ExampleComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("has proper styling classes", () => {    const { container } = render(<ExampleComponent />);
+  it("has proper styling classes", () => {
+    const { container } = render(<ExampleComponent />);
     const wrapper = container.querySelector(".flex");
     expect(wrapper).toHaveClass("flex-col");
     expect(wrapper).toHaveClass("items-center");

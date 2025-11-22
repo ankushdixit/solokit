@@ -6,12 +6,16 @@ jest.mock("@tanstack/react-query", () => ({
   QueryClient: jest.fn().mockImplementation(() => ({
     defaultOptions: {},
   })),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="query-provider">{children}</div>,
+  QueryClientProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="query-provider">{children}</div>
+  ),
 }));
 
 jest.mock("@trpc/react-query", () => ({
   createTRPCReact: jest.fn(() => ({
-    Provider: ({ children }: { children: React.ReactNode }) => <div data-testid="trpc-provider">{children}</div>,
+    Provider: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="trpc-provider">{children}</div>
+    ),
     createClient: jest.fn(() => ({})),
   })),
 }));
@@ -196,7 +200,10 @@ describe("tRPC Client Configuration", () => {
     const loggerConfig = loggerLink.mock.calls[loggerLink.mock.calls.length - 1][0];
 
     // Test that logger is enabled for error responses
-    const mockErrorOp = { direction: "down" as const, result: new Error("test") };
+    const mockErrorOp = {
+      direction: "down" as const,
+      result: new Error("test"),
+    };
     const isEnabled = loggerConfig.enabled(mockErrorOp);
     expect(typeof isEnabled).toBe("boolean");
   });

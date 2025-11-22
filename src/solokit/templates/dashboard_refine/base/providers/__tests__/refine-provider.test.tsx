@@ -20,7 +20,12 @@ jest.mock("@refinedev/core", () => ({
       <div data-testid="refine-mock">
         {children}
         <div data-testid="refine-props">
-          {JSON.stringify({ hasDataProvider: !!dataProvider, hasRouterProvider: !!routerProvider, resourceCount: resources?.length, hasOptions: !!options })}
+          {JSON.stringify({
+            hasDataProvider: !!dataProvider,
+            hasRouterProvider: !!routerProvider,
+            resourceCount: resources?.length,
+            hasOptions: !!options,
+          })}
         </div>
       </div>
     );

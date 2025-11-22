@@ -165,6 +165,62 @@ def install_npm_dependencies(
 
         logger.info(f"✓ Installed {command_key}")
 
+    # Install Playwright browsers for tier-3+ (required for E2E tests)
+    if tier in ["tier-3-comprehensive", "tier-4-production"]:
+        import os
+        import platform
+
+        if os.environ.get("PLAYWRIGHT_BROWSERS_PATH"):
+            # Browsers pre-installed globally (e.g., in CI environment)
+            logger.info("✓ Using pre-installed Playwright browsers")
+        else:
+            is_linux = platform.system() == "Linux"
+
+            if is_linux:
+                # On Linux, we need system dependencies for browsers to launch
+                # First fix the common apt_pkg Python module issue on Ubuntu
+                logger.info("Installing Playwright system dependencies (Linux)...")
+
+                # Fix apt_pkg module issue (common on Ubuntu 22.04 with Python version mismatch)
+                # This creates a symlink so apt_pkg works with the current Python version
+                fix_apt_pkg_cmd = (
+                    "sudo apt-get install -y python3-apt > /dev/null 2>&1; "
+                    "cd /usr/lib/python3/dist-packages && "
+                    "sudo ln -sf apt_pkg.cpython-*-x86_64-linux-gnu.so apt_pkg.so 2>/dev/null; "
+                    "cd -"
+                )
+                runner.run(["bash", "-c", fix_apt_pkg_cmd], check=False, timeout=60)
+
+                # Now run playwright install-deps (the official way to install system deps)
+                deps_result = runner.run(
+                    ["sudo", "npx", "playwright", "install-deps"],
+                    check=False,
+                    timeout=300,
+                )
+                if deps_result.success:
+                    logger.info("✓ Playwright system dependencies installed")
+                else:
+                    logger.warning("Could not install system dependencies (may need sudo)")
+                    logger.debug(f"install-deps error: {deps_result.stderr}")
+
+            logger.info("Installing Playwright browsers (required for E2E tests)...")
+            logger.info("This may take a few minutes on first run...")
+
+            browser_result = runner.run(
+                ["npx", "playwright", "install"],
+                check=False,
+                timeout=300,  # 5 minutes for browser download
+            )
+
+            if browser_result.success:
+                logger.info("✓ Playwright browsers installed")
+            else:
+                # Non-critical - warn but don't fail
+                logger.warning("Playwright browser installation failed")
+                logger.warning("Run 'npx playwright install' manually before E2E tests")
+                if browser_result.stderr:
+                    logger.debug(f"Playwright install error: {browser_result.stderr}")
+
     logger.info("✅ All npm dependencies installed successfully")
     return True
 

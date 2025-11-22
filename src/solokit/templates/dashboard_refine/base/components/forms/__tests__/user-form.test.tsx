@@ -39,7 +39,7 @@ describe("UserForm Component", () => {
 
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalled();
-    expect(mockOnSubmit.mock.calls[0][0]).toEqual({
+      expect(mockOnSubmit.mock.calls[0][0]).toEqual({
         name: "John Doe",
         email: "john@example.com",
       });
@@ -55,9 +55,7 @@ describe("UserForm Component", () => {
     await user.click(screen.getByRole("button", { name: /submit/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Name must be at least 2 characters")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Name must be at least 2 characters")).toBeInTheDocument();
     });
 
     expect(mockOnSubmit).not.toHaveBeenCalled();
@@ -116,9 +114,7 @@ describe("UserForm Component", () => {
     await user.click(screen.getByRole("button", { name: /submit/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Name must be less than 100 characters")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Name must be less than 100 characters")).toBeInTheDocument();
     });
 
     expect(mockOnSubmit).not.toHaveBeenCalled();
@@ -165,7 +161,7 @@ describe("UserForm Component", () => {
 
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalled();
-    expect(mockOnSubmit.mock.calls[0][0]).toEqual({
+      expect(mockOnSubmit.mock.calls[0][0]).toEqual({
         name: "Jane Smith",
         email: "jane@example.com",
       });
@@ -174,9 +170,7 @@ describe("UserForm Component", () => {
 
   it("handles async onSubmit", async () => {
     const user = userEvent.setup();
-    const asyncOnSubmit = jest
-      .fn()
-      .mockResolvedValue(Promise.resolve());
+    const asyncOnSubmit = jest.fn().mockResolvedValue(Promise.resolve());
 
     render(<UserForm onSubmit={asyncOnSubmit} />);
 
@@ -186,7 +180,7 @@ describe("UserForm Component", () => {
 
     await waitFor(() => {
       expect(asyncOnSubmit).toHaveBeenCalled();
-    expect(asyncOnSubmit.mock.calls[0][0]).toEqual({
+      expect(asyncOnSubmit.mock.calls[0][0]).toEqual({
         name: "John Doe",
         email: "john@example.com",
       });

@@ -37,7 +37,10 @@ describe("Example Router", () => {
 
   // Helper to create test context with mocked db
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createTestContext = () => ({ db: mockDb as any, headers: new Headers() });
+  const createTestContext = () => ({
+    db: mockDb as any,
+    headers: new Headers(),
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,25 +127,19 @@ describe("Example Router", () => {
     it("validates name is required", async () => {
       const caller = createCaller(createTestContext());
 
-      await expect(
-        caller.create({ name: "", email: "test@example.com" })
-      ).rejects.toThrow();
+      await expect(caller.create({ name: "", email: "test@example.com" })).rejects.toThrow();
     });
 
     it("validates email format", async () => {
       const caller = createCaller(createTestContext());
 
-      await expect(
-        caller.create({ name: "Test", email: "invalid-email" })
-      ).rejects.toThrow();
+      await expect(caller.create({ name: "Test", email: "invalid-email" })).rejects.toThrow();
     });
 
     it("validates name minimum length", async () => {
       const caller = createCaller(createTestContext());
 
-      await expect(
-        caller.create({ name: "", email: "test@example.com" })
-      ).rejects.toThrow();
+      await expect(caller.create({ name: "", email: "test@example.com" })).rejects.toThrow();
     });
 
     it("handles database errors", async () => {
@@ -150,17 +147,27 @@ describe("Example Router", () => {
 
       const caller = createCaller(createTestContext());
 
-      await expect(
-        caller.create({ name: "Test", email: "test@example.com" })
-      ).rejects.toThrow("Database error");
+      await expect(caller.create({ name: "Test", email: "test@example.com" })).rejects.toThrow(
+        "Database error"
+      );
     });
   });
 
   describe("getAll procedure", () => {
     it("returns all users from database", async () => {
       const mockUsers = [
-        { id: 1, name: "John Doe", email: "john@example.com", createdAt: new Date() },
-        { id: 2, name: "Jane Smith", email: "jane@example.com", createdAt: new Date() },
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john@example.com",
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          name: "Jane Smith",
+          email: "jane@example.com",
+          createdAt: new Date(),
+        },
       ];
 
       (mockDb.user.findMany as unknown as jest.Mock).mockResolvedValue(mockUsers);

@@ -105,7 +105,8 @@ describe("UsersPage Component", () => {
     expect(heading.tagName).toBe("H1");
   });
 
-  it("has proper layout spacing", () => {    const { container } = render(<UsersPage />);
+  it("has proper layout spacing", () => {
+    const { container } = render(<UsersPage />);
     const wrapper = container.querySelector(".space-y-6");
     expect(wrapper).toBeInTheDocument();
   });

@@ -41,13 +41,27 @@ export default [
   },
   {
     ignores: [
+      // Dependencies
       "node_modules/**",
+      // Build outputs
       ".next/**",
       "out/**",
       "dist/**",
       "build/**",
-      ".session/**",
+      // Reports and coverage
+      "report/**",
+      "reports/**",
       "coverage/**",
+      ".stryker-tmp/**",
+      // Test artifacts
+      "playwright-report/**",
+      "test-results/**",
+      // Session data
+      ".session/**",
+      // Environment files (not JS, but good to exclude)
+      ".env",
+      ".env.local",
+      ".env.*.local",
     ],
   },
 ];

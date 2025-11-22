@@ -16,7 +16,10 @@ import { z } from "zod";
  * Used for user creation and update forms
  */
 export const userSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters"),
   email: z.string().email("Invalid email address"),
 });
 

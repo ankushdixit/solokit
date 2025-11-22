@@ -33,7 +33,8 @@ describe("Home Page", () => {
       createdAt: new Date(),
     });
 
-    const element = await Home();    const { container } = render(element);
+    const element = await Home();
+    const { container } = render(element);
 
     expect(container.textContent).toContain("Full-Stack");
     expect(container.textContent).toContain("Next.js");

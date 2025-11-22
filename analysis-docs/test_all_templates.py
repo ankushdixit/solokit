@@ -35,19 +35,19 @@ import argparse
 import json
 import multiprocessing
 import os
-import re
 import shlex
-import signal
 import shutil
+import signal
 import subprocess
 import sys
 import time
-import yaml
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from itertools import combinations
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Optional
+
+import yaml
 
 # Global flag for interrupt handling
 _interrupted = False
@@ -79,7 +79,7 @@ class TestCase:
     id: str
     stack: str
     tier: str
-    options: List[str]
+    options: list[str]
     phase: int
     description: str
 
@@ -90,12 +90,12 @@ class TestResult:
     test_id: str
     stack: str
     tier: str
-    options: List[str]
+    options: list[str]
     success: bool
     duration_seconds: float
-    errors: List[str]
-    warnings: List[str]
-    steps_completed: List[str]
+    errors: list[str]
+    warnings: list[str]
+    steps_completed: list[str]
     timestamp: str
     project_path: Optional[str] = None
 
@@ -111,7 +111,7 @@ class TemplateTestRunner:
         self.use_validate_fix = use_validate_fix
         self.run_ci_checks = run_ci_checks
         self.worker_id = worker_id
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
 
         # Assign port range for this worker (each worker gets 1 port)
         # Worker 0: port 3000, Worker 1: port 3001, etc.
@@ -145,7 +145,7 @@ class TemplateTestRunner:
                 time.sleep(0.1)
 
                 # Use subprocess with rm -rf which handles macOS quirks better
-                result = subprocess.run(
+                subprocess.run(
                     ["rm", "-rf", str(path)],
                     capture_output=True,
                     text=True,
@@ -199,7 +199,7 @@ class TemplateTestRunner:
             steps_completed.append("create_directory")
 
             # Step 2: Initialize project
-            print(f"\n→ Initializing project...")
+            print("\n→ Initializing project...")
             init_success, init_errors = self._init_project(
                 project_path, test_case.stack, test_case.tier, test_case.options
             )
@@ -208,27 +208,27 @@ class TemplateTestRunner:
                 errors.extend(init_errors)
                 raise Exception(f"Initialization failed: {init_errors}")
 
-            print(f"✓ Project initialized successfully")
+            print("✓ Project initialized successfully")
             steps_completed.append("initialize")
 
             # Step 3: Verify installation
-            print(f"\n→ Verifying installation...")
+            print("\n→ Verifying installation...")
             verify_success, verify_errors = self._verify_installation(project_path, test_case)
 
             if not verify_success:
                 errors.extend(verify_errors)
                 warnings.append(f"Installation verification had issues: {verify_errors}")
             else:
-                print(f"✓ Installation verified")
+                print("✓ Installation verified")
                 steps_completed.append("verify_installation")
 
             # NOTE: Dependency installation is handled by sk init (no separate step needed)
             # sk init already runs the proper tier-specific installation from stack-versions.yaml
-            print(f"✓ Dependencies installed by sk init")
+            print("✓ Dependencies installed by sk init")
             steps_completed.append("install_dependencies")
 
             # Step 4: Create work item
-            print(f"\n→ Creating work item...")
+            print("\n→ Creating work item...")
             work_item_id, work_errors = self._create_work_item(project_path)
 
             if not work_item_id:
@@ -239,93 +239,97 @@ class TemplateTestRunner:
             steps_completed.append("create_work_item")
 
             # Step 6: Start session
-            print(f"\n→ Starting session...")
+            print("\n→ Starting session...")
             start_success, start_errors = self._start_session(project_path, work_item_id)
 
             if not start_success:
                 errors.extend(start_errors)
                 raise Exception(f"Session start failed: {start_errors}")
 
-            print(f"✓ Session started")
+            print("✓ Session started")
             steps_completed.append("start_session")
 
             # Step 7: Create sample code and tests
-            print(f"\n→ Creating sample code and tests...")
+            print("\n→ Creating sample code and tests...")
             code_success, code_errors = self._create_sample_code(project_path, test_case.stack)
 
             if not code_success:
                 errors.extend(code_errors)
                 warnings.append(f"Code creation had issues: {code_errors}")
             else:
-                print(f"✓ Sample code created")
+                print("✓ Sample code created")
                 steps_completed.append("create_code")
 
             # Step 7.5: Update CHANGELOG (required for --complete mode)
             if not self.use_incomplete:
-                print(f"\n→ Updating CHANGELOG...")
+                print("\n→ Updating CHANGELOG...")
                 changelog_success = self._update_changelog(project_path)
                 if changelog_success:
-                    print(f"✓ CHANGELOG updated")
+                    print("✓ CHANGELOG updated")
                     steps_completed.append("update_changelog")
 
             # Step 8: Run quality checks (validate session)
-            print(f"\n→ Validating session...")
+            print("\n→ Validating session...")
             validate_success, validate_errors = self._validate_session(project_path)
 
             if not validate_success:
                 errors.extend(validate_errors)
                 warnings.append(f"Validation had issues: {validate_errors}")
             else:
-                print(f"✓ Session validated")
+                print("✓ Session validated")
                 steps_completed.append("validate_session")
 
             # Step 8.5: Commit changes (ALWAYS required, even for --incomplete mode)
             # Note: sk end --incomplete still requires commits, it only skips quality gates
-            print(f"\n→ Committing changes...")
+            print("\n→ Committing changes...")
             commit_success, commit_errors = self._commit_changes(project_path)
 
             if not commit_success:
                 errors.extend(commit_errors)
                 warnings.append(f"Commit had issues: {commit_errors}")
             else:
-                print(f"✓ Changes committed")
+                print("✓ Changes committed")
                 steps_completed.append("commit_changes")
 
             # Step 9: End session
-            print(f"\n→ Ending session...")
+            print("\n→ Ending session...")
             end_success, end_errors = self._end_session(project_path)
 
             if not end_success:
                 errors.extend(end_errors)
                 raise Exception(f"Session end failed: {end_errors}")
 
-            print(f"✓ Session ended")
+            print("✓ Session ended")
             steps_completed.append("end_session")
 
             # Step 10: Setup and push to remote repo (using local bare repo for testing)
-            print(f"\n→ Setting up remote and pushing...")
+            print("\n→ Setting up remote and pushing...")
             push_success, push_errors = self._push_to_remote(project_path, test_case.id)
 
             if not push_success:
                 errors.extend(push_errors)
                 warnings.append(f"Remote push had issues: {push_errors}")
             else:
-                print(f"✓ Pushed to remote")
+                print("✓ Pushed to remote")
                 steps_completed.append("push_to_remote")
 
             # Step 11: Run CI/CD checks (optional, mimics GitHub Actions)
-            # Note: CI/CD workflows only exist if ci_cd option was selected
+            # Note: CI/CD workflows only exist if ci_cd option was selected, but lighthouse.yml
+            # is installed directly from tier-4-production (no ci_cd option needed)
             if self.run_ci_checks:
-                print(f"\n→ Running CI/CD checks (GitHub Actions simulation)...")
+                print("\n→ Running CI/CD checks (GitHub Actions simulation)...")
 
                 # Check if ci_cd option was used
                 has_ci_cd_option = "ci_cd" in test_case.options
+                has_lighthouse = test_case.tier == "tier-4-production" and test_case.stack != "ml_ai_fastapi"
 
                 if has_ci_cd_option:
-                    print(f"  ℹ CI/CD workflows installed (ci_cd option selected)")
+                    print("  ℹ CI/CD workflows installed (ci_cd option selected)")
+                elif has_lighthouse:
+                    print("  ℹ CI/CD workflows NOT installed, but Lighthouse CI available (tier-4)")
                 else:
-                    print(f"  ℹ CI/CD workflows NOT installed (ci_cd option not selected)")
-                    print(f"  → Running basic checks only (lint, type-check, format, test, build)")
+                    print("  ℹ CI/CD workflows NOT installed (ci_cd option not selected)")
+                    print("  → Running basic checks only (lint, type-check, format, test, build)")
 
                 ci_success, ci_errors = self._run_ci_checks(
                     project_path, test_case.stack, test_case.tier, has_ci_cd_option, test_case.options
@@ -336,7 +340,7 @@ class TemplateTestRunner:
                     # CI checks are critical - fail the test if they fail
                     raise Exception(f"CI/CD checks failed: {ci_errors}")
                 else:
-                    print(f"✓ CI/CD checks passed")
+                    print("✓ CI/CD checks passed")
                     steps_completed.append("ci_checks")
 
             # If we got here, the test succeeded
@@ -374,18 +378,18 @@ class TemplateTestRunner:
 
             # Cleanup if requested and test passed
             if self.cleanup and success and project_path and project_path.exists():
-                print(f"\n→ Cleaning up test directory...")
+                print("\n→ Cleaning up test directory...")
                 cleanup_success = self._cleanup_directory_macos(project_path)
                 if cleanup_success:
-                    print(f"✓ Cleaned up")
+                    print("✓ Cleaned up")
                 else:
-                    print(f"⚠ Cleanup incomplete - some files may remain")
+                    print("⚠ Cleanup incomplete - some files may remain")
             elif not success:
                 print(f"\n⚠ Keeping failed test directory for inspection: {project_path}")
 
             return result
 
-    def _run_command(self, cmd: List[str], cwd: Path, timeout: int = 300, env: Optional[Dict[str, str]] = None) -> tuple[bool, str, str]:
+    def _run_command(self, cmd: list[str], cwd: Path, timeout: int = 300, env: Optional[dict[str, str]] = None) -> tuple[bool, str, str]:
         """Run a shell command and return success status and output"""
         try:
             # Merge custom env with current environment
@@ -408,7 +412,7 @@ class TemplateTestRunner:
         except Exception as e:
             return False, "", str(e)
 
-    def _init_project(self, project_path: Path, stack: str, tier: str, options: List[str]) -> tuple[bool, List[str]]:
+    def _init_project(self, project_path: Path, stack: str, tier: str, options: list[str]) -> tuple[bool, list[str]]:
         """Initialize a solokit project"""
         errors = []
 
@@ -437,7 +441,7 @@ class TemplateTestRunner:
 
         return len(errors) == 0, errors
 
-    def _verify_installation(self, project_path: Path, test_case: TestCase) -> tuple[bool, List[str]]:
+    def _verify_installation(self, project_path: Path, test_case: TestCase) -> tuple[bool, list[str]]:
         """Verify that all expected files are installed"""
         errors = []
 
@@ -495,7 +499,7 @@ class TemplateTestRunner:
     #     # Missing tier-specific packages (radon, vulture, bandit for tier-3+)
     #     pass
 
-    def _create_work_item(self, project_path: Path) -> tuple[Optional[str], List[str]]:
+    def _create_work_item(self, project_path: Path) -> tuple[Optional[str], list[str]]:
         """Create a work item for testing"""
         errors = []
 
@@ -577,7 +581,7 @@ Unit tests with coverage reporting to validate the test infrastructure is proper
 
         return work_item_id, errors
 
-    def _start_session(self, project_path: Path, work_item_id: str) -> tuple[bool, List[str]]:
+    def _start_session(self, project_path: Path, work_item_id: str) -> tuple[bool, list[str]]:
         """Start a development session"""
         errors = []
 
@@ -592,7 +596,7 @@ Unit tests with coverage reporting to validate the test infrastructure is proper
 
         return len(errors) == 0, errors
 
-    def _create_sample_code(self, project_path: Path, stack: str) -> tuple[bool, List[str]]:
+    def _create_sample_code(self, project_path: Path, stack: str) -> tuple[bool, list[str]]:
         """Create sample code and tests"""
         errors = []
 
@@ -665,7 +669,7 @@ describe('add', () => {
 
         return len(errors) == 0, errors
 
-    def _validate_session(self, project_path: Path) -> tuple[bool, List[str]]:
+    def _validate_session(self, project_path: Path) -> tuple[bool, list[str]]:
         """Validate the development session (with optional auto-fix)"""
         errors = []
 
@@ -722,7 +726,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         except Exception:
             return False
 
-    def _commit_changes(self, project_path: Path) -> tuple[bool, List[str]]:
+    def _commit_changes(self, project_path: Path) -> tuple[bool, list[str]]:
         """Commit all changes (required for --complete mode)"""
         errors = []
 
@@ -751,7 +755,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return True, errors
 
-    def _end_session(self, project_path: Path) -> tuple[bool, List[str]]:
+    def _end_session(self, project_path: Path) -> tuple[bool, list[str]]:
         """End the development session"""
         errors = []
 
@@ -768,7 +772,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return len(errors) == 0, errors
 
-    def _push_to_remote(self, project_path: Path, test_id: str) -> tuple[bool, List[str]]:
+    def _push_to_remote(self, project_path: Path, test_id: str) -> tuple[bool, list[str]]:
         """Setup a test remote and push changes"""
         errors = []
 
@@ -850,7 +854,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
         # Default: assume condition passes
         return True
 
-    def _parse_workflow_commands(self, workflow_path: Path, stack: str, project_path: Path = None) -> tuple[List[tuple[List[str], str, bool]], List[str]]:
+    def _parse_workflow_commands(self, workflow_path: Path, stack: str, project_path: Path = None) -> tuple[list[tuple[list[str], str, bool]], list[str]]:
         """
         Parse a GitHub Actions workflow file and extract commands to run.
 
@@ -869,7 +873,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         try:
             # Read workflow file and handle template variables
-            with open(workflow_path, 'r') as f:
+            with open(workflow_path) as f:
                 content = f.read()
 
             # Replace common template variables with defaults
@@ -899,8 +903,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
                             continue
 
                     # Skip setup, installation, and upload steps
+                    # Note: 'install playwright' removed - browsers now installed by sk init
                     skip_keywords = [
-                        'checkout', 'setup', 'install dependencies', 'install playwright',
+                        'checkout', 'setup', 'install dependencies',
                         'upload', 'show mutation results',
                         'prisma migrate', 'set up python', 'check if'
                     ]
@@ -930,7 +935,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return commands, pip_packages
 
-    def _extract_pip_packages(self, run_cmd: str) -> List[str]:
+    def _extract_pip_packages(self, run_cmd: str) -> list[str]:
         """
         Extract pip package names from pip install commands in a run block.
 
@@ -958,7 +963,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return packages
 
-    def _parse_command_string(self, run_cmd: str, stack: str) -> Optional[List[str]]:
+    def _parse_command_string(self, run_cmd: str, stack: str) -> Optional[list[str]]:
         """
         Parse a command string from a workflow into a command list.
 
@@ -999,7 +1004,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return None
 
-    def _run_ci_checks(self, project_path: Path, stack: str, tier: str, has_ci_cd_workflows: bool = True, options: List[str] = []) -> tuple[bool, List[str]]:
+    def _run_ci_checks(self, project_path: Path, stack: str, tier: str, has_ci_cd_workflows: bool = True, options: list[str] = []) -> tuple[bool, list[str]]:
         """
         Run the same CI/CD checks that would run on GitHub Actions by parsing actual workflow files.
 
@@ -1021,17 +1026,22 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         workflows_dir = project_path / ".github" / "workflows"
 
-        if not has_ci_cd_workflows or not workflows_dir.exists():
-            print(f"  ℹ No workflows directory found, skipping CI checks")
+        if not workflows_dir.exists():
+            print("  ℹ No workflows directory found, skipping CI checks")
             return True, []
 
         # Determine which workflow files to check
+        # Note: CI/CD workflows (quality-check, test, security, build) only exist if ci_cd option selected
+        # But lighthouse.yml is installed directly from tier-4-production (no ci_cd option needed)
         workflow_files = {
-            'quality-check.yml': 'Quality checks',
-            'test.yml': 'Tests',
-            'security.yml': 'Security',
-            'build.yml': 'Build & Bundle Analysis',
+            'quality-check.yml': 'Quality checks' if has_ci_cd_workflows else None,
+            'test.yml': 'Tests' if has_ci_cd_workflows else None,
+            'security.yml': 'Security' if has_ci_cd_workflows else None,
+            'build.yml': 'Build & Bundle Analysis' if has_ci_cd_workflows else None,
             'a11y.yml': 'Accessibility' if 'a11y' in options else None,
+            # Lighthouse CI is only available in tier-4 for Next.js stacks (has .lighthouserc.json)
+            # This is installed from tier-4-production directly, not from ci_cd option
+            'lighthouse.yml': 'Lighthouse CI' if tier == 'tier-4-production' and stack != 'ml_ai_fastapi' else None,
         }
 
         all_commands = []
@@ -1058,7 +1068,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         # If no workflows found, fall back to basic checks
         if not all_commands:
-            print(f"  ℹ No workflow commands found, running basic checks")
+            print("  ℹ No workflow commands found, running basic checks")
             return self._run_basic_fallback_checks(project_path, stack, errors, warnings)
 
         # Prepare venv path for Python commands
@@ -1101,7 +1111,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
                                 break
                             else:
                                 # tier-3 or tier-4 - directory should exist
-                                print(f"✗ FAILED")
+                                print("✗ FAILED")
                                 errors.append(f"{step_name} failed: {test_dir} directory expected but not found (template issue)")
                                 skip_command = True
                                 break
@@ -1158,7 +1168,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
                             print(f"\n      DEBUG - stdout: {stdout[:1000]}")
                         if not stderr and not stdout:
                             print(f"\n      DEBUG - Command: {' '.join(cmd_list)}")
-                            print(f"      DEBUG - No output captured (process may have crashed)")
+                            print("      DEBUG - No output captured (process may have crashed)")
                         errors.append(f"{step_name} failed: {stderr[:500] if stderr else stdout[:500] if stdout else 'No error output'}")
 
         # Print summary
@@ -1167,7 +1177,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
         return len(errors) == 0, errors
 
-    def _run_basic_fallback_checks(self, project_path: Path, stack: str, errors: List[str], warnings: List[str]) -> tuple[bool, List[str]]:
+    def _run_basic_fallback_checks(self, project_path: Path, stack: str, errors: list[str], warnings: list[str]) -> tuple[bool, list[str]]:
         """
         Fallback to basic checks when no workflows are found.
 
@@ -1245,7 +1255,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
         print(f"Total Duration: {sum(r.duration_seconds for r in self.results):.2f}s")
 
         if failed > 0:
-            print(f"\nFailed Tests:")
+            print("\nFailed Tests:")
             for r in self.results:
                 if not r.success:
                     print(f"  - {r.test_id}")
@@ -1256,8 +1266,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
         print(f"{'='*80}\n")
 
 
-def run_worker(worker_id: int, tests: List[TestCase], workspace_base: Path, results_dir: Path,
-               cleanup: bool, use_incomplete: bool, use_validate_fix: bool, run_ci_checks: bool) -> List[TestResult]:
+def run_worker(worker_id: int, tests: list[TestCase], workspace_base: Path, results_dir: Path,
+               cleanup: bool, use_incomplete: bool, use_validate_fix: bool, run_ci_checks: bool) -> list[TestResult]:
     """
     Worker function to run a batch of tests in parallel.
     Each worker gets its own isolated workspace.
@@ -1302,7 +1312,7 @@ def run_worker(worker_id: int, tests: List[TestCase], workspace_base: Path, resu
     return runner.results
 
 
-def generate_test_cases() -> Dict[int, List[TestCase]]:
+def generate_test_cases() -> dict[int, list[TestCase]]:
     """Generate all test cases organized by phase"""
 
     test_cases = {1: [], 2: [], 3: [], 4: []}

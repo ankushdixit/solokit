@@ -63,7 +63,9 @@ describe("Home Page", () => {
 
     render(<Home />);
 
-    expect(api.example.hello.useQuery).toHaveBeenCalledWith({ text: "from tRPC" });
+    expect(api.example.hello.useQuery).toHaveBeenCalledWith({
+      text: "from tRPC",
+    });
   });
 
   it("renders First Steps card", () => {
@@ -83,7 +85,8 @@ describe("Home Page", () => {
     ).toBeInTheDocument();
   });
 
-  it("has gradient background styling", () => {    const { container } = render(<Home />);
+  it("has gradient background styling", () => {
+    const { container } = render(<Home />);
     const main = container.querySelector("main");
     expect(main).toHaveClass("bg-gradient-to-b");
   });

@@ -50,9 +50,7 @@ export function UserForm({ onSubmit, defaultValues, isLoading }: UserFormProps) 
             className="w-full rounded-md border px-3 py-2 bg-background"
             disabled={isLoading}
           />
-          {errors.name && (
-            <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>
-          )}
+          {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>}
         </div>
 
         <div>
@@ -66,9 +64,7 @@ export function UserForm({ onSubmit, defaultValues, isLoading }: UserFormProps) 
             className="w-full rounded-md border px-3 py-2 bg-background"
             disabled={isLoading}
           />
-          {errors.email && (
-            <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
-          )}
+          {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
         </div>
 
         <Button type="submit" disabled={isLoading}>

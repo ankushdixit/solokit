@@ -28,21 +28,18 @@ export default [
       "@typescript-eslint": tseslint,
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
       // Complexity rules (tier-3)
-      "complexity": ["error", { "max": 10 }],
-      "max-depth": ["error", { "max": 4 }],
-      "max-nested-callbacks": ["error", { "max": 4 }],
+      complexity: ["error", { max: 10 }],
+      "max-depth": ["error", { max: 4 }],
+      "max-nested-callbacks": ["error", { max: 4 }],
       "max-lines-per-function": [
         "warn",
         {
-          "max": 100,
-          "skipBlankLines": true,
-          "skipComments": true,
+          max: 100,
+          skipBlankLines: true,
+          skipComments: true,
         },
       ],
     },
@@ -91,13 +88,27 @@ export default [
   },
   {
     ignores: [
+      // Dependencies
       "node_modules/**",
+      // Build outputs
       ".next/**",
       "out/**",
       "dist/**",
       "build/**",
-      ".session/**",
+      // Reports and coverage
+      "report/**",
+      "reports/**",
       "coverage/**",
+      ".stryker-tmp/**",
+      // Test artifacts
+      "playwright-report/**",
+      "test-results/**",
+      // Session data
+      ".session/**",
+      // Environment files (not JS, but good to exclude)
+      ".env",
+      ".env.local",
+      ".env.*.local",
     ],
   },
 ];

@@ -8,6 +8,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Playwright Browser Installation and System Dependencies**
+  - Fixed Playwright browsers not launching on Linux due to missing system dependencies
+  - Added automatic `apt_pkg` Python module fix for Ubuntu 22.04 (common symlink issue)
+  - Added automatic `sudo npx playwright install-deps` execution on Linux during `sk init`
+  - Browser binaries are now properly installed AND system dependencies are configured
+  - Impact: E2E tests, A11y tests, and Lighthouse CI now work out-of-the-box on fresh Linux VMs
+  - Affects: All Next.js stacks (fullstack_nextjs, saas_t3, dashboard_refine) at tier-3+
+
+- **Lighthouse CI Chrome Detection**
+  - Fixed "Chrome installation not found" error in Lighthouse CI
+  - Updated `npm run lighthouse` script to automatically find and use Playwright's Chromium
+  - Uses `CHROME_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")`
+  - No longer requires separate Chrome installation
+  - Affects: All Next.js stacks at tier-4-production
+
+- **ESLint Configuration Deprecation Warning**
+  - Fixed ".eslintignore file is no longer supported" warning in ESLint 9+
+  - Migrated all ignore patterns from `.eslintignore` to `eslint.config.mjs` `ignores` array
+  - Removed deprecated `.eslintignore` files from all tier-1-essential templates
+  - Added comprehensive ignore patterns: playwright-report, test-results, .stryker-tmp, .lighthouseci, etc.
+  - Affects: All Next.js stacks (fullstack_nextjs, saas_t3, dashboard_refine)
+
+- **Template File Formatting**
+  - Fixed Prettier formatting issues in template files
+  - Re-formatted all template files using project's `.prettierrc` config (printWidth: 100)
+  - Previously formatted with default Prettier settings causing format check failures
+  - Affects: All stacks
+
+- **Test Script Lighthouse CI Support**
+  - Added `lighthouse.yml` workflow parsing to test_all_templates.py
+  - Lighthouse CI checks now run for tier-4-production projects regardless of ci_cd option
+  - Fixed early return condition that skipped workflow checks when ci_cd option not selected
+
+### Added
+- **README Documentation for E2E, A11y, and Lighthouse**
+  - Added Accessibility Testing section to README for projects with `a11y` option
+  - Added Lighthouse CI section to README for tier-4-production projects
+  - Documents that Playwright's Chromium is used automatically for Lighthouse
+
+- **New User VM Test Guide**
+  - Added comprehensive testing guide: `analysis-docs/NEW_USER_VM_TEST_GUIDE.md`
+  - Step-by-step instructions for testing Solokit on fresh GCP VMs
+  - Automated test script: `scripts/test-new-user-experience.sh`
+  - Tests all 4 stacks with tier-4 and all options
+
 - **Phase 4 Test Failures for Next.js Stacks**
   - Fixed fullstack_nextjs mutation test failures by creating tier-specific Jest environment configurations
   - Added tier-3 test file overrides using `@stryker-mutator/jest-runner/jest-env/node` for API route tests
