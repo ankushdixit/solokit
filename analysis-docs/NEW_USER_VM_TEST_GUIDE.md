@@ -526,8 +526,8 @@ gcloud compute scp solokit-new-user-test:~/test-projects/ISSUES_FOUND.md . --zon
    - Fix: Run `sudo npx playwright install-deps`
 
 3. **Lighthouse CI fails**
-   - Chrome not available for Lighthouse
-   - Fix: Ensure Playwright browsers are installed
+   - Chrome not available for Lighthouse (Lighthouse uses Puppeteer, not Playwright)
+   - Fix: The `npm run lighthouse` script auto-detects Playwright's Chromium as fallback
 
 4. **Python venv issues**
    - Packages not found in venv

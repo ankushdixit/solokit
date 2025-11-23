@@ -903,10 +903,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
 
                     # Skip setup, installation, and upload steps
                     # Note: 'install playwright' removed - browsers now installed by sk init
+                    # Note: 'start server' skipped - complex shell script with backgrounding (&)
+                    #       that can't be parsed as a simple command. E2E tests cover this.
                     skip_keywords = [
                         'checkout', 'setup', 'install dependencies',
                         'upload', 'show mutation results',
-                        'prisma migrate', 'set up python', 'check if'
+                        'prisma migrate', 'set up python', 'check if',
+                        'start server'
                     ]
                     if any(skip in step_name.lower() for skip in skip_keywords):
                         continue
@@ -1135,6 +1138,31 @@ Co-Authored-By: Claude <noreply@anthropic.com>"""
                 test_env["CI"] = "true"
                 # Set PORT for worker-specific port assignment
                 test_env["PORT"] = str(self.worker_port)
+
+            # Set CHROME_PATH for Lighthouse CI (uses Puppeteer which needs Chrome)
+            if "lighthouse" in cmd_str or "lhci" in cmd_str:
+                import os
+                import json
+                chrome_path = os.environ.get("CHROME_PATH", "/usr/bin/google-chrome-stable")
+                if os.path.exists(chrome_path):
+                    test_env["CHROME_PATH"] = chrome_path
+                # Also set CI and use worker-specific port
+                test_env["CI"] = "true"
+                test_env["PORT"] = str(self.worker_port)
+
+                # Patch .lighthouserc.json to use worker-specific port (avoid conflicts in parallel runs)
+                lhrc_path = project_path / ".lighthouserc.json"
+                if lhrc_path.exists():
+                    try:
+                        with open(lhrc_path) as f:
+                            lhrc = json.load(f)
+                        # Update URL to use worker port
+                        if "ci" in lhrc and "collect" in lhrc["ci"]:
+                            lhrc["ci"]["collect"]["url"] = [f"http://localhost:{self.worker_port}"]
+                        with open(lhrc_path, "w") as f:
+                            json.dump(lhrc, f, indent=2)
+                    except Exception as e:
+                        print(f"  ⚠ Could not patch .lighthouserc.json: {e}")
 
             # Set timeout based on test type
             # Optimized timeouts: generous for real work, but fail faster when broken
