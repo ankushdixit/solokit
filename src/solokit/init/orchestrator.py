@@ -59,17 +59,18 @@ def run_template_based_init(
     if project_root is None:
         project_root = Path.cwd()
 
-    # Show user-facing progress message
-    output.info("\n⏳ Initializing project... This may take a few minutes.\n")
-    output.info(
-        "Installing dependencies, configuring quality gates, and setting up project structure...\n"
-    )
+    # Show user-facing progress header
+    output.info("\n" + "=" * 60)
+    output.info("🚀 Initializing Session-Driven Development Project")
+    output.info("=" * 60 + "\n")
 
     logger.info("🚀 Initializing Session-Driven Development with Template System...\n")
 
     # =========================================================================
     # PHASE 1: PRE-FLIGHT CHECKS & VALIDATION
     # =========================================================================
+
+    output.progress("Phase 1: Pre-flight validation...")
 
     # Step 1-2: Check if already initialized + Check if blank project
     logger.info("Step 1-2: Pre-flight validation...")
@@ -110,6 +111,8 @@ def run_template_based_init(
             python_binary = cast(Optional[str], env_result.get("python_binary"))
     logger.info("")
 
+    output.info("✓ Pre-flight checks passed\n")
+
     # Get template information
     template_info = get_template_info(template_id)
 
@@ -117,22 +120,29 @@ def run_template_based_init(
     # PHASE 3: INSTALLATION & SETUP (Phase 2 is interactive, done in CLI)
     # =========================================================================
 
+    output.progress("Phase 2: Installing template files...")
+
     # Step 6: Install template files (base + tier + options)
     logger.info("Step 6: Installing template files...")
     install_result = install_template(
         template_id, tier, additional_options, project_root, coverage_target
     )
     logger.info(f"✓ Installed {install_result['files_installed']} template files\n")
+    output.info(f"✓ Installed {install_result['files_installed']} template files")
 
     # Step 7: Generate README.md
     logger.info("Step 7: Generating README.md...")
     generate_readme(template_id, tier, coverage_target, additional_options, project_root)
     logger.info("✓ Generated README.md\n")
+    output.info("✓ Generated README.md")
 
     # Step 8: Config files (handled by template installation)
     logger.info("Step 8: Config files installed via template\n")
 
-    # Step 9: Install dependencies
+    # Step 9: Install dependencies - This is the longest step
+    output.info("")
+    output.progress("Phase 3: Installing dependencies...")
+    output.info("   This may take several minutes. Please wait...\n")
     logger.info("Step 9: Installing dependencies...")
     logger.info("⏳ This may take several minutes...\n")
 
@@ -152,11 +162,16 @@ def run_template_based_init(
             project_root,
         )
         logger.info("✓ Dependencies installed successfully\n")
+        output.info("\n✓ All dependencies installed successfully")
     except Exception as e:
         logger.warning(f"Dependency installation encountered an issue: {e}")
         logger.warning("You can install dependencies manually later\n")
+        output.warning(f"Dependency installation issue: {e}")
+        output.info("   You can install dependencies manually later")
 
     # Step 10: Create docs directory structure
+    output.info("")
+    output.progress("Phase 4: Configuring project structure...")
     logger.info("Step 10: Creating documentation structure...")
     create_docs_structure(project_root)
     logger.info("✓ Created docs/ structure\n")
@@ -179,13 +194,16 @@ def run_template_based_init(
     logger.info("Step 14: Creating .session structure...")
     create_session_directories(project_root)
     logger.info("✓ Created .session/ directories\n")
+    output.info("✓ Created documentation and session structure")
 
     # Step 15: Initialize tracking files
     logger.info("Step 15: Initializing tracking files...")
     initialize_tracking_files(tier, coverage_target, project_root)
     logger.info("✓ Initialized tracking files with tier-specific config\n")
+    output.info("✓ Initialized tracking files with tier-specific config")
 
     # Step 16: Run initial scans (stack.txt, tree.txt)
+    output.progress("Running initial scans...")
     logger.info("Step 16: Running initial scans...")
     scan_results = run_initial_scans(project_root)
     if scan_results["stack"]:
@@ -193,27 +211,35 @@ def run_template_based_init(
     if scan_results["tree"]:
         logger.info("✓ Generated tree.txt")
     logger.info("")
+    output.info("✓ Generated stack.txt and tree.txt")
 
     # Step 17: Install git hooks
+    output.info("")
+    output.progress("Phase 5: Finalizing setup...")
     logger.info("Step 17: Installing git hooks...")
     install_git_hooks(project_root)
     logger.info("✓ Installed git hooks\n")
+    output.info("✓ Installed git hooks")
 
     # Step 17.5: Install Claude Code slash commands
     logger.info("Step 17.5: Installing Claude Code slash commands...")
     try:
         installed_commands = install_claude_commands(project_root)
         logger.info(f"✓ Installed {len(installed_commands)} slash commands to .claude/commands/\n")
+        output.info(f"✓ Installed {len(installed_commands)} Claude Code slash commands")
     except Exception as e:
         logger.warning(f"Claude commands installation failed: {e}")
         logger.warning("Slash commands may not be available. You can install them manually.\n")
+        output.warning("Claude commands installation failed (you can install them manually)")
 
     # Step 18: Update .gitignore
     logger.info("Step 18: Updating .gitignore...")
     update_gitignore(template_id, project_root)
     logger.info("✓ Updated .gitignore\n")
+    output.info("✓ Updated .gitignore")
 
     # Step 19: Create initial commit
+    output.progress("Creating initial commit...")
     logger.info("Step 19: Creating initial commit...")
     commit_success = create_initial_commit(
         template_name=template_info["display_name"],
@@ -225,8 +251,10 @@ def run_template_based_init(
     )
     if commit_success:
         logger.info("✓ Created initial commit\n")
+        output.info("✓ Created initial commit")
     else:
         logger.warning("Initial commit failed (you can commit manually later)\n")
+        output.warning("Initial commit failed (you can commit manually later)")
 
     # =========================================================================
     # SUCCESS SUMMARY
