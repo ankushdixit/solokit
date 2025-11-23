@@ -15,8 +15,10 @@ import yaml
 
 from solokit.core.command_runner import CommandRunner
 from solokit.core.exceptions import CommandExecutionError, FileOperationError
+from solokit.core.output import get_output
 
 logger = logging.getLogger(__name__)
+output = get_output()
 
 
 def load_stack_versions() -> dict[str, Any]:
@@ -140,16 +142,29 @@ def install_npm_dependencies(
         "tier-4-production": ["base", "tier1", "tier2", "tier3", "tier4_dev", "tier4_prod"],
     }
 
+    # Human-readable descriptions for each command key
+    command_descriptions = {
+        "base": "core framework packages",
+        "tier1": "essential quality tools (ESLint, Prettier, Jest)",
+        "tier2": "standard quality tools (Husky, lint-staged)",
+        "tier3": "comprehensive quality tools (Playwright, Stryker)",
+        "tier4_dev": "production dev tools (bundle analyzer)",
+        "tier4_prod": "production monitoring (Sentry, OpenTelemetry)",
+    }
+
     command_keys = tier_to_command_key.get(tier, ["base"])
+    total_steps = len(command_keys)
 
     # Run installation commands sequentially
-    for command_key in command_keys:
+    for idx, command_key in enumerate(command_keys, 1):
         if command_key not in installation["commands"]:
             logger.warning(f"Command key '{command_key}' not found for {stack_id}")
             continue
 
         command_str = installation["commands"][command_key]
+        description = command_descriptions.get(command_key, command_key)
         logger.info(f"Running: {command_key}...")
+        output.info(f"   [{idx}/{total_steps}] Installing {description}...")
 
         # Parse command string and run
         result = runner.run(["sh", "-c", command_str], check=False)
@@ -173,6 +188,7 @@ def install_npm_dependencies(
         if os.environ.get("PLAYWRIGHT_BROWSERS_PATH"):
             # Browsers pre-installed globally (e.g., in CI environment)
             logger.info("✓ Using pre-installed Playwright browsers")
+            output.info("   Using pre-installed Playwright browsers")
         else:
             is_linux = platform.system() == "Linux"
 
@@ -180,6 +196,7 @@ def install_npm_dependencies(
                 # On Linux, we need system dependencies for browsers to launch
                 # First fix the common apt_pkg Python module issue on Ubuntu
                 logger.info("Installing Playwright system dependencies (Linux)...")
+                output.info("   Installing Playwright system dependencies (Linux)...")
 
                 # Fix apt_pkg module issue (common on Ubuntu 22.04 with Python version mismatch)
                 # This creates a symlink so apt_pkg works with the current Python version
@@ -205,6 +222,7 @@ def install_npm_dependencies(
 
             logger.info("Installing Playwright browsers (required for E2E tests)...")
             logger.info("This may take a few minutes on first run...")
+            output.info("   Installing Playwright browsers (this may take a few minutes)...")
 
             browser_result = runner.run(
                 ["npx", "playwright", "install"],
@@ -214,10 +232,14 @@ def install_npm_dependencies(
 
             if browser_result.success:
                 logger.info("✓ Playwright browsers installed")
+                output.info("   ✓ Playwright browsers installed")
             else:
                 # Non-critical - warn but don't fail
                 logger.warning("Playwright browser installation failed")
                 logger.warning("Run 'npx playwright install' manually before E2E tests")
+                output.warning(
+                    "Playwright browsers not installed (run 'npx playwright install' later)"
+                )
                 if browser_result.stderr:
                     logger.debug(f"Playwright install error: {browser_result.stderr}")
 
@@ -256,6 +278,7 @@ def install_python_dependencies(
     installation = get_installation_commands("ml_ai_fastapi", tier)
 
     logger.info("Setting up Python virtual environment...")
+    output.info("   Setting up Python virtual environment...")
 
     runner = CommandRunner(default_timeout=600, working_dir=project_root)
 
@@ -270,8 +293,10 @@ def install_python_dependencies(
                 stderr=result.stderr,
             )
         logger.info("✓ Created virtual environment")
+        output.info("   ✓ Created virtual environment")
     else:
         logger.info("Virtual environment already exists")
+        output.info("   ✓ Virtual environment already exists")
 
     # Determine pip path
     pip_path = venv_path / "bin" / "pip"
@@ -281,6 +306,7 @@ def install_python_dependencies(
 
     # Upgrade pip
     logger.info("Upgrading pip...")
+    output.info("   Upgrading pip...")
     result = runner.run([str(pip_path), "install", "--upgrade", "pip"], check=False)
     if result.success:
         logger.info("✓ Upgraded pip")
@@ -297,9 +323,20 @@ def install_python_dependencies(
         "tier-4-production": ["base", "tier1", "tier2", "tier3", "tier4_dev", "tier4_prod"],
     }
 
-    command_keys = tier_to_command_key.get(tier, ["base"])
+    # Human-readable descriptions for each command key
+    command_descriptions = {
+        "base": "core framework packages (FastAPI, SQLModel, Pydantic)",
+        "tier1": "essential quality tools (pytest, ruff, mypy)",
+        "tier2": "standard quality tools (pre-commit, coverage)",
+        "tier3": "comprehensive quality tools (hypothesis, locust)",
+        "tier4_dev": "production dev tools (profiling, debugging)",
+        "tier4_prod": "production monitoring (Sentry, Prometheus)",
+    }
 
-    for command_key in command_keys:
+    command_keys = tier_to_command_key.get(tier, ["base"])
+    total_steps = len(command_keys)
+
+    for idx, command_key in enumerate(command_keys, 1):
         if command_key not in installation["commands"]:
             logger.warning(f"Command key '{command_key}' not found for ml_ai_fastapi")
             continue
@@ -308,7 +345,9 @@ def install_python_dependencies(
         # Replace 'pip install' with full pip path
         command_str = command_str.replace("pip install", f"{pip_path} install")
 
+        description = command_descriptions.get(command_key, command_key)
         logger.info(f"Running: {command_key}...")
+        output.info(f"   [{idx}/{total_steps}] Installing {description}...")
 
         result = runner.run(["sh", "-c", command_str], check=False)
 
@@ -326,6 +365,7 @@ def install_python_dependencies(
     # Run security fixes if available
     if "security_fixes" in installation["commands"]:
         logger.info("Applying security fixes...")
+        output.info("   Applying security fixes...")
         command_str = installation["commands"]["security_fixes"]
         command_str = command_str.replace("pip install", f"{pip_path} install")
 
@@ -334,6 +374,7 @@ def install_python_dependencies(
             logger.info("✓ Applied security fixes")
         else:
             logger.warning("Security fixes failed (non-critical)")
+            output.warning("Security fixes failed (non-critical)")
 
     logger.info("✅ All Python dependencies installed successfully")
     return True
