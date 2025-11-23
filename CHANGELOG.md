@@ -45,10 +45,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Affects: All Next.js stacks (fullstack_nextjs, saas_t3, dashboard_refine) at tier-3+
 
 - **Lighthouse CI Chrome Detection**
-  - Fixed "Chrome installation not found" error in Lighthouse CI
-  - Updated `npm run lighthouse` script to automatically find and use Playwright's Chromium
-  - Uses `CHROME_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")`
-  - No longer requires separate Chrome installation
+  - Fixed "Chrome installation not found" error in Lighthouse CI on local/VM environments
+  - Added `scripts/lighthouse.sh` wrapper that auto-detects Chrome/Chromium location
+  - On GitHub Actions: Uses pre-installed Chrome at `/usr/bin/google-chrome-stable`
+  - On local/VM: Falls back to Playwright's Chromium if system Chrome not found
+  - No longer requires manual Chrome installation for local development
   - Affects: All Next.js stacks at tier-4-production
 
 - **ESLint Configuration Deprecation Warning**

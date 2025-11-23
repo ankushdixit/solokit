@@ -72,4 +72,6 @@ analysis-docs/__pycache__/
 analysis-docs/.DS_Store
 
 # Local scripts with connection details (GCP, etc.)
-scripts/
+/scripts/
+# But include template scripts
+!src/solokit/templates/**/scripts/
