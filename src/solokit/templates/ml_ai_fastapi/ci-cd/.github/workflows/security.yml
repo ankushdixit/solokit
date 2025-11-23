@@ -28,27 +28,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install bandit detect-secrets pip-audit semgrep
 
-      - name: Check if Bandit config exists
-        id: check-bandit
-        run: |
-          if [ -f .bandit ] || grep -q '\[tool.bandit\]' pyproject.toml 2>/dev/null; then
-            echo "has_config=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_config=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Run Bandit security linter
-        if: steps.check-bandit.outputs.has_config == 'true'
         run: |
           if [ -f .bandit ]; then
             bandit -r src/ -c .bandit -f json -o bandit-report.json
-          else
+          elif grep -q '\[tool.bandit\]' pyproject.toml 2>/dev/null; then
             bandit -r src/ -f json -o bandit-report.json
+          else
+            echo "::warning::No Bandit config found (.bandit or [tool.bandit] in pyproject.toml) - running with defaults"
+            bandit -r src/ -f json -o bandit-report.json --skip B101
           fi
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
-        if: always() && steps.check-bandit.outputs.has_config == 'true'
+        if: always()
         with:
           name: bandit-report
           path: bandit-report.json

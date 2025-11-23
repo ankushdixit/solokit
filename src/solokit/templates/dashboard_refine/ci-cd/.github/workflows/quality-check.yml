@@ -33,13 +33,28 @@ jobs:
         run: npm run format:check
 
       - name: Check for duplicated code
-        run: npm run check:duplication --if-present
+        run: |
+          if npm run check:duplication --if-present 2>&1 | grep -q "missing script"; then
+            echo "::warning::check:duplication script not found - skipping (add jscpd for Tier 3+)"
+          else
+            npm run check:duplication --if-present
+          fi
 
       - name: Check type coverage
-        run: npm run check:types --if-present
+        run: |
+          if npm run check:types --if-present 2>&1 | grep -q "missing script"; then
+            echo "::warning::check:types script not found - skipping (add type-coverage for Tier 3+)"
+          else
+            npm run check:types --if-present
+          fi
 
       - name: Check for unused exports
-        run: npm run check:unused --if-present
+        run: |
+          if npm run check:unused --if-present 2>&1 | grep -q "missing script"; then
+            echo "::warning::check:unused script not found - skipping (add ts-prune for Tier 3+)"
+          else
+            npm run check:unused --if-present
+          fi
 
       - name: Production build
         run: npm run build

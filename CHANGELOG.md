@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **CI Workflow Improvements for GitHub Actions**
+  - Fixed Lighthouse CI Chrome sandbox issues on GitHub Actions runners
+    - Added `puppeteerLaunchArgs` with `--no-sandbox`, `--disable-dev-shm-usage`, `--disable-gpu` flags
+    - Simplified lighthouse npm script to just `lhci autorun`
+    - Added Playwright browser installation step to lighthouse workflow
+  - Fixed Gitleaks failing on initial commit (no parent to compare against)
+    - Added condition to skip secrets-scan on initial push events
+    - PRs always run secrets-scan correctly
+  - Fixed dependency-review-action failing when Dependency Graph not enabled
+    - Added conditional check via GitHub API before running dependency review
+    - Shows warning if Dependency Graph is not enabled instead of failing
+  - Removed custom CodeQL workflow to avoid conflicts with GitHub's default setup
+    - GitHub's default CodeQL setup is recommended (enable in repo Settings > Security)
+  - Added `/api/health` endpoint to all Next.js stacks for smoke tests
+  - Affects: All Next.js stacks (fullstack_nextjs, saas_t3, dashboard_refine)
+
+- **Python Stack Dependency Fixes**
+  - Upgraded FastAPI from 0.115.6 to 0.121.3 to resolve starlette version conflict
+  - Added `setuptools>=78.1.1` to security dependencies to fix pip-audit vulnerability
+  - Fixed vulture false positives by renaming unused parameters to `_logger` and `_method_name`
+  - Affects: ml_ai_fastapi stack
+
 - **Playwright Browser Installation and System Dependencies**
   - Fixed Playwright browsers not launching on Linux due to missing system dependencies
   - Added automatic `apt_pkg` Python module fix for Ubuntu 22.04 (common symlink issue)

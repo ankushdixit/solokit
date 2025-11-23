@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "{project_description}"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi==0.115.6",
+    "fastapi==0.121.3",
     "uvicorn[standard]==0.34.0",
     "pydantic==2.12.4",
     "pydantic-core==2.41.5",

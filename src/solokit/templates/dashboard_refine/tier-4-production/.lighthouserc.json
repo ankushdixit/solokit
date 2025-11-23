@@ -1,9 +1,12 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "npm run build && npm run start",
+      "startServerCommand": "npm run start",
+      "startServerReadyPattern": "Ready in",
+      "startServerReadyTimeout": 30000,
       "url": ["http://localhost:3000"],
-      "numberOfRuns": 3
+      "numberOfRuns": 3,
+      "puppeteerLaunchArgs": ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
     },
     "assert": {
       "assertions": {
