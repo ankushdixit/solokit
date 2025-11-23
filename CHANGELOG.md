@@ -24,10 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `/api/health` endpoint to all Next.js stacks for smoke tests
   - Affects: All Next.js stacks (fullstack_nextjs, saas_t3, dashboard_refine)
 
-- **Python Stack Dependency Fixes**
+- **Python Stack (ml_ai_fastapi) CI Workflow Fixes**
   - Upgraded FastAPI from 0.115.6 to 0.121.3 to resolve starlette version conflict
   - Added `setuptools>=78.1.1` to security dependencies to fix pip-audit vulnerability
   - Fixed vulture false positives by renaming unused parameters to `_logger` and `_method_name`
+  - Fixed Pyright missing imports by installing all deps (dev + prod) in quality-check workflow
+  - Fixed detect-secrets to handle missing `.secrets.baseline` gracefully
+  - Fixed pip-audit to run without `--require-hashes` (requirements.txt typically doesn't have hashes)
+  - Added conditional Dependency Graph check for dependency-review-action
+  - Fixed cosmic-ray installation for mutation testing workflow
+  - Removed `.secrets.baseline` from .gitignore (should be tracked in git)
   - Affects: ml_ai_fastapi stack
 
 - **Playwright Browser Installation and System Dependencies**

@@ -27,6 +27,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # Install dev dependencies if available
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+          # Install prod dependencies if available (needed for type checking imports)
+          if [ -f requirements-prod.txt ]; then
+            pip install -r requirements-prod.txt
+          fi
           pip install ruff pyright
 
       - name: Lint with Ruff
