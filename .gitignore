@@ -66,12 +66,5 @@ landing/
 # Marketing and promotion materials
 marketing-copy/
 
-# Analysis and testing documentation (only ignore generated results, not scripts)
-analysis-docs/test_results/
-analysis-docs/__pycache__/
-analysis-docs/.DS_Store
-
-# Local scripts with connection details (GCP, etc.)
-/scripts/
-# But include template scripts
-!src/solokit/templates/**/scripts/
+# Development scripts (untracked - contains GCP connection details, test scripts, test results)
+/dev-scripts/
