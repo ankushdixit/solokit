@@ -28,38 +28,34 @@ jobs:
       - name: Run npm audit
         run: npm audit --audit-level=moderate
 
+      - name: Check if Dependency Graph is enabled
+        id: check-dependency-graph
+        if: github.event_name == 'pull_request'
+        run: |
+          # Check if dependency graph is enabled by querying the API
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/dependency-graph/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "::warning::Dependency Graph is not enabled. Enable it in Settings > Security > Code security and analysis"
+          fi
+
       - name: Run dependency review
         uses: actions/dependency-review-action@v4
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.check-dependency-graph.outputs.enabled == 'true'
 
-  codeql:
-    # Skip on PRs due to permission requirements
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      security-events: write
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript, typescript
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+  # NOTE: CodeQL is handled by GitHub's default setup (enable in repo Settings > Security > Code scanning)
+  # This avoids conflicts between custom workflows and GitHub's managed CodeQL
 
   secrets-scan:
-    # Skip on PRs due to permission requirements
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # Skip on initial commit (push with no parent to compare against)
+    # For PRs, github.event.before is the merge base, not zeros
+    if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
 
     steps:
       - name: Checkout code

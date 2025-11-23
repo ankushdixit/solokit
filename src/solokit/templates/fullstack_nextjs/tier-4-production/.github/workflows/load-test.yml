@@ -1,0 +1,70 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL to test'
+        required: true
+        default: 'http://localhost:3000'
+      duration:
+        description: 'Test duration (e.g., 1m, 5m)'
+        required: false
+        default: '1m'
+      vus:
+        description: 'Number of virtual users'
+        required: false
+        default: '10'
+  # Can also be triggered after deploy workflow
+  workflow_run:
+    workflows: ["Deploy"]
+    types:
+      - completed
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    # Only run if triggered manually or if deploy succeeded
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if k6 test exists
+        id: check-k6
+        run: |
+          if [ -f "k6/load-test.js" ]; then
+            echo "has_k6=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_k6=false" >> $GITHUB_OUTPUT
+            echo "::warning::k6/load-test.js not found - skipping load tests"
+          fi
+
+      - name: Install k6
+        if: steps.check-k6.outputs.has_k6 == 'true'
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests
+        if: steps.check-k6.outputs.has_k6 == 'true'
+        run: |
+          k6 run \
+            --vus ${{ github.event.inputs.vus || '10' }} \
+            --duration ${{ github.event.inputs.duration || '1m' }} \
+            --env BASE_URL=${{ github.event.inputs.target_url || 'http://localhost:3000' }} \
+            --out json=load-test-results.json \
+            k6/load-test.js
+        continue-on-error: true
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        if: always() && steps.check-k6.outputs.has_k6 == 'true'
+        with:
+          name: load-test-results
+          path: load-test-results.json
+          retention-days: 30

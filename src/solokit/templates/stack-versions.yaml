@@ -1,11 +1,11 @@
 # Solokit Template Stack Versions
 # This file contains exact validated versions for all template stacks
-# Last updated: 2025-11-07
-# Last validated: 2025-11-07
+# Last updated: 2025-11-22
+# Last validated: 2025-11-22
 # Source: Fresh build testing of all 4 stacks with Tier 1-4 tooling
 
 metadata:
-  validation_date: "2025-11-07"
+  validation_date: "2025-11-22"
   python_min_version: "3.11"
   node_min_version: "18.0.0"
   npm_min_version: "9.0.0"
@@ -136,7 +136,7 @@ stacks:
 
     base_framework:
       python: "3.11.7"  # Minimum 3.11.0
-      fastapi: "0.115.6"
+      fastapi: "0.121.3"  # Includes starlette<0.51.0 with security fixes
       uvicorn: "0.34.0"  # with [standard] extras
       pydantic: "2.12.4"
       pydantic-core: "2.41.5"
@@ -163,6 +163,7 @@ stacks:
       pip-audit: "2.7.3"
       bandit: "1.8.0"  # with [toml] extra
       pre-commit: "4.0.1"
+      setuptools: ">=78.1.1"  # Pinned to fix known vulnerabilities
 
     tier3_comprehensive:
       radon: "6.0.1"
@@ -181,10 +182,12 @@ stacks:
       fastapi-health: "0.4.0"
       pydantic-settings: "2.11.0"
       python-dotenv: "1.2.1"
-      # OpenTelemetry packages (optional due to version conflicts)
-      opentelemetry-api: "1.38.0"
-      opentelemetry-instrumentation: "0.59b0"
-      opentelemetry-instrumentation-fastapi: "0.59b0"
+      sentry-sdk: "2.27.0"
+      gunicorn: "23.0.0"
+      # OpenTelemetry packages - pinned to match semgrep requirements
+      opentelemetry-api: "1.37.0"
+      opentelemetry-sdk: "1.37.0"
+      opentelemetry-instrumentation-fastapi: "0.58b0"
 
     installation:
       pre_install:
@@ -199,7 +202,7 @@ stacks:
 
       commands:
         # Incremental installation matching tier structure
-        base: "pip install fastapi==0.115.6 'uvicorn[standard]==0.34.0' pydantic==2.12.4 pydantic-settings==2.11.0 python-dotenv==1.2.1 sqlmodel==0.0.25 sqlalchemy==2.0.37 psycopg2-binary==2.9.10 greenlet==3.2.4 asyncpg==0.30.0 alembic==1.14.0"
+        base: "pip install fastapi==0.121.3 'uvicorn[standard]==0.34.0' pydantic==2.12.4 pydantic-settings==2.11.0 python-dotenv==1.2.1 sqlmodel==0.0.25 sqlalchemy==2.0.37 psycopg2-binary==2.9.10 greenlet==3.2.4 asyncpg==0.30.0 alembic==1.14.0"
 
         tier1: "pip install pytest==8.3.4 pytest-cov==6.0.0 pytest-asyncio==0.25.2 httpx==0.28.1 ruff==0.9.2 pyright==1.1.407 mypy==1.18.2 aiosqlite==0.20.0"
 
@@ -209,9 +212,7 @@ stacks:
 
         tier4_dev: "pip install prometheus-client==0.23.1 statsd==4.0.1 structlog==25.5.0 python-json-logger==4.0.0"
 
-        tier4_prod: "pip install fastapi-health==0.4.0 opentelemetry-api==1.38.0 opentelemetry-instrumentation==0.59b0 opentelemetry-instrumentation-fastapi==0.59b0"
-
-        security_fixes: "pip install --upgrade setuptools starlette"
+        tier4_prod: "pip install fastapi-health==0.4.0 sentry-sdk==2.27.0 gunicorn==23.0.0 opentelemetry-api==1.37.0 opentelemetry-sdk==1.37.0 opentelemetry-instrumentation-fastapi==0.58b0"
 
       test_command: "pytest"
       audit_command: "pip-audit"
@@ -232,24 +233,23 @@ stacks:
           - "Ubuntu: sudo apt install python3.11 python3.11-venv"
 
       - package: "opentelemetry"
-        severity: "LOW"
+        severity: "RESOLVED"
         type: "version_conflict"
         description: "Version incompatibility between semgrep (Tier 3) and OpenTelemetry instrumentation (Tier 4)"
-        impact: "Warning messages during pip install, potential runtime compatibility issues"
-        resolution: "Make OpenTelemetry instrumentation optional in Tier 4"
-        fix: "user_choice"
+        impact: "None - resolved by pinning compatible versions"
+        resolution: "Pinned opentelemetry-api==1.37.0 and opentelemetry-instrumentation-fastapi==0.58b0"
+        fix: "automatic"
+        status: "resolved"
         details:
           - "semgrep requires: opentelemetry-api~=1.37.0"
-          - "OpenTelemetry instrumentation requires: opentelemetry-api>=1.38.0"
-          - "Packages still work despite version mismatch"
+          - "Fixed by using opentelemetry-instrumentation-fastapi==0.58b0 (compatible with 1.37.0)"
 
-      - package: "setuptools,starlette"
-        severity: "MEDIUM"
+      - package: "starlette"
+        severity: "RESOLVED"
         type: "security_vulnerability"
-        count: 5
-        description: "5 vulnerabilities found initially in setuptools and starlette"
-        impact: "Security risks in dependencies"
-        resolution: "Fixed by running: pip install --upgrade setuptools starlette"
+        description: "Starlette security vulnerabilities resolved by FastAPI 0.121.3 upgrade"
+        impact: "None - resolved by using FastAPI 0.121.3 which includes starlette>=0.40.0,<0.51.0"
+        resolution: "Upgraded FastAPI from 0.115.6 to 0.121.3"
         fix: "automatic"
         status: "resolved"
 

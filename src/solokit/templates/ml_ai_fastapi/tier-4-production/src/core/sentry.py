@@ -49,7 +49,7 @@ def initialize_sentry() -> None:
     )
 
 
-def before_send_filter(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any] | None:
+def before_send_filter(event: Any, hint: dict[str, Any]) -> Any:
     """
     Filter events before sending to Sentry.
 

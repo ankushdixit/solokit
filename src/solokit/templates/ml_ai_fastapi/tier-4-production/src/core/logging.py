@@ -12,13 +12,13 @@ from structlog.types import EventDict, Processor
 from src.core.config import settings
 
 
-def add_app_context(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:  # noqa: ARG001
+def add_app_context(_logger: Any, _method_name: str, event_dict: EventDict) -> EventDict:
     """
     Add application context to log events.
 
     Args:
-        logger: Logger instance (required by structlog processor protocol)
-        method_name: Method name (required by structlog processor protocol)
+        _logger: Logger instance (required by structlog processor protocol, unused)
+        _method_name: Method name (required by structlog processor protocol, unused)
         event_dict: Event dictionary
 
     Returns:

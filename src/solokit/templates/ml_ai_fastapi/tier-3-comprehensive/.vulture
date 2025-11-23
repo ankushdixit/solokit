@@ -27,3 +27,6 @@ ignore_names =
     # Common method names
     __str__
     __repr__
+    # Logging config variables
+    method_name
+    logger
