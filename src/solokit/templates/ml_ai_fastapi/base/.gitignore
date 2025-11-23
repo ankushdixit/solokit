@@ -97,7 +97,7 @@ celerybeat.pid
 .prof
 
 # Security
-.secrets.baseline
+# Note: .secrets.baseline should be tracked in git (it's the baseline for detect-secrets)
 
 # Local development
 .DS_Store
