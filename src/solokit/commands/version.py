@@ -29,7 +29,7 @@ def show_version() -> int:
 
     Examples:
         >>> show_version()
-        solokit version 0.1.3
+        solokit version 0.1.4
         Python 3.11.7 on Darwin
         0
     """

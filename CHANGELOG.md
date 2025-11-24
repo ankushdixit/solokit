@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.1.4] - 2025-11-24
+
 ### Added
 - **Comprehensive Test Coverage Improvements**
   - Increased overall test coverage from 93% to 96% (+3%)
@@ -1380,8 +1384,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.1.3** = Current release ✅ **Current**
-- v0.1.1 = Previous release (UX improvements & bug fixes)
+- **v0.1.4** = Current release ✅ **Current**
+- v0.1.3 = Previous release (Documentation model improvements)
+- v0.1.1 = Earlier release (UX improvements & bug fixes)
 - v0.2.0+ = Future enhancements (planned)
 - v1.0.0 = Stable API release (planned)
 
