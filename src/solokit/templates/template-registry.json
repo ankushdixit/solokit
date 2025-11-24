@@ -225,19 +225,20 @@
       "best_for": "Production SaaS, growing teams, mission-critical apps",
       "extends": "tier-2-standard",
       "adds": [
-        "Code complexity enforcement (ESLint/Radon)",
-        "Code duplication detection (jscpd/pylint)",
-        "Dead code detection (ts-prune/vulture)",
+        "Code complexity enforcement",
+        "Code duplication detection",
+        "Dead code detection",
         "Type coverage enforcement (>90%)",
         "Mutation testing (>75% score)",
         "Integration tests required",
-        "E2E tests (Playwright for JS stacks)",
         "Unit test coverage (>80%)"
       ],
-      "stack_specific": {
-        "javascript": ["ts-prune", "jscpd", "ESLint complexity rules", "Playwright E2E"],
-        "python": ["vulture", "pylint duplication", "Radon complexity", "cosmic-ray mutation"]
-      }
+      "adds_js": [
+        "E2E tests (Playwright)"
+      ],
+      "adds_python": [
+        "Load testing (Locust)"
+      ]
     },
     "tier-4-production": {
       "name": "Production-Ready",
@@ -248,16 +249,18 @@
         "Health check endpoints",
         "Metrics and observability",
         "Error tracking (Sentry)",
-        "Structured logging (structlog/winston)",
-        "Bundle analysis (@next/bundle-analyzer for JS)",
-        "Lighthouse CI (performance + accessibility)",
+        "Structured logging",
         "Production build validation",
         "Security scanning (no continue-on-error)"
       ],
-      "stack_specific": {
-        "javascript": ["Bundle analysis", "Lighthouse CI (90% scores)", "Sentry integration"],
-        "python": ["Structured logging with structlog", "Performance profiling", "Load testing with Locust"]
-      }
+      "adds_js": [
+        "Bundle analysis (@next/bundle-analyzer)",
+        "Lighthouse CI (performance + accessibility)"
+      ],
+      "adds_python": [
+        "API documentation (OpenAPI/Swagger)",
+        "Performance profiling"
+      ]
     }
   },
   "additional_options": {
