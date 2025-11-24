@@ -113,6 +113,16 @@ class TestGenerateTree:
         # Assert
         assert tree == "fallback"
 
+    def test_generate_tree_oserror_uses_fallback(self, tree_generator):
+        """Test tree generation uses fallback when OSError occurs."""
+        # Act
+        with patch("subprocess.run", side_effect=OSError("Command failed")):
+            with patch.object(tree_generator, "_generate_tree_fallback", return_value="fallback"):
+                tree = tree_generator.generate_tree()
+
+        # Assert
+        assert tree == "fallback"
+
     def test_generate_tree_builds_ignore_args(self, tree_generator):
         """Test tree generation builds correct ignore arguments."""
         # Arrange
@@ -221,6 +231,34 @@ class TestGenerateTreeFallback:
         # Should have just the root directory
         lines = [line for line in tree.split("\n") if line.strip()]
         assert len(lines) == 1
+
+    def test_generate_tree_fallback_oserror(self, tree_generator):
+        """Test fallback tree raises FileOperationError on OSError."""
+        # Arrange
+        from solokit.core.exceptions import FileOperationError
+
+        # Act & Assert
+        with patch.object(Path, "iterdir", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                tree_generator._generate_tree_fallback()
+            assert "Failed to generate project tree" in str(exc_info.value)
+
+    def test_generate_tree_fallback_ignores_nested_patterns(self, tree_generator, temp_project):
+        """Test fallback tree ignores patterns in nested paths."""
+        # Arrange
+        src_dir = temp_project / "src"
+        src_dir.mkdir()
+        cache_dir = src_dir / "__pycache__"
+        cache_dir.mkdir()
+        (src_dir / "file.py").touch()
+
+        # Act
+        tree = tree_generator._generate_tree_fallback()
+
+        # Assert
+        assert "src" in tree
+        assert "file.py" in tree
+        assert "__pycache__" not in tree
 
 
 class TestDetectChanges:
@@ -447,6 +485,33 @@ class TestUpdateTree:
         captured = capsys.readouterr()
         assert "and 5 more changes" in captured.out or "more changes" in captured.out
 
+    def test_update_tree_read_error(self, tree_generator, temp_project):
+        """Test update_tree handles read error for existing tree file."""
+        # Arrange
+        from solokit.core.exceptions import FileOperationError
+
+        tree_generator.tree_file.parent.mkdir(parents=True, exist_ok=True)
+        tree_generator.tree_file.touch()
+
+        # Act & Assert
+        with patch.object(tree_generator, "generate_tree", return_value="new tree"):
+            with patch.object(Path, "read_text", side_effect=OSError("Read failed")):
+                with pytest.raises(FileOperationError) as exc_info:
+                    tree_generator.update_tree(session_num=1, non_interactive=True)
+                assert "Failed to read existing tree file" in str(exc_info.value)
+
+    def test_update_tree_write_error(self, tree_generator, temp_project):
+        """Test update_tree handles write error when saving tree."""
+        # Arrange
+        from solokit.core.exceptions import FileOperationError
+
+        # Act & Assert
+        with patch.object(tree_generator, "generate_tree", return_value="new tree"):
+            with patch.object(Path, "write_text", side_effect=OSError("Write failed")):
+                with pytest.raises(FileOperationError) as exc_info:
+                    tree_generator.update_tree(session_num=1, non_interactive=True)
+                assert "Failed to write tree file" in str(exc_info.value)
+
 
 class TestRecordTreeUpdate:
     """Tests for recording tree updates."""
@@ -520,6 +585,22 @@ class TestRecordTreeUpdate:
         # Assert
         data = json.loads(tree_generator.updates_file.read_text())
         assert len(data["updates"]) == 1
+
+    def test_record_tree_update_write_error(self, tree_generator, temp_project):
+        """Test _record_tree_update handles write error."""
+        # Arrange
+        from solokit.core.exceptions import FileOperationError
+
+        tree_generator.updates_file.parent.mkdir(parents=True, exist_ok=True)
+        session_num = 1
+        changes = [{"type": "directory_added", "path": "src/"}]
+        reasoning = "Added source directory"
+
+        # Act & Assert
+        with patch.object(Path, "write_text", side_effect=OSError("Write failed")):
+            with pytest.raises(FileOperationError) as exc_info:
+                tree_generator._record_tree_update(session_num, changes, reasoning)
+            assert "Failed to write tree updates" in str(exc_info.value)
 
 
 class TestMainFunction:
@@ -620,3 +701,82 @@ class TestMainFunction:
         captured = capsys.readouterr()
         assert "Tree generated (no changes)" in captured.out
         assert "Saved to:" in captured.out
+
+    def test_main_show_changes_parse_error(self, temp_project, capsys):
+        """Test main function with --show-changes when file has parse error."""
+        # Arrange
+        test_args = ["--show-changes"]
+
+        # Act & Assert
+        with patch("sys.argv", ["generate_tree.py"] + test_args):
+            with patch("solokit.project.tree.TreeGenerator") as mock_generator_class:
+                mock_instance = Mock()
+                mock_instance.updates_file.exists.return_value = True
+                mock_instance.updates_file.read_text.return_value = "invalid json {"
+                mock_generator_class.return_value = mock_instance
+
+                from solokit.project.tree import main
+
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+                assert exc_info.value.code == 5  # FileOperationError exit code
+                captured = capsys.readouterr()
+                assert "Failed to parse tree updates file" in captured.err
+
+    def test_main_solokit_error(self, temp_project, capsys):
+        """Test main function handles SolokitError."""
+        # Arrange
+        from solokit.core.exceptions import FileOperationError
+
+        # Act
+        with patch("sys.argv", ["generate_tree.py"]):
+            with patch("solokit.project.tree.TreeGenerator") as mock_generator_class:
+                mock_generator_class.side_effect = FileOperationError(
+                    operation="read",
+                    file_path="test.txt",
+                    details="File not found",
+                )
+
+                from solokit.project.tree import main
+
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+
+        # Assert
+        assert exc_info.value.code == 5  # FileOperationError exit code
+        captured = capsys.readouterr()
+        assert "Error:" in captured.err
+
+    def test_main_keyboard_interrupt(self, temp_project, capsys):
+        """Test main function handles KeyboardInterrupt."""
+        # Act
+        with patch("sys.argv", ["generate_tree.py"]):
+            with patch("solokit.project.tree.TreeGenerator") as mock_generator_class:
+                mock_generator_class.side_effect = KeyboardInterrupt()
+
+                from solokit.project.tree import main
+
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+
+        # Assert
+        assert exc_info.value.code == 130
+        captured = capsys.readouterr()
+        assert "cancelled by user" in captured.err
+
+    def test_main_unexpected_error(self, temp_project, capsys):
+        """Test main function handles unexpected errors."""
+        # Act
+        with patch("sys.argv", ["generate_tree.py"]):
+            with patch("solokit.project.tree.TreeGenerator") as mock_generator_class:
+                mock_generator_class.side_effect = RuntimeError("Unexpected error")
+
+                from solokit.project.tree import main
+
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+
+        # Assert
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Unexpected error" in captured.err

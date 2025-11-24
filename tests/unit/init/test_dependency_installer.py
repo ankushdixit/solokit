@@ -176,6 +176,137 @@ class TestInstallNpmDependencies:
 
         assert result is False
 
+    def test_install_uses_cwd_when_project_root_none(self, mock_stack_versions):
+        """Test that install uses cwd when project_root is None."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                with patch("solokit.init.dependency_installer.Path.cwd") as mock_cwd:
+                    from pathlib import Path
+
+                    mock_cwd.return_value = Path("/test/path")
+                    result = install_npm_dependencies("saas_t3", "tier-1-essential", None)
+
+                    assert result is True
+                    mock_cwd.assert_called_once()
+
+    def test_missing_command_key_warning(self, tmp_path, mock_stack_versions):
+        """Test warning when command key is missing."""
+        # Remove tier1 from commands
+        mock_stack_versions["stacks"]["saas_t3"]["installation"]["commands"].pop("tier1")
+
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                # Should still succeed, just skip missing command
+                result = install_npm_dependencies("saas_t3", "tier-1-essential", tmp_path)
+                assert result is True
+
+    def test_tier3_with_preinstalled_playwright_browsers(self, tmp_path, mock_stack_versions):
+        """Test tier-3 installation with pre-installed Playwright browsers."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                with patch.dict("os.environ", {"PLAYWRIGHT_BROWSERS_PATH": "/pre/installed"}):
+                    result = install_npm_dependencies("saas_t3", "tier-3-comprehensive", tmp_path)
+
+                    assert result is True
+                    # Should not try to install browsers
+
+    def test_tier3_linux_playwright_installation(self, tmp_path, mock_stack_versions):
+        """Test tier-3 installation on Linux with Playwright."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                with patch("platform.system", return_value="Linux"):
+                    with patch.dict("os.environ", {}, clear=True):
+                        result = install_npm_dependencies(
+                            "saas_t3", "tier-3-comprehensive", tmp_path
+                        )
+
+                        assert result is True
+                        # Should have called playwright install commands
+
+    def test_tier3_playwright_browser_install_failure(self, tmp_path, mock_stack_versions):
+        """Test tier-3 with Playwright browser install failure (non-critical)."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                # Success for main installs, failure for playwright browsers
+                def run_side_effect(cmd, check=True, timeout=None):
+                    if "playwright install" in " ".join(str(c) for c in cmd):
+                        return Mock(success=False, stderr="Browser install failed", returncode=1)
+                    return Mock(success=True, stdout="", stderr="", returncode=0)
+
+                mock_runner.run.side_effect = run_side_effect
+
+                with patch("platform.system", return_value="Darwin"):
+                    with patch.dict("os.environ", {}, clear=True):
+                        result = install_npm_dependencies(
+                            "saas_t3", "tier-3-comprehensive", tmp_path
+                        )
+
+                        # Should still succeed (playwright is non-critical)
+                        assert result is True
+
+    def test_tier3_linux_playwright_deps_failure(self, tmp_path, mock_stack_versions):
+        """Test tier-3 on Linux with Playwright system deps failure."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["saas_t3"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                # Success for main installs, failure for playwright install-deps
+                def run_side_effect(cmd, check=True, timeout=None):
+                    if "install-deps" in " ".join(str(c) for c in cmd):
+                        return Mock(success=False, stderr="install-deps failed", returncode=1)
+                    return Mock(success=True, stdout="", stderr="", returncode=0)
+
+                mock_runner.run.side_effect = run_side_effect
+
+                with patch("platform.system", return_value="Linux"):
+                    with patch.dict("os.environ", {}, clear=True):
+                        result = install_npm_dependencies(
+                            "saas_t3", "tier-3-comprehensive", tmp_path
+                        )
+
+                        # Should still succeed (deps install is non-critical)
+                        assert result is True
+
 
 class TestInstallPythonDependencies:
     """Tests for install_python_dependencies()."""
@@ -257,6 +388,135 @@ class TestInstallPythonDependencies:
 
                 with pytest.raises(CommandExecutionError):
                     install_python_dependencies("tier-1-essential", None, tmp_path)
+
+    def test_python_install_uses_cwd_when_project_root_none(self, mock_stack_versions):
+        """Test that Python install uses cwd when project_root is None."""
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                with patch("solokit.init.dependency_installer.Path.cwd") as mock_cwd:
+                    from pathlib import Path
+
+                    mock_cwd.return_value = Path("/test/path")
+                    # Need to create the venv path for the test
+                    with patch.object(Path, "exists", return_value=True):
+                        result = install_python_dependencies("tier-1-essential", None, None)
+                        assert result is True
+                        mock_cwd.assert_called()
+
+    def test_python_missing_command_key_warning(self, tmp_path, mock_stack_versions):
+        """Test warning when command key is missing in Python install."""
+        venv = tmp_path / "venv"
+        venv.mkdir()
+        (venv / "bin").mkdir()
+        (venv / "bin" / "pip").write_text("#!/usr/bin/env python")
+
+        # Remove tier1 from commands
+        mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]["commands"].pop("tier1")
+
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                # Should still succeed, just skip missing command
+                result = install_python_dependencies("tier-1-essential", None, tmp_path)
+                assert result is True
+
+    def test_python_install_failure(self, tmp_path, mock_stack_versions):
+        """Test error when Python package install fails."""
+        venv = tmp_path / "venv"
+        venv.mkdir()
+        (venv / "bin").mkdir()
+        (venv / "bin" / "pip").write_text("#!/usr/bin/env python")
+
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                # Success for pip upgrade, failure for package install
+                def run_side_effect(cmd, check=True, timeout=None):
+                    if "upgrade" in " ".join(str(c) for c in cmd):
+                        return Mock(success=True, stdout="", stderr="", returncode=0)
+                    return Mock(success=False, stderr="Install failed", returncode=1)
+
+                mock_runner.run.side_effect = run_side_effect
+
+                with pytest.raises(CommandExecutionError) as exc:
+                    install_python_dependencies("tier-1-essential", None, tmp_path)
+
+                assert "Install failed" in exc.value.stderr
+
+    def test_python_security_fixes_success(self, tmp_path, mock_stack_versions):
+        """Test successful security fixes application."""
+        venv = tmp_path / "venv"
+        venv.mkdir()
+        (venv / "bin").mkdir()
+        (venv / "bin" / "pip").write_text("#!/usr/bin/env python")
+
+        # Add security_fixes command
+        mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]["commands"][
+            "security_fixes"
+        ] = "pip install --upgrade certifi"
+
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="", stderr="", returncode=0
+                )
+
+                result = install_python_dependencies("tier-1-essential", None, tmp_path)
+                assert result is True
+
+    def test_python_security_fixes_failure(self, tmp_path, mock_stack_versions):
+        """Test non-critical failure of security fixes."""
+        venv = tmp_path / "venv"
+        venv.mkdir()
+        (venv / "bin").mkdir()
+        (venv / "bin" / "pip").write_text("#!/usr/bin/env python")
+
+        # Add security_fixes command
+        mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]["commands"][
+            "security_fixes"
+        ] = "pip install --upgrade certifi"
+
+        with patch("solokit.init.dependency_installer.get_installation_commands") as mock_get:
+            mock_get.return_value = mock_stack_versions["stacks"]["ml_ai_fastapi"]["installation"]
+
+            with patch("solokit.init.dependency_installer.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                # Success for main installs, failure for security fixes
+                def run_side_effect(cmd, check=True, timeout=None):
+                    if "certifi" in " ".join(str(c) for c in cmd):
+                        return Mock(success=False, stderr="Security fix failed", returncode=1)
+                    return Mock(success=True, stdout="", stderr="", returncode=0)
+
+                mock_runner.run.side_effect = run_side_effect
+
+                # Should still succeed (security fixes are non-critical)
+                result = install_python_dependencies("tier-1-essential", None, tmp_path)
+                assert result is True
 
 
 class TestInstallDependencies:

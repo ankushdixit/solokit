@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from solokit.core.exceptions import NotAGitRepoError, TemplateNotFoundError
+from solokit.core.exceptions import FileOperationError, NotAGitRepoError, TemplateNotFoundError
 from solokit.init.git_hooks_installer import install_git_hooks
 
 
@@ -67,3 +67,22 @@ class TestInstallGitHooks:
                 mode = hook_dest.stat().st_mode
                 # Check if user executable bit is set
                 assert mode & stat.S_IXUSR
+
+    def test_copy_or_chmod_fails(self, mock_git_repo):
+        """Test handling when copy or chmod fails."""
+        template_dir = mock_git_repo / "templates" / "git-hooks"
+        template_dir.mkdir(parents=True)
+        hook_template = template_dir / "prepare-commit-msg"
+        hook_template.write_text("#!/bin/sh\necho 'hook'")
+
+        with patch("solokit.init.git_hooks_installer.Path") as mock_path:
+            mock_path.return_value.parent.parent.__truediv__.return_value.__truediv__.return_value = template_dir
+
+            # Mock shutil.copy to raise an exception
+            with patch("solokit.init.git_hooks_installer.shutil.copy") as mock_copy:
+                mock_copy.side_effect = PermissionError("Permission denied")
+
+                with pytest.raises(FileOperationError) as exc:
+                    install_git_hooks(mock_git_repo)
+
+                assert exc.value.operation == "install"

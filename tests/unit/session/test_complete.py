@@ -1994,3 +1994,39 @@ class TestMain:
 
         # Assert - Should fail because quality gates failed
         assert result == 1
+
+
+class TestAdditionalCoverage:
+    """Additional tests to increase coverage for uncovered lines."""
+
+    def test_load_status_oserror(self, tmp_path, monkeypatch):
+        """Test load_status handles OSError (lines 66-67)."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+        status_file = session_dir / "status_update.json"
+        status_file.write_text("{}")
+
+        # Mock open to raise OSError
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError, match="File read operation failed"):
+                load_status()
+
+    def test_load_work_items_oserror(self, tmp_path, monkeypatch):
+        """Test load_work_items handles OSError (lines 104-105)."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        # Mock open to raise OSError
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError, match="File read operation failed"):
+                load_work_items()

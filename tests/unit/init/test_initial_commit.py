@@ -152,3 +152,61 @@ class TestCreateInitialCommit:
             assert commit_args[1] == "commit"
             assert commit_args[2] == "-m"
             assert "SaaS T3" in commit_args[3]
+
+    def test_uses_current_directory_when_no_path_provided(self):
+        """Test that it uses current directory when project_root is None."""
+        with patch("solokit.init.initial_commit.Path.cwd") as mock_cwd:
+            mock_cwd.return_value = "/fake/path"
+            with patch("solokit.init.initial_commit.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=True, stdout="5")
+
+                create_initial_commit(
+                    "SaaS T3",
+                    "tier-1-essential",
+                    60,
+                    [],
+                    {"frontend": "Next.js"},
+                    project_root=None,
+                )
+
+                # Verify CommandRunner was called with the cwd path
+                mock_runner_class.assert_called_once()
+
+    def test_exception_during_rev_list_check(self, tmp_path):
+        """Test handling when exception occurs during rev-list check."""
+        with patch("solokit.init.initial_commit.CommandRunner") as mock_runner_class:
+            mock_runner = Mock()
+            mock_runner_class.return_value = mock_runner
+            # First call raises exception, then add succeeds, commit succeeds
+            mock_runner.run.side_effect = [
+                Exception("Git error"),  # rev-list throws exception
+                Mock(success=True),  # git add succeeds
+                Mock(success=True),  # git commit succeeds
+            ]
+
+            result = create_initial_commit(
+                "SaaS T3", "tier-1-essential", 60, [], {"frontend": "Next.js"}, tmp_path
+            )
+
+            assert result is True
+            # Should continue and create commit despite exception
+            assert mock_runner.run.call_count == 3
+
+    def test_exception_during_commit_creation(self, tmp_path):
+        """Test handling when exception occurs during commit creation."""
+        with patch("solokit.init.initial_commit.CommandRunner") as mock_runner_class:
+            mock_runner = Mock()
+            mock_runner_class.return_value = mock_runner
+            # rev-list succeeds, then exception during add
+            mock_runner.run.side_effect = [
+                Mock(success=False),  # rev-list fails (no commits)
+                Exception("Fatal error during git add"),  # Exception
+            ]
+
+            result = create_initial_commit(
+                "SaaS T3", "tier-1-essential", 60, [], {"frontend": "Next.js"}, tmp_path
+            )
+
+            assert result is False

@@ -78,7 +78,7 @@ solokit/
 │   ├── reference/          # Reference documentation
 │   ├── project/            # Project planning
 │   └── development/        # Development notes
-├── tests/                  # Test suites (1408 tests)
+├── tests/                  # Test suites (3,225 tests)
 ├── Makefile                # Developer convenience targets
 └── pyproject.toml          # Package configuration (PEP 517/518)
 ```

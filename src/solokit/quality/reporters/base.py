@@ -22,4 +22,4 @@ class Reporter(ABC):
         Returns:
             Formatted report string
         """
-        pass
+        pass  # pragma: no cover

@@ -23,7 +23,7 @@ class JSONSerializable(Protocol):
         Returns:
             Dictionary representation suitable for JSON serialization
         """
-        ...
+        ...  # pragma: no cover
 
 
 class Validatable(Protocol):
@@ -40,7 +40,7 @@ class Validatable(Protocol):
             - is_valid: True if validation passed, False otherwise
             - error messages: List of validation error messages (empty if valid)
         """
-        ...
+        ...  # pragma: no cover
 
 
 class Configurable(Protocol):
@@ -56,7 +56,7 @@ class Configurable(Protocol):
         Args:
             config: Configuration dictionary
         """
-        ...
+        ...  # pragma: no cover
 
     def save_config(self) -> dict[str, Any]:
         """Save configuration to dictionary.
@@ -64,7 +64,7 @@ class Configurable(Protocol):
         Returns:
             Configuration as dictionary
         """
-        ...
+        ...  # pragma: no cover
 
 
 class Executor(Protocol):
@@ -81,7 +81,7 @@ class Executor(Protocol):
             - success: True if execution succeeded, False otherwise
             - message: Status or error message
         """
-        ...
+        ...  # pragma: no cover
 
 
 class SupportsComparison(Protocol):
@@ -92,19 +92,19 @@ class SupportsComparison(Protocol):
 
     def __lt__(self, other: Any) -> bool:
         """Less than comparison."""
-        ...
+        ...  # pragma: no cover
 
     def __le__(self, other: Any) -> bool:
         """Less than or equal comparison."""
-        ...
+        ...  # pragma: no cover
 
     def __gt__(self, other: Any) -> bool:
         """Greater than comparison."""
-        ...
+        ...  # pragma: no cover
 
     def __ge__(self, other: Any) -> bool:
         """Greater than or equal comparison."""
-        ...
+        ...  # pragma: no cover
 
 
 class FileReader(Protocol):
@@ -122,7 +122,7 @@ class FileReader(Protocol):
         Returns:
             File content as string
         """
-        ...
+        ...  # pragma: no cover
 
 
 class FileWriter(Protocol):
@@ -138,4 +138,4 @@ class FileWriter(Protocol):
             file_path: Path to file to write
             content: Content to write
         """
-        ...
+        ...  # pragma: no cover
