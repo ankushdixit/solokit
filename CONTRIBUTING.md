@@ -71,14 +71,14 @@ solokit/
 │   ├── testing/             # Testing utilities
 │   ├── deployment/          # Deployment executor
 │   ├── project/             # Project initialization
-│   └── templates/           # Work item spec templates
+│   └── templates/           # Project templates (4 stacks) & work item specs
 ├── docs/                   # Documentation
 │   ├── architecture/       # System architecture and design
 │   ├── guides/             # User guides and how-tos
 │   ├── reference/          # Reference documentation
 │   ├── project/            # Project planning
 │   └── development/        # Development notes
-├── tests/                  # Test suites (3,225 tests)
+├── tests/                  # Test suites (96% code coverage)
 ├── Makefile                # Developer convenience targets
 └── pyproject.toml          # Package configuration (PEP 517/518)
 ```
@@ -174,28 +174,28 @@ def calculate_dependency_depth(work_item_id: str, work_items: dict) -> int:
 
 ### Import Patterns
 
-**IMPORTANT:** Solokit uses a hybrid packaging approach (v0.5.7). Follow these import patterns:
+**IMPORTANT:** Solokit uses a standard Python `src/` layout with the `solokit` package. Follow these import patterns:
 
-**For scripts importing other scripts:**
+**For importing solokit modules:**
 ```python
-from scripts.file_ops import load_json, save_json
-from scripts.work_item_manager import WorkItemManager
-from scripts.quality_gates import QualityGates
-```
-
-**For tests importing scripts:**
-```python
-from scripts.work_item_manager import WorkItemManager
-from scripts.session_manager import SessionManager
-```
-
-**DO NOT use relative imports:**
-```python
-# ❌ WRONG - Don't do this
-from .file_ops import load_json
 from solokit.work_items.manager import WorkItemManager
 from solokit.quality.gates import QualityGates
 from solokit.session.briefing import generate_briefing
+from solokit.core.output import get_output
+```
+
+**For tests importing modules:**
+```python
+from solokit.work_items.manager import WorkItemManager
+from solokit.session.manager import SessionManager
+from solokit.learning.repository import LearningRepository
+```
+
+**DO NOT use relative imports or old `scripts` patterns:**
+```python
+# ❌ WRONG - Don't do this
+from .file_ops import load_json
+from scripts.work_item_manager import WorkItemManager  # Old pattern, deprecated
 ```
 
 **Import Guidelines:**
@@ -204,7 +204,7 @@ from solokit.session.briefing import generate_briefing
 - Package organized by domain for clarity
 - Full PEP 517/518 compliance
 
-See [README.md Architecture Notes](README.md#architecture-notes) for package organization details.
+See the [Project Structure](#project-structure) section for package organization details.
 
 ### Command Design
 

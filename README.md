@@ -171,6 +171,34 @@ Initialize projects with battle-tested configurations:
 - Docker Compose for local development
 - CI/CD workflows (GitHub Actions)
 - Environment variable templates
+- **Three-File Documentation Model** (see below)
+
+### 📚 Three-File Documentation Model
+
+Every project initialized with `sk init` includes a comprehensive documentation structure designed for different audiences:
+
+| File | Purpose | Audience | Generated |
+|------|---------|----------|-----------|
+| **README.md** | Quick start guide | Human developers | Yes (project-specific) |
+| **ARCHITECTURE.md** | Technical documentation | Human developers | No (static template) |
+| **CLAUDE.md** | AI guidance | Claude Code | Yes (from template) |
+
+**CLAUDE.md** is a key differentiator - it provides Claude Code with:
+- Stack-specific architecture rules and patterns
+- Comprehensive Solokit command usage guide
+- Work item management instructions
+- Session workflow documentation
+- Learning capture best practices
+- Anti-patterns and common mistakes to avoid
+
+This means Claude Code automatically understands your project's conventions, quality standards, and how to use Solokit effectively from the first session.
+
+**ARCHITECTURE.md** provides deep technical documentation:
+- Architecture decisions with rationale and trade-offs
+- Code patterns and examples specific to your stack
+- Project structure explanations
+- Database workflows
+- Troubleshooting guides
 
 ### 🛡️ Quality Gates
 
