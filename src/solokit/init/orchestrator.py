@@ -13,6 +13,7 @@ from typing import Literal, Optional, cast
 
 from solokit.core.output import get_output
 from solokit.init.claude_commands_installer import install_claude_commands
+from solokit.init.claude_md_generator import generate_claude_md
 from solokit.init.dependency_installer import install_dependencies
 from solokit.init.docs_structure import create_docs_structure
 from solokit.init.env_generator import generate_env_files
@@ -72,18 +73,18 @@ def run_template_based_init(
 
     output.progress("Phase 1: Pre-flight validation...")
 
-    # Step 1-2: Check if already initialized + Check if blank project
-    logger.info("Step 1-2: Pre-flight validation...")
+    # Step 1: Check if already initialized + Check if blank project
+    logger.info("Step 1: Pre-flight validation...")
     check_blank_project_or_exit(project_root)
     logger.info("✓ Project directory is blank\n")
 
-    # Step 3: Initialize/verify git repository
-    logger.info("Step 3: Git initialization...")
+    # Step 2: Initialize/verify git repository
+    logger.info("Step 2: Git initialization...")
     check_or_init_git(project_root)
     logger.info("")
 
-    # Step 4: Validate AND auto-update environment
-    logger.info(f"Step 4: Environment validation for {template_id}...")
+    # Step 3: Validate AND auto-update environment
+    logger.info(f"Step 3: Environment validation for {template_id}...")
 
     # Map template_id to stack_type for environment validation
     template_to_stack_type = {
@@ -122,28 +123,34 @@ def run_template_based_init(
 
     output.progress("Phase 2: Installing template files...")
 
-    # Step 6: Install template files (base + tier + options)
-    logger.info("Step 6: Installing template files...")
+    # Step 4: Install template files (base + tier + options)
+    logger.info("Step 4: Installing template files...")
     install_result = install_template(
         template_id, tier, additional_options, project_root, coverage_target
     )
     logger.info(f"✓ Installed {install_result['files_installed']} template files\n")
     output.info(f"✓ Installed {install_result['files_installed']} template files")
 
-    # Step 7: Generate README.md
-    logger.info("Step 7: Generating README.md...")
+    # Step 5: Generate README.md
+    logger.info("Step 5: Generating README.md...")
     generate_readme(template_id, tier, coverage_target, additional_options, project_root)
     logger.info("✓ Generated README.md\n")
     output.info("✓ Generated README.md")
 
-    # Step 8: Config files (handled by template installation)
-    logger.info("Step 8: Config files installed via template\n")
+    # Step 6: Generate CLAUDE.md
+    logger.info("Step 6: Generating CLAUDE.md...")
+    generate_claude_md(template_id, tier, coverage_target, additional_options, project_root)
+    logger.info("✓ Generated CLAUDE.md\n")
+    output.info("✓ Generated CLAUDE.md")
 
-    # Step 9: Install dependencies - This is the longest step
+    # Step 7: Config files (handled by template installation)
+    logger.info("Step 7: Config files installed via template\n")
+
+    # Step 8: Install dependencies - This is the longest step
     output.info("")
     output.progress("Phase 3: Installing dependencies...")
     output.info("   This may take several minutes. Please wait...\n")
-    logger.info("Step 9: Installing dependencies...")
+    logger.info("Step 8: Installing dependencies...")
     logger.info("⏳ This may take several minutes...\n")
 
     try:
@@ -169,42 +176,42 @@ def run_template_based_init(
         output.warning(f"Dependency installation issue: {e}")
         output.info("   You can install dependencies manually later")
 
-    # Step 10: Create docs directory structure
+    # Step 9: Create docs directory structure
     output.info("")
     output.progress("Phase 4: Configuring project structure...")
-    logger.info("Step 10: Creating documentation structure...")
+    logger.info("Step 9: Creating documentation structure...")
     create_docs_structure(project_root)
     logger.info("✓ Created docs/ structure\n")
 
-    # Step 11: Starter code (handled by template)
-    logger.info("Step 11: Starter code installed via template\n")
+    # Step 10: Starter code (handled by template)
+    logger.info("Step 10: Starter code installed via template\n")
 
-    # Step 12: Smoke tests (handled by template)
-    logger.info("Step 12: Smoke tests installed via template\n")
+    # Step 11: Smoke tests (handled by template)
+    logger.info("Step 11: Smoke tests installed via template\n")
 
-    # Step 13: Create .env files
+    # Step 12: Create .env files
     if "env_templates" in additional_options:
-        logger.info("Step 13: Generating environment files...")
+        logger.info("Step 12: Generating environment files...")
         generate_env_files(template_id, project_root)
         logger.info("✓ Generated .env.example and .editorconfig\n")
     else:
-        logger.info("Step 13: Skipped (environment templates not selected)\n")
+        logger.info("Step 12: Skipped (environment templates not selected)\n")
 
-    # Step 14: Create .session structure
-    logger.info("Step 14: Creating .session structure...")
+    # Step 13: Create .session structure
+    logger.info("Step 13: Creating .session structure...")
     create_session_directories(project_root)
     logger.info("✓ Created .session/ directories\n")
     output.info("✓ Created documentation and session structure")
 
-    # Step 15: Initialize tracking files
-    logger.info("Step 15: Initializing tracking files...")
+    # Step 14: Initialize tracking files
+    logger.info("Step 14: Initializing tracking files...")
     initialize_tracking_files(tier, coverage_target, project_root)
     logger.info("✓ Initialized tracking files with tier-specific config\n")
     output.info("✓ Initialized tracking files with tier-specific config")
 
-    # Step 16: Run initial scans (stack.txt, tree.txt)
+    # Step 15: Run initial scans (stack.txt, tree.txt)
     output.progress("Running initial scans...")
-    logger.info("Step 16: Running initial scans...")
+    logger.info("Step 15: Running initial scans...")
     scan_results = run_initial_scans(project_root)
     if scan_results["stack"]:
         logger.info("✓ Generated stack.txt")
@@ -213,16 +220,16 @@ def run_template_based_init(
     logger.info("")
     output.info("✓ Generated stack.txt and tree.txt")
 
-    # Step 17: Install git hooks
+    # Step 16: Install git hooks
     output.info("")
     output.progress("Phase 5: Finalizing setup...")
-    logger.info("Step 17: Installing git hooks...")
+    logger.info("Step 16: Installing git hooks...")
     install_git_hooks(project_root)
     logger.info("✓ Installed git hooks\n")
     output.info("✓ Installed git hooks")
 
-    # Step 17.5: Install Claude Code slash commands
-    logger.info("Step 17.5: Installing Claude Code slash commands...")
+    # Step 17: Install Claude Code slash commands
+    logger.info("Step 17: Installing Claude Code slash commands...")
     try:
         installed_commands = install_claude_commands(project_root)
         logger.info(f"✓ Installed {len(installed_commands)} slash commands to .claude/commands/\n")

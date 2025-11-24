@@ -65,13 +65,44 @@ A {template_info["display_name"]} project built with Session-Driven Development.
 
     readme_content += f"\n## Quality Gates: {tier_info.get('name', tier)}\n\n"
 
-    if "includes" in tier_info:
-        for item in tier_info["includes"]:
-            readme_content += f"- ✓ {item}\n"
+    # Build cumulative quality gates from all tiers up to selected
+    tier_order = [
+        "tier-1-essential",
+        "tier-2-standard",
+        "tier-3-comprehensive",
+        "tier-4-production",
+    ]
+    quality_tiers = registry.get("quality_tiers", {})
 
-    if "adds" in tier_info:
-        for item in tier_info["adds"]:
-            readme_content += f"- ✓ {item}\n"
+    try:
+        selected_tier_index = tier_order.index(tier)
+    except ValueError:
+        selected_tier_index = 0
+
+    # Determine stack type for stack-specific quality gates
+    is_js_stack = template_info["package_manager"] == "npm"
+
+    # Collect all features cumulatively
+    for i in range(selected_tier_index + 1):
+        current_tier = tier_order[i]
+        current_tier_info = quality_tiers.get(current_tier, {})
+
+        # First tier has "includes", subsequent tiers have "adds"
+        if "includes" in current_tier_info:
+            for item in current_tier_info["includes"]:
+                readme_content += f"- ✓ {item}\n"
+
+        if "adds" in current_tier_info:
+            for item in current_tier_info["adds"]:
+                readme_content += f"- ✓ {item}\n"
+
+        # Add stack-specific quality gates
+        if is_js_stack and "adds_js" in current_tier_info:
+            for item in current_tier_info["adds_js"]:
+                readme_content += f"- ✓ {item}\n"
+        elif not is_js_stack and "adds_python" in current_tier_info:
+            for item in current_tier_info["adds_python"]:
+                readme_content += f"- ✓ {item}\n"
 
     readme_content += f"\n**Test Coverage Target**: {coverage_target}%\n"
 
@@ -98,10 +129,58 @@ source venv/bin/activate  # Unix
 venv\\Scripts\\activate  # Windows
 
 # Run development server
-uvicorn main:app --reload
+uvicorn src.main:app --reload
 ```
 
 Visit http://localhost:8000
+
+"""
+
+    # Add environment setup section
+    readme_content += "### Environment Setup\n\n"
+    readme_content += """```bash
+# Copy environment template
+cp .env.local.example .env.local
+# Edit .env.local with your database connection and other settings
+```
+
+"""
+
+    # Add database setup section based on stack
+    stack_info = template_info.get("stack", {})
+    has_prisma = "Prisma" in str(stack_info.get("database", "")) or "Prisma" in str(
+        stack_info.get("api", "")
+    )
+    has_alembic = "Alembic" in str(stack_info.get("database", ""))
+
+    if has_prisma:
+        readme_content += """### Database Setup
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma migrate dev
+
+# (Optional) Open Prisma Studio to view data
+npx prisma studio
+```
+
+"""
+    elif has_alembic:
+        readme_content += """### Database Setup
+
+```bash
+# Activate virtual environment first
+source venv/bin/activate
+
+# Run database migrations
+alembic upgrade head
+
+# (Optional) Create a new migration after model changes
+alembic revision --autogenerate -m "description"
+```
 
 """
 
@@ -194,9 +273,30 @@ pyright
     # Add additional options documentation
     if additional_options:
         readme_content += "\n## Additional Features\n\n"
+        additional_options_registry = registry.get("additional_options", {})
         for option in additional_options:
-            option_key = option.replace("_", " ").title()
-            readme_content += f"- ✓ {option_key}\n"
+            # Use the registry name if available, otherwise format the key
+            option_info = additional_options_registry.get(option, {})
+            option_name = option_info.get("name", option.replace("_", " ").title())
+            option_desc = option_info.get("description", "")
+            if option_desc:
+                readme_content += f"- ✓ **{option_name}**: {option_desc}\n"
+            else:
+                readme_content += f"- ✓ {option_name}\n"
+
+    # Add documentation reference section
+    readme_content += """
+## Documentation
+
+See `ARCHITECTURE.md` for detailed technical documentation including:
+
+- Architecture decisions and trade-offs
+- Project structure reference
+- Code patterns and examples
+- Database workflow
+- Troubleshooting guides
+
+"""
 
     # Add known issues if any
     if template_info.get("known_issues"):

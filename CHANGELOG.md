@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Three-File Documentation Model for Project Initialization**
+  - Implemented comprehensive documentation structure with distinct purposes:
+    - `README.md`: Quick start guide (generated, project-specific)
+    - `ARCHITECTURE.md`: Technical documentation (static template, comprehensive)
+    - `CLAUDE.md`: AI guidance for Claude Code (generated from template)
+  - Created `ARCHITECTURE.md` files for all 4 stacks with comprehensive technical documentation:
+    - Architecture decisions with rationale and trade-offs
+    - Code patterns and examples
+    - Project structure explanations
+    - Database workflows
+    - Troubleshooting guides
+  - Created `CLAUDE.md.template` files for all 4 stacks with:
+    - Stack-specific architecture rules and patterns
+    - Comprehensive Solokit command usage guide
+    - Claude behavior guidelines
+    - Work item management instructions
+    - Session workflow documentation
+    - Learning capture best practices
+    - Stack-specific anti-patterns and common mistakes
+  - Added `claude_md_generator.py` module for CLAUDE.md generation
+  - Integrated CLAUDE.md generation into `sk init` workflow (Step 6)
+  - Updated orchestrator step numbering to be sequential (1-19)
+  - Affects: All stacks (saas_t3, ml_ai_fastapi, dashboard_refine, fullstack_nextjs)
+
+### Changed
+- **README Generator Improvements**
+  - Implemented cumulative quality gates (each tier includes all previous tiers' requirements)
+  - Added stack-aware quality gates from template registry:
+    - JavaScript stacks: E2E tests (Playwright), Bundle analysis, Lighthouse CI
+    - Python stacks: Load testing (Locust), API documentation (OpenAPI), Performance profiling
+  - Fixed uvicorn command for Python stack: `uvicorn src.main:app --reload` (was `main:app`)
+  - Added environment setup section with `.env.local` instructions
+  - Added database setup section (Prisma for npm stacks, Alembic for Python stacks)
+  - Improved additional options display using registry names and descriptions
+  - Added ARCHITECTURE.md reference section to all generated READMEs
+  - Affects: All stacks
+
+- **Template Registry Enhancements**
+  - Made quality gates stack-aware with `adds_js` and `adds_python` fields
+  - Tier 3 quality gates now separate JavaScript-specific (Playwright) from Python-specific (Locust)
+  - Tier 4 quality gates now separate JavaScript-specific (Bundle analysis, Lighthouse) from Python-specific (OpenAPI, Performance profiling)
+  - Removed stack_specific field (replaced with cleaner adds_js/adds_python structure)
+  - Affects: template-registry.json
+
 ### Fixed
 - **CI Workflow Improvements for GitHub Actions**
   - Fixed Lighthouse CI Chrome sandbox issues on GitHub Actions runners
