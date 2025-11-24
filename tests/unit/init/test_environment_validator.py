@@ -72,6 +72,18 @@ class TestParseVersion:
         with pytest.raises(ValueError):
             parse_version("")
 
+    def test_parse_version_causes_value_error_in_int_conversion(self):
+        """Test parsing version when group exists but int conversion fails (edge case)."""
+        # In practice, this is hard to trigger since regex ensures digits
+        # but we test the error handling path
+        with patch("solokit.init.environment_validator.re.match") as mock_match:
+            mock_result = Mock()
+            mock_result.group.side_effect = [ValueError("bad conversion"), None, None]
+            mock_match.return_value = mock_result
+
+            with pytest.raises(ValueError, match="Invalid version format"):
+                parse_version("18.0.0")
+
 
 class TestCheckNodeVersion:
     """Tests for check_node_version()."""
@@ -210,6 +222,38 @@ class TestCheckPythonVersion:
 
                 assert meets_req is True
                 assert version == "3.11.0"
+
+    def test_python_command_fails(self):
+        """Test when python --version command fails."""
+        with patch(
+            "solokit.init.environment_validator.shutil.which", return_value="/usr/bin/python3"
+        ):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=False, stdout="")
+
+                meets_req, version, binary = check_python_version()
+
+                assert meets_req is False
+                assert version is None
+                assert binary is None
+
+    def test_python_version_parse_error(self):
+        """Test when version string cannot be parsed."""
+        with patch(
+            "solokit.init.environment_validator.shutil.which", return_value="/usr/bin/python3"
+        ):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=True, stdout="Python invalid-version")
+
+                meets_req, version, binary = check_python_version()
+
+                assert meets_req is False
+                assert version is None
+                assert binary is None
 
 
 class TestAttemptNodeInstallWithNvm:
@@ -428,3 +472,93 @@ class TestValidateEnvironment:
 
             assert "stack_type" in exc.value.context
             assert exc.value.context["stack_type"] == "saas_t3"
+
+    def test_saas_t3_node_auto_update_succeeds_but_not_detected(self):
+        """Test auto-update reports success but Node still not detected (rare edge case)."""
+        with patch("solokit.init.environment_validator.check_node_version") as mock_check:
+            # First call: not installed, second call after install: still not detected
+            mock_check.side_effect = [(False, None), (False, None)]
+
+            with patch(
+                "solokit.init.environment_validator.attempt_node_install_with_nvm",
+                return_value=(True, "Installed but not in PATH"),
+            ):
+                with pytest.raises(ValidationError) as exc:
+                    validate_environment("saas_t3", auto_update=True)
+
+                assert "Auto-installation succeeded but Node.js still not detected" in str(
+                    exc.value
+                )
+
+    def test_saas_t3_node_auto_update_fails(self):
+        """Test auto-update fails to install Node.js."""
+        with patch("solokit.init.environment_validator.check_node_version") as mock_check:
+            mock_check.return_value = (False, None)
+
+            with patch(
+                "solokit.init.environment_validator.attempt_node_install_with_nvm",
+                return_value=(False, "nvm installation failed"),
+            ):
+                with pytest.raises(ValidationError) as exc:
+                    validate_environment("saas_t3", auto_update=True)
+
+                assert "nvm installation failed" in str(exc.value)
+
+    def test_ml_ai_fastapi_python_auto_update_succeeds_but_not_detected(self):
+        """Test auto-update reports success but Python still not detected (rare edge case)."""
+        with patch("solokit.init.environment_validator.check_python_version") as mock_check:
+            # All calls return False (not found, not found specifically, not found after install)
+            mock_check.side_effect = [
+                (False, None, None),  # First check
+                (False, None, None),  # Check for python3.11 specifically
+                (False, None, None),  # Check after install
+            ]
+
+            with patch(
+                "solokit.init.environment_validator.attempt_python_install_with_pyenv",
+                return_value=(True, "Installed but not in PATH"),
+            ):
+                with pytest.raises(ValidationError) as exc:
+                    validate_environment("ml_ai_fastapi", auto_update=True)
+
+                assert "Auto-installation succeeded but Python 3.11+ still not detected" in str(
+                    exc.value
+                )
+
+    def test_ml_ai_fastapi_python_auto_update_fails(self):
+        """Test auto-update fails to install Python."""
+        with patch("solokit.init.environment_validator.check_python_version") as mock_check:
+            # First check fails, python3.11 check fails, then try to install
+            mock_check.side_effect = [
+                (False, None, None),  # First check
+                (False, None, None),  # Check for python3.11 specifically
+            ]
+
+            with patch(
+                "solokit.init.environment_validator.attempt_python_install_with_pyenv",
+                return_value=(False, "pyenv installation failed"),
+            ):
+                with pytest.raises(ValidationError) as exc:
+                    validate_environment("ml_ai_fastapi", auto_update=True)
+
+                assert "pyenv installation failed" in str(exc.value)
+
+    def test_ml_ai_fastapi_python_auto_update_success(self):
+        """Test auto-update successfully installs Python."""
+        with patch("solokit.init.environment_validator.check_python_version") as mock_check:
+            # First call: not installed, second call: python3.11 not found,
+            # third call after install: installed
+            mock_check.side_effect = [
+                (False, None, None),  # First check
+                (False, None, None),  # Check for python3.11 specifically
+                (True, "3.11.0", "/usr/bin/python3.11"),  # After install
+            ]
+
+            with patch(
+                "solokit.init.environment_validator.attempt_python_install_with_pyenv",
+                return_value=(True, "Success"),
+            ):
+                result = validate_environment("ml_ai_fastapi", auto_update=True)
+
+                assert result["python_ok"] is True
+                assert result["python_version"] == "3.11.0"

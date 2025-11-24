@@ -469,3 +469,252 @@ class TestBenchmarkReport:
 
         assert "FAILED" in report
         assert "regression detected" in report.lower()
+
+
+class TestExceptionHandling:
+    """Test exception handling and error paths."""
+
+    def test_run_load_test_exception_raises_load_test_failed_error(self):
+        """Test that exceptions during load test raise LoadTestFailedError (line 163-164)."""
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        # Mock the runner.run to raise an exception
+        with patch.object(benchmark.runner, "run", side_effect=Exception("Network timeout")):
+            with pytest.raises(LoadTestFailedError) as exc_info:
+                benchmark._run_load_test("http://localhost:8000")
+
+            assert "Network timeout" in str(exc_info.value.context.get("details", ""))
+
+    def test_parse_wrk_output_invalid_format_raises_error(self):
+        """Test that invalid wrk output raises PerformanceTestError (line 209-210)."""
+        from solokit.core.exceptions import PerformanceTestError
+
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        # Create malformed wrk output that will cause IndexError when parsing
+        invalid_output = """
+        50%
+        Requests/sec: invalid
+        """
+
+        with pytest.raises(PerformanceTestError) as exc_info:
+            benchmark._parse_wrk_output(invalid_output)
+
+        assert "Failed to parse wrk output" in str(exc_info.value)
+
+    def test_parse_latency_invalid_format_raises_error(self):
+        """Test that invalid latency format raises PerformanceTestError (line 236-237)."""
+        from solokit.core.exceptions import PerformanceTestError
+
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        # Test with None which will cause AttributeError
+        with pytest.raises(PerformanceTestError) as exc_info:
+            benchmark._parse_latency(None)
+
+        assert "Failed to parse latency value" in str(exc_info.value)
+
+    def test_run_simple_load_test_no_successful_requests_line_283(self):
+        """Test simple load test with no successful requests (line 283)."""
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        # Mock time to immediately exit loop with no successful requests
+        mock_times = [0.0, 1.1, 1.1]  # start, loop check (exceeds duration), final duration
+
+        with patch("time.time") as mock_time_func, patch("requests.get") as mock_get:
+            mock_time_func.side_effect = mock_times
+            mock_get.side_effect = Exception("Connection refused")
+
+            with pytest.raises(LoadTestFailedError) as exc_info:
+                benchmark._run_simple_load_test("http://example.com", duration=1)
+
+            assert "No successful requests" in str(exc_info.value.context.get("details", ""))
+
+    @patch("solokit.testing.performance.CommandRunner")
+    def test_measure_resource_usage_docker_stats_failure(self, mock_runner_class):
+        """Test resource measurement when docker stats fails (line 358-364)."""
+        work_item = {
+            "id": "test_perf",
+            "performance_benchmarks": {},
+            "environment_requirements": {"services_required": ["postgres"]},
+        }
+
+        mock_runner = Mock()
+
+        def run_side_effect(cmd, **kwargs):
+            if "ps" in cmd:
+                return Mock(success=True, stdout="abc123\n", stderr="")
+            elif "stats" in cmd:
+                # Stats command fails
+                return Mock(success=False, stdout="", stderr="Permission denied")
+            return Mock(success=False, stdout="", stderr="")
+
+        mock_runner.run.side_effect = run_side_effect
+        mock_runner_class.return_value = mock_runner
+
+        benchmark = PerformanceBenchmark(work_item)
+        results = benchmark._measure_resource_usage()
+
+        # Service should not be in results when stats command fails
+        assert "postgres" not in results or "error" not in results.get("postgres", {})
+
+    @patch("solokit.testing.performance.load_json")
+    def test_check_for_regression_load_json_fails(self, mock_load_json, tmp_path):
+        """Test regression check when loading baseline fails (line 449-451)."""
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+        benchmark.baselines_file = tmp_path / "baselines.json"
+        benchmark.baselines_file.touch()
+
+        mock_load_json.side_effect = Exception("Corrupted JSON")
+
+        # Should return False and not raise exception
+        result = benchmark._check_for_regression()
+        assert result is False
+
+    @patch("solokit.testing.performance.load_json")
+    def test_check_for_regression_work_item_no_id(self, mock_load_json, tmp_path):
+        """Test regression check when work item has no id (line 455-456)."""
+        work_item = {"performance_benchmarks": {}}  # No id
+        benchmark = PerformanceBenchmark(work_item)
+        benchmark.baselines_file = tmp_path / "baselines.json"
+        benchmark.baselines_file.touch()
+
+        mock_load_json.return_value = {}
+
+        result = benchmark._check_for_regression()
+        assert result is False
+
+    def test_store_baseline_work_item_no_id_raises_error(self, tmp_path):
+        """Test storing baseline when work item has no id raises error (line 504)."""
+        from solokit.core.exceptions import PerformanceTestError
+
+        work_item = {"performance_benchmarks": {}}  # No id
+        benchmark = PerformanceBenchmark(work_item)
+        benchmark.baselines_file = tmp_path / "baselines.json"
+        benchmark.results = {"load_test": {"latency": {"p50": 100}}}
+
+        with pytest.raises(PerformanceTestError) as exc_info:
+            benchmark._store_baseline()
+
+        # The error message may contain "has no id" or "Failed to store baseline for work item None"
+        assert "has no id" in str(exc_info.value) or "work item None" in str(exc_info.value)
+
+    @patch("solokit.testing.performance.save_json")
+    def test_store_baseline_save_json_fails(self, mock_save_json, tmp_path):
+        """Test storing baseline when save fails (line 520-521)."""
+        from solokit.core.exceptions import PerformanceTestError
+
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+        benchmark.baselines_file = tmp_path / "baselines.json"
+        benchmark.results = {"load_test": {"latency": {"p50": 100}}}
+
+        mock_save_json.side_effect = OSError("Disk full")
+
+        with pytest.raises(PerformanceTestError) as exc_info:
+            benchmark._store_baseline()
+
+        assert "Failed to store baseline" in str(exc_info.value)
+
+    def test_get_current_session_file_not_exists(self, tmp_path):
+        """Test getting current session when status file doesn't exist (line 540-543)."""
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        # Ensure status file doesn't exist
+        with patch.object(Path, "exists", return_value=False):
+            session_num = benchmark._get_current_session()
+
+        assert session_num == 0
+
+    @patch("solokit.testing.performance.load_json")
+    def test_get_current_session_load_fails(self, mock_load_json, tmp_path):
+        """Test getting current session when loading fails (line 540-543)."""
+        work_item = {"id": "test_perf", "performance_benchmarks": {}}
+        benchmark = PerformanceBenchmark(work_item)
+
+        mock_load_json.side_effect = Exception("Corrupted JSON")
+
+        # Mock exists to return True
+        with patch.object(Path, "exists", return_value=True):
+            session_num = benchmark._get_current_session()
+
+        assert session_num == 0
+
+    @patch("sys.argv", ["performance.py", "test_item"])
+    @patch("solokit.testing.performance.load_json")
+    @patch("sys.exit")
+    def test_main_benchmark_failed_error(self, mock_exit, mock_load_json):
+        """Test main function handling BenchmarkFailedError (line 625-629)."""
+        from solokit.testing.performance import main
+
+        work_item = {
+            "id": "test_item",
+            "performance_benchmarks": {"response_time": {"p50": 10}},
+        }
+        mock_load_json.return_value = {"work_items": {"test_item": work_item}}
+
+        # Need to mock the entire benchmark execution
+        with patch("solokit.testing.performance.PerformanceBenchmark") as mock_bench_class:
+            mock_bench = Mock()
+            mock_bench_class.return_value = mock_bench
+            mock_bench.run_benchmarks.side_effect = BenchmarkFailedError(
+                metric="p50_latency", actual=100, expected=10
+            )
+
+            main()
+
+            # Verify sys.exit was called with error code
+            mock_exit.assert_called()
+            call_args = mock_exit.call_args[0]
+            # BenchmarkFailedError should have non-zero exit code
+            assert call_args[0] != 0
+
+    @patch("sys.argv", ["performance.py", "test_item"])
+    @patch("solokit.testing.performance.load_json")
+    @patch("sys.exit")
+    def test_main_load_test_failed_error(self, mock_exit, mock_load_json):
+        """Test main function handling LoadTestFailedError (line 625-629)."""
+        from solokit.testing.performance import main
+
+        work_item = {"id": "test_item", "performance_benchmarks": {}}
+        mock_load_json.return_value = {"work_items": {"test_item": work_item}}
+
+        with patch("solokit.testing.performance.PerformanceBenchmark") as mock_bench_class:
+            mock_bench = Mock()
+            mock_bench_class.return_value = mock_bench
+            mock_bench.run_benchmarks.side_effect = LoadTestFailedError(
+                endpoint="http://test", details="Connection refused"
+            )
+
+            main()
+
+            mock_exit.assert_called()
+            call_args = mock_exit.call_args[0]
+            assert call_args[0] != 0
+
+    @patch("sys.argv", ["performance.py", "test_item"])
+    @patch("solokit.testing.performance.load_json")
+    @patch("sys.exit")
+    def test_main_success_creates_report(self, mock_exit, mock_load_json):
+        """Test main function with successful benchmark (line 617-622)."""
+        from solokit.testing.performance import main
+
+        work_item = {"id": "test_item", "performance_benchmarks": {}}
+        mock_load_json.return_value = {"work_items": {"test_item": work_item}}
+
+        with patch("solokit.testing.performance.PerformanceBenchmark") as mock_bench_class:
+            mock_bench = Mock()
+            mock_bench_class.return_value = mock_bench
+            mock_bench.run_benchmarks.return_value = (True, {"passed": True})
+            mock_bench.generate_report.return_value = "Test Report"
+
+            main()
+
+            mock_bench.generate_report.assert_called_once()
+            mock_exit.assert_called_once_with(0)

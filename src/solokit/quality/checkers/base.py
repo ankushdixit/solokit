@@ -76,7 +76,7 @@ class QualityChecker(ABC):
         Returns:
             A unique identifier for this checker (e.g., "bandit", "tests")
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def is_enabled(self) -> bool:
@@ -85,7 +85,7 @@ class QualityChecker(ABC):
         Returns:
             True if the checker should run, False to skip
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def run(self) -> CheckResult:
@@ -94,7 +94,7 @@ class QualityChecker(ABC):
         Returns:
             CheckResult containing the outcome of the check
         """
-        pass
+        pass  # pragma: no cover
 
     def _create_skipped_result(self, reason: str = "disabled") -> CheckResult:
         """Helper to create a skipped result.

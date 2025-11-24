@@ -300,6 +300,26 @@ class TestInstallBaseTemplate:
             content = (project_root / "config.json").read_text()
             assert '"name": "my-app"' in content
 
+    def test_template_file_processing_error(self, tmp_path):
+        """Test error handling when processing template file fails."""
+        template_dir = tmp_path / "templates" / "saas_t3"
+        base = template_dir / "base"
+        base.mkdir(parents=True)
+        (base / "config.json.template").write_text('{"name": "{project_name}"}')
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        with patch(
+            "solokit.init.template_installer.get_template_directory", return_value=template_dir
+        ):
+            # Mock write_text to raise an exception
+            with patch.object(Path, "write_text", side_effect=PermissionError("Cannot write")):
+                with pytest.raises(FileOperationError) as exc:
+                    install_base_template("saas_t3", project_root, {"project_name": "my-app"})
+
+                assert exc.value.operation == "process"
+
 
 class TestInstallTierFiles:
     """Tests for install_tier_files()."""
@@ -325,6 +345,28 @@ class TestInstallTierFiles:
             count = install_tier_files("saas_t3", "tier-99", tmp_path, {})
 
             assert count == 0
+
+    def test_tier_template_file_processing_error(self, tmp_path):
+        """Test error handling when processing tier template file fails."""
+        template_dir = tmp_path / "templates" / "saas_t3"
+        tier_dir = template_dir / "tier-1-essential"
+        tier_dir.mkdir(parents=True)
+        (tier_dir / "config.json.template").write_text('{"tier": "{project_name}"}')
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        with patch(
+            "solokit.init.template_installer.get_template_directory", return_value=template_dir
+        ):
+            # Mock write_text to raise an exception
+            with patch.object(Path, "write_text", side_effect=PermissionError("Cannot write")):
+                with pytest.raises(FileOperationError) as exc:
+                    install_tier_files(
+                        "saas_t3", "tier-1-essential", project_root, {"project_name": "my-app"}
+                    )
+
+                assert exc.value.operation == "process"
 
 
 class TestInstallAdditionalOption:
@@ -353,6 +395,50 @@ class TestInstallAdditionalOption:
             count = install_additional_option("saas_t3", "nonexistent", tmp_path, {})
 
             assert count == 0
+
+    def test_option_with_template_files(self, tmp_path):
+        """Test installing option with .template files that need processing."""
+        template_dir = tmp_path / "templates" / "saas_t3"
+        option_dir = template_dir / "ci-cd"
+        option_dir.mkdir(parents=True)
+        (option_dir / "workflow.yml.template").write_text("name: {project_name}")
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        with patch(
+            "solokit.init.template_installer.get_template_directory", return_value=template_dir
+        ):
+            count = install_additional_option(
+                "saas_t3", "ci-cd", project_root, {"project_name": "my-app"}
+            )
+
+            assert count >= 1
+            assert (project_root / "workflow.yml").exists()
+            content = (project_root / "workflow.yml").read_text()
+            assert "my-app" in content
+
+    def test_option_template_file_processing_error(self, tmp_path):
+        """Test error handling when processing option template file fails."""
+        template_dir = tmp_path / "templates" / "saas_t3"
+        option_dir = template_dir / "ci-cd"
+        option_dir.mkdir(parents=True)
+        (option_dir / "workflow.yml.template").write_text("name: {project_name}")
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+
+        with patch(
+            "solokit.init.template_installer.get_template_directory", return_value=template_dir
+        ):
+            # Mock write_text to raise an exception
+            with patch.object(Path, "write_text", side_effect=PermissionError("Cannot write")):
+                with pytest.raises(FileOperationError) as exc:
+                    install_additional_option(
+                        "saas_t3", "ci-cd", project_root, {"project_name": "my-app"}
+                    )
+
+                assert exc.value.operation == "process"
 
 
 class TestInstallTemplate:
@@ -466,3 +552,34 @@ class TestInstallTemplate:
 
                 readme = (project_root / "README.md").read_text()
                 assert "my-awesome-app" in readme
+
+    def test_install_template_uses_cwd_when_no_path(self, mock_template_registry):
+        """Test that it uses current directory when project_root is None."""
+        with patch("solokit.init.template_installer.Path.cwd") as mock_cwd:
+            import tempfile
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                from pathlib import Path
+
+                tmp = Path(tmpdir)
+                mock_cwd.return_value = tmp
+
+                template_dir = tmp / "templates" / "saas_t3"
+                base = template_dir / "base"
+                base.mkdir(parents=True)
+                (base / "README.md").write_text("base")
+
+                with patch(
+                    "solokit.init.template_installer.load_template_registry",
+                    return_value=mock_template_registry,
+                ):
+                    with patch(
+                        "solokit.init.template_installer.get_template_directory",
+                        return_value=template_dir,
+                    ):
+                        result = install_template(
+                            "saas_t3", "tier-1-essential", [], project_root=None
+                        )
+
+                        assert result["project_root"] == str(tmp)
+                        assert (tmp / "README.md").exists()

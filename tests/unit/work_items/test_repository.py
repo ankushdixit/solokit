@@ -449,3 +449,90 @@ class TestUrgentFlag:
 
         # Assert
         assert urgent is None  # Should return None since no urgent field exists
+
+
+class TestDeleteWorkItem:
+    """Tests for deleting work items."""
+
+    def test_delete_work_item_existing(self, repository_with_data):
+        """Test deleting an existing work item."""
+        # Act
+        result = repository_with_data.delete_work_item("bug_login_issue")
+
+        # Assert
+        assert result is True
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        assert "bug_login_issue" not in data["work_items"]
+
+    def test_delete_work_item_nonexistent(self, repository_with_data):
+        """Test deleting a non-existent work item."""
+        # Act
+        result = repository_with_data.delete_work_item("nonexistent")
+
+        # Assert
+        assert result is False
+
+    def test_delete_work_item_updates_metadata(self, repository_with_data):
+        """Test that deleting work item updates metadata counters."""
+        # Arrange
+        initial_data = json.loads(repository_with_data.work_items_file.read_text())
+        initial_count = initial_data["metadata"]["total_items"]
+
+        # Act
+        repository_with_data.delete_work_item("bug_login_issue")
+
+        # Assert
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        assert data["metadata"]["total_items"] == initial_count - 1
+
+
+class TestUpdateWorkItemEdgeCases:
+    """Tests for update_work_item edge cases."""
+
+    def test_update_nonexistent_work_item(self, repository_with_data):
+        """Test updating a work item that doesn't exist (should be no-op)."""
+        # Act
+        repository_with_data.update_work_item("nonexistent", {"status": "completed"})
+
+        # Assert - should not raise exception, just return silently
+        items = repository_with_data.get_all_work_items()
+        assert "nonexistent" not in items
+
+    def test_update_work_item_add_dependency_duplicate(self, repository_with_data):
+        """Test adding a dependency that already exists via update_work_item."""
+        # Arrange - feature_auth already depends on feature_foundation
+        assert (
+            "feature_foundation"
+            in repository_with_data.get_work_item("feature_auth")["dependencies"]
+        )
+
+        # Act - try to add it again
+        repository_with_data.update_work_item(
+            "feature_auth", {"add_dependency": "feature_foundation"}
+        )
+
+        # Assert - should only have one instance
+        item = repository_with_data.get_work_item("feature_auth")
+        assert item["dependencies"].count("feature_foundation") == 1
+
+    def test_update_work_item_remove_dependency_nonexistent(self, repository_with_data):
+        """Test removing a dependency that doesn't exist via update_work_item."""
+        # Act
+        repository_with_data.update_work_item("feature_auth", {"remove_dependency": "nonexistent"})
+
+        # Assert - should be no-op
+        item = repository_with_data.get_work_item("feature_auth")
+        assert "nonexistent" not in item["dependencies"]
+
+
+class TestSetUrgentFlagEdgeCases:
+    """Tests for set_urgent_flag edge cases."""
+
+    def test_set_urgent_flag_nonexistent_work_item(self, repository):
+        """Test setting urgent flag on non-existent work item (should warn and return)."""
+        # Act - should not raise exception
+        repository.set_urgent_flag("nonexistent", clear_others=True)
+
+        # Assert - no urgent items should exist
+        urgent = repository.get_urgent_work_item()
+        assert urgent is None

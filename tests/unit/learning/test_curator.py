@@ -2006,6 +2006,60 @@ class TestAutoCurationFrequency:
         assert result is False
 
 
+class TestShowStatisticsAndTimeline:
+    """Test show_statistics and show_timeline methods."""
+
+    def test_show_statistics(self, temp_project, capsys):
+        """Test that show_statistics delegates to reporter."""
+        # Arrange
+        project_root, curator = temp_project
+        learnings_file = project_root / ".session" / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+
+        import json
+
+        learnings_data = {
+            "categories": {
+                "best_practices": [{"id": "1"}, {"id": "2"}],
+                "gotchas": [{"id": "3"}],
+            }
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        # Act
+        curator.show_statistics()
+
+        # Assert - Should display some stats
+        captured = capsys.readouterr()
+        assert len(captured.out) > 0  # Some output was displayed
+
+    def test_show_timeline(self, temp_project, capsys):
+        """Test that show_timeline delegates to reporter."""
+        # Arrange
+        project_root, curator = temp_project
+        learnings_file = project_root / ".session" / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+
+        import json
+
+        learnings_data = {
+            "categories": {
+                "best_practices": [
+                    {"id": "1", "learned_in": "session_001"},
+                    {"id": "2", "learned_in": "session_002"},
+                ]
+            }
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        # Act
+        curator.show_timeline(sessions=10)
+
+        # Assert - Should display timeline
+        captured = capsys.readouterr()
+        assert len(captured.out) > 0  # Some output was displayed
+
+
 class TestSessionSummaryExtraction:
     """Tests for extracting learnings from session summary files."""
 
@@ -2020,6 +2074,39 @@ class TestSessionSummaryExtraction:
 
         # Assert
         assert result == []
+
+    def test_extract_from_session_summary_without_validator(self, temp_project):
+        """Test extraction from session summary without validator."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        summaries_dir = session_dir / "summaries"
+        summaries_dir.mkdir(parents=True)
+        summary_file = summaries_dir / "session_005_summary.md"
+
+        content = """# Session Summary
+
+## Learnings Captured
+- This is a test learning with enough words to pass validation
+- Another learning entry with sufficient word count here
+
+## Other Section
+- Not a learning
+"""
+        summary_file.write_text(content)
+
+        # Act - Call without validator (validator=None)
+        result = extractor.extract_from_session_summary(summary_file, validator=None)
+
+        # Assert
+        assert len(result) >= 1
+        assert any("test learning" in entry.get("content", "").lower() for entry in result)
 
     def test_extract_from_session_summary_file_read_error(self, temp_project):
         """Test extraction handles file read errors."""
@@ -2083,6 +2170,321 @@ class TestCodeCommentExtraction:
         # Assert - Should not crash
         assert isinstance(result, list)
 
+    def test_extract_from_code_comments_without_validator(self, temp_project):
+        """Test extraction from code comments without validator."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Create a Python file with a learning comment
+        src_dir = project_root / "src"
+        src_dir.mkdir()
+        test_file = src_dir / "main.py"
+        test_file.write_text(
+            "# LEARNING: This is a test learning comment with enough words\ndef main():\n    pass\n"
+        )
+
+        # Act - Call without validator (validator=None)
+        result = extractor.extract_from_code_comments(
+            changed_files=[test_file], session_id="session_001", validator=None
+        )
+
+        # Assert
+        assert len(result) >= 1
+        assert any("test learning comment" in entry.get("content", "").lower() for entry in result)
+
+    def test_extract_from_code_comments_nonexistent_file(self, temp_project):
+        """Test that nonexistent files are skipped."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Create a reference to a file that doesn't exist
+        nonexistent_file = project_root / "src" / "doesnotexist.py"
+
+        # Act
+        result = extractor.extract_from_code_comments(
+            changed_files=[nonexistent_file], validator=None
+        )
+
+        # Assert - Should skip nonexistent file
+        assert len(result) == 0
+
+    def test_extract_from_code_comments_skips_non_code_extensions(self, temp_project):
+        """Test that files with non-code extensions are skipped."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Create a text file (not a code file)
+        text_file = project_root / "notes.txt"
+        text_file.write_text("# LEARNING: This should be skipped non code file extension\n")
+
+        # Act
+        result = extractor.extract_from_code_comments(changed_files=[text_file], validator=None)
+
+        # Assert - Should skip .txt file
+        assert len(result) == 0
+
+    def test_extract_from_code_comments_handles_unicode_error(self, temp_project):
+        """Test that files with encoding errors are handled gracefully."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        src_dir = project_root / "src"
+        src_dir.mkdir()
+        test_file = src_dir / "bad.py"
+        # Write binary data that might cause encoding issues
+        test_file.write_bytes(b"# LEARNING: Test\xff\xfe")
+
+        # Act - Should handle gracefully
+        result = extractor.extract_from_code_comments(changed_files=[test_file], validator=None)
+
+        # Assert - Should not crash, might return empty
+        assert isinstance(result, list)
+
+    def test_extract_from_code_comments_with_changed_files_none(self, temp_project):
+        """Test extraction when changed_files is None (git auto-detect)."""
+        # Arrange
+        from unittest.mock import Mock, patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git diff to return some files
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.stdout = "src/main.py\nsrc/utils.py"
+
+        with patch.object(extractor.runner, "run", return_value=mock_result):
+            # Act - changed_files=None should trigger git diff
+            result = extractor.extract_from_code_comments(
+                changed_files=None, session_id="session_001", validator=None
+            )
+
+        # Assert - Should not crash (files don't actually exist, so empty result)
+        assert isinstance(result, list)
+
+    def test_extract_from_code_comments_git_diff_failure(self, temp_project):
+        """Test extraction handles git diff failure when changed_files is None."""
+        # Arrange
+        from unittest.mock import Mock, patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git diff to fail
+        mock_result = Mock()
+        mock_result.success = False
+
+        with patch.object(extractor.runner, "run", return_value=mock_result):
+            # Act - changed_files=None with failed git diff
+            result = extractor.extract_from_code_comments(
+                changed_files=None, session_id="session_001", validator=None
+            )
+
+        # Assert - Should handle gracefully and return empty
+        assert result == []
+
+    def test_extract_from_code_comments_git_diff_exception(self, temp_project):
+        """Test extraction handles exceptions during git diff."""
+        # Arrange
+        from unittest.mock import patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git diff to raise exception
+        with patch.object(extractor.runner, "run", side_effect=Exception("Git error")):
+            # Act - changed_files=None with exception in git diff
+            result = extractor.extract_from_code_comments(
+                changed_files=None, session_id="session_001", validator=None
+            )
+
+        # Assert - Should handle gracefully and return empty
+        assert result == []
+
+    def test_extract_from_git_commits_without_validator(self, temp_project):
+        """Test extraction from git commits without validator."""
+        # Arrange
+        from unittest.mock import Mock, patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git log output
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.stdout = (
+            "abc123|||feat: Test\n\nLEARNING: This is a git commit learning with enough words here"
+        )
+
+        with patch.object(extractor.runner, "run", return_value=mock_result):
+            # Act - Call without validator (validator=None)
+            result = extractor.extract_from_git_commits(session_id="session_001", validator=None)
+
+        # Assert
+        assert len(result) >= 1
+        assert any("git commit learning" in entry.get("content", "").lower() for entry in result)
+
+    def test_extract_from_git_commits_no_output(self, temp_project):
+        """Test extraction handles empty git output."""
+        # Arrange
+        from unittest.mock import Mock, patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git log with empty output
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.stdout = ""
+
+        with patch.object(extractor.runner, "run", return_value=mock_result):
+            # Act
+            result = extractor.extract_from_git_commits(session_id="session_001", validator=None)
+
+        # Assert - Should return empty list
+        assert result == []
+
+    def test_extract_from_git_commits_failed_command(self, temp_project):
+        """Test extraction handles failed git command."""
+        # Arrange
+        from unittest.mock import Mock, patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock git log failure
+        mock_result = Mock()
+        mock_result.success = False
+
+        with patch.object(extractor.runner, "run", return_value=mock_result):
+            # Act
+            result = extractor.extract_from_git_commits(session_id="session_001", validator=None)
+
+        # Assert - Should return empty list
+        assert result == []
+
+    def test_extract_from_git_commits_exception(self, temp_project):
+        """Test extraction handles exceptions during git extraction."""
+        # Arrange
+        from unittest.mock import patch
+
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Mock runner.run to raise exception
+        with patch.object(extractor.runner, "run", side_effect=Exception("Git error")):
+            # Act
+            result = extractor.extract_from_git_commits(session_id="session_001", validator=None)
+
+        # Assert - Should catch exception and return empty list
+        assert result == []
+
+    def test_is_valid_content_with_angle_brackets(self, temp_project):
+        """Test that content with angle brackets is rejected."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Act & Assert
+        assert not extractor._is_valid_content("<placeholder text>")
+        assert not extractor._is_valid_content("Some text with <placeholder>")
+
+    def test_is_valid_content_too_few_words(self, temp_project):
+        """Test that content with too few words is rejected."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Act & Assert
+        assert not extractor._is_valid_content("Too short")  # 2 words
+        assert not extractor._is_valid_content("One two three four")  # 4 words
+        assert extractor._is_valid_content("One two three four five")  # 5 words - valid
+
+    def test_is_valid_content_empty_or_none(self, temp_project):
+        """Test that empty or None content is rejected."""
+        # Arrange
+        from solokit.learning.extractor import LearningExtractor
+
+        project_root, _ = temp_project
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        extractor = LearningExtractor(session_dir, project_root)
+
+        # Act & Assert
+        assert not extractor._is_valid_content("")
+        assert not extractor._is_valid_content(None)
+        assert not extractor._is_valid_content(123)  # Not a string
+
 
 class TestSessionNumberExtractionEdgeCases:
     """Tests for session number extraction edge cases."""
@@ -2097,6 +2499,113 @@ class TestSessionNumberExtractionEdgeCases:
 
         # Assert
         assert result == 0
+
+    def test_extract_session_number_handles_empty_string(self, temp_project):
+        """Test session number extraction handles empty string."""
+        # Arrange
+        project_root, curator = temp_project
+
+        # Act - Empty string should return 0 (no match found)
+        result = curator._extract_session_number("")
+
+        # Assert
+        assert result == 0
+
+    def test_extract_session_number_exception_handling(self, temp_project):
+        """Test that exception handling in extract_session_number works."""
+        # Arrange
+        project_root, curator = temp_project
+
+        # Act - Mock re.search to raise an exception
+        from unittest.mock import patch
+
+        with patch("re.search", side_effect=ValueError("Test error")):
+            result = curator._extract_session_number("session_001")
+
+        # Assert - Should catch and return 0
+        assert result == 0
+
+    def test_get_current_session_number_handles_malformed_data(self, temp_project):
+        """Test _get_current_session_number handles malformed work items data."""
+        # Arrange
+        project_root, curator = temp_project
+        work_items_file = project_root / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+
+        import json
+
+        # Create malformed data that will cause TypeError or KeyError
+        work_items_data = {
+            "work_items": {
+                "WI-001": {
+                    "sessions": "not_a_list"  # This should be a list
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        # Act
+        result = curator._get_current_session_number()
+
+        # Assert - Should handle error gracefully and return 0
+        assert result == 0
+
+    def test_get_current_session_number_handles_missing_session_num(self, temp_project):
+        """Test _get_current_session_number handles sessions without session_num field."""
+        # Arrange
+        project_root, curator = temp_project
+        work_items_file = project_root / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+
+        import json
+
+        # Sessions without session_num field
+        work_items_data = {
+            "work_items": {
+                "WI-001": {
+                    "sessions": [
+                        {"started_at": "2025-01-01T10:00:00"},  # Missing session_num
+                        {"session_num": None},  # None value
+                    ]
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        # Act
+        result = curator._get_current_session_number()
+
+        # Assert - Should handle gracefully
+        assert result == 0
+
+    def test_get_current_session_number_handles_non_dict_sessions(self, temp_project):
+        """Test _get_current_session_number handles sessions that are not dicts."""
+        # Arrange
+        project_root, curator = temp_project
+        work_items_file = project_root / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+
+        import json
+
+        # Sessions with non-dict items
+        work_items_data = {
+            "work_items": {
+                "WI-001": {
+                    "sessions": [
+                        123,  # Integer instead of dict
+                        "string",  # String instead of dict
+                        {"session_num": 5},  # Valid one
+                    ]
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        # Act
+        result = curator._get_current_session_number()
+
+        # Assert - Should find the valid session_num
+        assert result == 5
 
 
 class TestCurateDryRun:
@@ -2121,6 +2630,28 @@ class TestCurateDryRun:
         # Assert
         assert "Dry run" in captured.out or "dry run" in captured.out.lower()
 
+    def test_curate_saves_when_not_dry_run(self, temp_project, capsys):
+        """Test that curate saves changes when dry_run=False."""
+        # Arrange
+        project_root, curator = temp_project
+        learnings_file = project_root / ".session" / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+
+        import json
+
+        learnings_data = {"categories": {}, "metadata": {"total_learnings": 0}}
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        # Act
+        curator.curate(dry_run=False)
+        captured = capsys.readouterr()
+
+        # Assert
+        assert "saved" in captured.out.lower()
+        # Verify file was actually updated
+        saved_data = json.loads(learnings_file.read_text())
+        assert "last_curated" in saved_data
+
 
 class TestMainFunctionErrorHandling:
     """Tests for main() function error handling."""
@@ -2138,3 +2669,127 @@ class TestMainFunctionErrorHandling:
                 # Verify exception details
                 assert ".session" in str(exc_info.value)
                 assert exc_info.value.context["file_type"] == "session directory"
+
+    def test_main_with_empty_search_query(self, tmp_path):
+        """Test main() with empty search query returns error code."""
+        # Arrange
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        with patch("sys.argv", ["curator.py", "search", ""]):
+            with patch("pathlib.Path.cwd", return_value=project_root):
+                # Act
+                result = main()
+
+                # Assert
+                assert result == 1
+
+    def test_main_with_statistics_command(self, tmp_path, capsys):
+        """Test main() with statistics command."""
+        # Arrange
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        # Create learnings file
+        import json
+
+        learnings_file = session_dir / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+        learnings_data = {
+            "categories": {"best_practices": [{"id": "1"}]},
+            "metadata": {"total_learnings": 1},
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        with patch("sys.argv", ["curator.py", "statistics"]):
+            with patch("pathlib.Path.cwd", return_value=project_root):
+                # Act
+                result = main()
+
+                # Assert
+                assert result == 0
+
+    def test_main_with_timeline_command(self, tmp_path, capsys):
+        """Test main() with timeline command."""
+        # Arrange
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        # Create learnings file
+        import json
+
+        learnings_file = session_dir / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+        learnings_data = {
+            "categories": {"best_practices": [{"id": "1", "learned_in": "session_001"}]},
+            "metadata": {"total_learnings": 1},
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        with patch("sys.argv", ["curator.py", "timeline"]):
+            with patch("pathlib.Path.cwd", return_value=project_root):
+                # Act
+                result = main()
+
+                # Assert
+                assert result == 0
+
+    def test_main_with_report_command(self, tmp_path, capsys):
+        """Test main() with report command (explicit)."""
+        # Arrange
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        # Create learnings file
+        import json
+
+        learnings_file = session_dir / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+        learnings_data = {
+            "categories": {"best_practices": [{"id": "1"}]},
+            "metadata": {"total_learnings": 1},
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        with patch("sys.argv", ["curator.py", "report"]):
+            with patch("pathlib.Path.cwd", return_value=project_root):
+                # Act
+                result = main()
+
+                # Assert
+                assert result == 0
+
+    def test_main_with_no_command_defaults_to_report(self, tmp_path, capsys):
+        """Test main() with no command defaults to report."""
+        # Arrange
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+
+        # Create learnings file
+        import json
+
+        learnings_file = session_dir / "tracking" / "learnings.json"
+        learnings_file.parent.mkdir(parents=True)
+        learnings_data = {
+            "categories": {"best_practices": [{"id": "1"}]},
+            "metadata": {"total_learnings": 1},
+        }
+        learnings_file.write_text(json.dumps(learnings_data))
+
+        with patch("sys.argv", ["curator.py"]):
+            with patch("pathlib.Path.cwd", return_value=project_root):
+                # Act
+                result = main()
+
+                # Assert
+                assert result == 0

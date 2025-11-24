@@ -145,3 +145,134 @@ class TestUrgentFlagEdgeCases:
         data = json.loads(repository.work_items_file.read_text())
         assert "feature_base" in data["work_items"]["bug_urgent"]["dependencies"]
         assert data["work_items"]["bug_urgent"]["urgent"] is True
+
+
+class TestDependencyOperations:
+    """Tests for dependency add/remove operations."""
+
+    def test_add_dependency_already_exists(self, repository, updater):
+        """Test adding a dependency that already exists (should warn and raise ValidationError)."""
+        from solokit.core.exceptions import ValidationError
+
+        # Arrange
+        repository.add_work_item("feature_base", "feature", "Base Feature", "high", [])
+        repository.add_work_item(
+            "feature_dep", "feature", "Dependent Feature", "high", ["feature_base"]
+        )
+
+        # Act & Assert - Should raise ValidationError because no changes made
+        with pytest.raises(ValidationError, match="No changes to update"):
+            updater.update("feature_dep", add_dependency="feature_base")
+
+    def test_remove_dependency_single(self, repository, updater):
+        """Test removing a single dependency."""
+        # Arrange
+        repository.add_work_item("feature_base", "feature", "Base Feature", "high", [])
+        repository.add_work_item("feature_other", "feature", "Other Feature", "high", [])
+        repository.add_work_item(
+            "feature_dep", "feature", "Dependent", "high", ["feature_base", "feature_other"]
+        )
+
+        # Act
+        updater.update("feature_dep", remove_dependency="feature_base")
+
+        # Assert
+        data = json.loads(repository.work_items_file.read_text())
+        deps = data["work_items"]["feature_dep"]["dependencies"]
+        assert "feature_base" not in deps
+        assert "feature_other" in deps
+
+    def test_remove_dependency_nonexistent(self, repository, updater):
+        """Test removing a dependency that doesn't exist (should raise ValidationError)."""
+        from solokit.core.exceptions import ValidationError
+
+        # Arrange
+        repository.add_work_item("feature_dep", "feature", "Dependent", "high", ["other_dep"])
+
+        # Act & Assert - Should raise ValidationError because no changes made
+        with pytest.raises(ValidationError, match="No changes to update"):
+            updater.update("feature_dep", remove_dependency="nonexistent")
+
+    def test_add_multiple_dependencies_comma_separated(self, repository, updater):
+        """Test adding multiple dependencies at once with comma separation."""
+        # Arrange
+        repository.add_work_item("dep1", "feature", "Dep 1", "high", [])
+        repository.add_work_item("dep2", "feature", "Dep 2", "high", [])
+        repository.add_work_item("feature_main", "feature", "Main Feature", "high", [])
+
+        # Act
+        updater.update("feature_main", add_dependency="dep1, dep2")
+
+        # Assert
+        data = json.loads(repository.work_items_file.read_text())
+        deps = data["work_items"]["feature_main"]["dependencies"]
+        assert "dep1" in deps
+        assert "dep2" in deps
+
+    def test_remove_multiple_dependencies_comma_separated(self, repository, updater):
+        """Test removing multiple dependencies at once with comma separation."""
+        # Arrange
+        repository.add_work_item("dep1", "feature", "Dep 1", "high", [])
+        repository.add_work_item("dep2", "feature", "Dep 2", "high", [])
+        repository.add_work_item("dep3", "feature", "Dep 3", "high", [])
+        repository.add_work_item(
+            "feature_main", "feature", "Main", "high", ["dep1", "dep2", "dep3"]
+        )
+
+        # Act
+        updater.update("feature_main", remove_dependency="dep1, dep2")
+
+        # Assert
+        data = json.loads(repository.work_items_file.read_text())
+        deps = data["work_items"]["feature_main"]["dependencies"]
+        assert "dep1" not in deps
+        assert "dep2" not in deps
+        assert "dep3" in deps
+
+    def test_set_urgent_when_already_urgent(self, repository, updater):
+        """Test setting urgent flag on item that's already urgent (should warn, no change)."""
+        from solokit.core.exceptions import ValidationError
+
+        # Arrange
+        repository.add_work_item("bug_urgent", "bug", "Urgent Bug", "high", [], urgent=True)
+
+        # Act & Assert - Should raise ValidationError because no changes made
+        with pytest.raises(ValidationError, match="No changes to update"):
+            updater.update("bug_urgent", set_urgent=True)
+
+    def test_set_urgent_clears_existing_urgent(self, repository, updater):
+        """Test setting urgent flag on item clears existing urgent item."""
+        # Arrange - create two items, one already urgent
+        repository.add_work_item("bug_old_urgent", "bug", "Old Urgent Bug", "high", [], urgent=True)
+        repository.add_work_item("bug_new_urgent", "bug", "New Urgent Bug", "high", [])
+
+        # Act - set urgent on the second item
+        updater.update("bug_new_urgent", set_urgent=True)
+
+        # Assert - old urgent should be cleared, new one should be set
+        data = json.loads(repository.work_items_file.read_text())
+        assert data["work_items"]["bug_old_urgent"]["urgent"] is False
+        assert data["work_items"]["bug_new_urgent"]["urgent"] is True
+
+    def test_set_urgent_when_no_existing_urgent(self, repository, updater):
+        """Test setting urgent flag when no other item is urgent."""
+        # Arrange
+        repository.add_work_item("bug_new", "bug", "New Bug", "high", [])
+
+        # Act
+        updater.update("bug_new", set_urgent=True)
+
+        # Assert
+        data = json.loads(repository.work_items_file.read_text())
+        assert data["work_items"]["bug_new"]["urgent"] is True
+
+    def test_clear_urgent_when_not_urgent(self, repository, updater):
+        """Test clearing urgent flag on item that's not urgent (should warn, no change)."""
+        from solokit.core.exceptions import ValidationError
+
+        # Arrange
+        repository.add_work_item("feature_normal", "feature", "Normal Feature", "high", [])
+
+        # Act & Assert - Should raise ValidationError because no changes made
+        with pytest.raises(ValidationError, match="No changes to update"):
+            updater.update("feature_normal", clear_urgent=True)

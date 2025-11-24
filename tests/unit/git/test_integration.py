@@ -12,6 +12,7 @@ from solokit.core.config import ConfigManager, GitWorkflowConfig
 from solokit.core.exceptions import (
     CommandExecutionError,
     ErrorCode,
+    FileOperationError,
     GitError,
     NotAGitRepoError,
     WorkingDirNotCleanError,
@@ -1299,3 +1300,495 @@ class TestMain:
         # Assert
         mock_workflow.check_git_status.assert_called_once()
         mock_workflow.get_current_branch.assert_called_once()
+
+
+# ============================================================================
+# Test Error Handling Paths
+# ============================================================================
+
+
+class TestErrorHandlingPaths:
+    """Tests for error handling and exception paths."""
+
+    def test_start_work_item_checkout_failure(self, tmp_path):
+        """Test start_work_item when checkout fails (line 372-373)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "git": {"branch": "session-001-feature_1", "status": "in_progress"},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act - Mock checkout to raise GitError
+        with patch.object(
+            workflow,
+            "checkout_branch",
+            side_effect=GitError("Branch not found", ErrorCode.GIT_COMMAND_FAILED),
+        ):
+            result = workflow.start_work_item("feature_1", 1)
+
+        # Assert
+        assert result["action"] == "resumed"
+        assert result["success"] is False
+        assert "Branch not found" in result["message"]
+
+    def test_start_work_item_create_branch_saves_work_items(self, tmp_path):
+        """Test start_work_item saves work items after creating branch (line 397-398)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {"work_items": {"feature_1": {"id": "feature_1"}}}
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Mock file write failure
+        original_open = open
+
+        def mock_open(*args, **kwargs):
+            mode = kwargs.get("mode", args[1] if len(args) > 1 else "r")
+            if "work_items.json" in str(args[0]) and "w" in mode:
+                raise OSError("Disk full")
+            return original_open(*args, **kwargs)
+
+        # Act
+        with (
+            patch.object(workflow, "create_branch", return_value=("branch-1", "main")),
+            patch("builtins.open", side_effect=mock_open),
+        ):
+            with pytest.raises(FileOperationError) as exc_info:
+                workflow.start_work_item("feature_1", 1)
+
+            assert "Failed to save work items" in str(exc_info.value)
+
+    def test_complete_work_item_read_failure(self, tmp_path):
+        """Test complete_work_item when reading work items fails (line 444-445)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        # Create corrupted JSON
+        work_items_file.write_text("{invalid json")
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act & Assert
+        with pytest.raises(FileOperationError) as exc_info:
+            workflow.complete_work_item("feature_1", "commit message", False, 1)
+
+        assert "Failed to load work items" in str(exc_info.value)
+
+    def test_complete_work_item_nothing_to_commit_no_existing_commits(self, tmp_path):
+        """Test complete_work_item with nothing to commit and no existing commits (line 495-497)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "in_progress",
+                    "git": {
+                        "branch": "session-001-feature_1",
+                        "parent_branch": "main",
+                        "status": "in_progress",
+                        "commits": [],
+                    },
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        mock_git_log = Mock(returncode=0, stdout="")  # No commits found
+
+        # Act
+        with (
+            patch.object(
+                workflow,
+                "commit_changes",
+                side_effect=GitError("nothing to commit", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+            patch("subprocess.run", return_value=mock_git_log),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
+
+        # Assert
+        assert result["success"] is False
+        # The error message contains "nothing to commit" which is in the git error
+        assert "No commits found" in result["message"] or "nothing to commit" in result["message"]
+
+    def test_complete_work_item_nothing_to_commit_git_log_fails(self, tmp_path):
+        """Test complete_work_item when git log fails after nothing to commit (line 495-497)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "in_progress",
+                    "git": {
+                        "branch": "session-001-feature_1",
+                        "parent_branch": "main",
+                        "commits": [],
+                    },
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        mock_git_log = Mock(returncode=1, stdout="", stderr="fatal: error")
+
+        # Act
+        with (
+            patch.object(
+                workflow,
+                "commit_changes",
+                side_effect=GitError("nothing to commit", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+            patch("subprocess.run", return_value=mock_git_log),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
+
+        # Assert
+        assert result["success"] is False
+        assert "Failed to retrieve commits" in result["message"]
+
+    def test_complete_work_item_push_failure(self, tmp_path):
+        """Test complete_work_item when push fails (line 508-510)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "in_progress",
+                    "git": {"branch": "branch-1", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(
+                workflow,
+                "push_branch",
+                side_effect=GitError("Network error", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
+
+        # Assert
+        assert result["success"] is True
+        assert result["pushed"] is False
+
+    def test_complete_work_item_pr_mode_create_pr_failure(self, tmp_path):
+        """Test complete_work_item in PR mode when PR creation fails (line 526-527)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {
+                        "branch": "branch-1",
+                        "parent_branch": "main",
+                        "commits": [],
+                    },
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "pr", "auto_create_pr": True}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch.object(
+                workflow,
+                "create_pull_request",
+                side_effect=GitError("gh auth required", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        assert result["success"] is True
+        # Verify work item git status updated to ready_for_pr instead of pr_created
+        with open(work_items_file) as f:
+            data = json.load(f)
+            assert data["work_items"]["feature_1"]["git"]["status"] == "ready_for_pr"
+
+    def test_complete_work_item_pr_mode_auto_create_pr_disabled(self, tmp_path):
+        """Test complete_work_item in PR mode with auto_create_pr disabled (line 533)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "pr", "auto_create_pr": False}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        assert result["success"] is True
+        assert "PR creation skipped" in result["message"]
+        with open(work_items_file) as f:
+            data = json.load(f)
+            assert data["work_items"]["feature_1"]["git"]["status"] == "ready_for_pr"
+
+    def test_complete_work_item_local_mode_merge_failure(self, tmp_path):
+        """Test complete_work_item in local mode when merge fails (line 546-548)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "local"}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch.object(
+                workflow,
+                "merge_to_parent",
+                side_effect=GitError("Merge conflict", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        assert result["success"] is True
+        assert "Merge conflict" in result["message"]
+        with open(work_items_file) as f:
+            data = json.load(f)
+            assert data["work_items"]["feature_1"]["git"]["status"] == "ready_to_merge"
+
+    def test_complete_work_item_local_mode_push_main_failure(self, tmp_path):
+        """Test complete_work_item in local mode when pushing main fails (line 555-556)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "local", "delete_branch_after_merge": False}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch.object(workflow, "merge_to_parent", return_value=None),
+            patch.object(
+                workflow,
+                "push_main_to_remote",
+                side_effect=GitError("Network error", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        assert result["success"] is True
+        assert "Failed to push main" in result["message"]
+
+    def test_complete_work_item_local_mode_delete_remote_branch_failure(self, tmp_path):
+        """Test complete_work_item when deleting remote branch fails (line 563-566)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "local", "delete_branch_after_merge": True}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch.object(workflow, "merge_to_parent", return_value=None),
+            patch.object(workflow, "push_main_to_remote", return_value=None),
+            patch.object(
+                workflow,
+                "delete_remote_branch",
+                side_effect=GitError("Network error", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        assert result["success"] is True
+        assert "Failed to delete remote branch" in result["message"]
+
+    def test_complete_work_item_local_mode_merge_failure_sets_ready_to_merge(self, tmp_path):
+        """Test complete_work_item sets status to ready_to_merge on merge failure (line 571-572)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "completed",
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        config_data = {"git_workflow": {"mode": "local"}}
+        config_file = tmp_path / ".session" / "config.json"
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text(json.dumps(config_data))
+
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        # Act
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch.object(
+                workflow,
+                "merge_to_parent",
+                side_effect=GitError("Merge conflict", ErrorCode.GIT_COMMAND_FAILED),
+            ),
+        ):
+            result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
+
+        # Assert
+        with open(work_items_file) as f:
+            data = json.load(f)
+            assert data["work_items"]["feature_1"]["git"]["status"] == "ready_to_merge"
+            assert "Manual merge required" in result["message"]
+
+    def test_complete_work_item_save_failure_at_end(self, tmp_path):
+        """Test complete_work_item when saving work items fails at the end (line 587-588)."""
+        # Arrange
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_data = {
+            "work_items": {
+                "feature_1": {
+                    "id": "feature_1",
+                    "status": "in_progress",
+                    "git": {"branch": "branch-1", "commits": []},
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data))
+        workflow = GitWorkflow(project_root=tmp_path)
+
+        original_open = open
+
+        def mock_open(*args, **kwargs):
+            # Allow first read, fail on write
+            mode = kwargs.get("mode", args[1] if len(args) > 1 else "r")
+            if "work_items.json" in str(args[0]):
+                if "w" in mode:
+                    raise OSError("Disk full")
+            return original_open(*args, **kwargs)
+
+        # Act & Assert
+        with (
+            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow, "push_branch", return_value=None),
+            patch("builtins.open", side_effect=mock_open),
+        ):
+            with pytest.raises(FileOperationError) as exc_info:
+                workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
+
+            assert "Failed to save work items" in str(exc_info.value)
+
+    def test_main_handles_git_errors(self, tmp_path):
+        """Test main function handles git errors gracefully (line 611-612)."""
+        # Arrange
+        mock_workflow = Mock()
+        mock_workflow.check_git_status.side_effect = NotAGitRepoError("Not a git repository")
+        mock_workflow.get_current_branch.return_value = None
+
+        # Act - Should not raise exception
+        with patch("solokit.git.integration.GitWorkflow", return_value=mock_workflow):
+            from solokit.git.integration import main
+
+            main()
+
+        # Assert - Should complete without raising
+        assert True

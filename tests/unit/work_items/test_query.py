@@ -155,6 +155,19 @@ class TestIsBlocked:
         # Assert
         assert result is False
 
+    def test_is_blocked_in_progress_item(self, query):
+        """Test that in_progress items are never blocked."""
+        # Arrange
+        all_items = query.repository.get_all_work_items()
+        # feature_auth is in_progress with dependencies
+        item = all_items["feature_auth"]
+
+        # Act
+        result = query._is_blocked(item, all_items)
+
+        # Assert
+        assert result is False  # in_progress items should never be blocked
+
 
 class TestSortItems:
     """Tests for work item sorting."""
@@ -266,3 +279,368 @@ class TestGetStatusIcon:
 
         # Assert
         assert icon == "[  ]"
+
+
+class TestShowItem:
+    """Tests for showing detailed work item information."""
+
+    def test_show_item_empty_repository(self, tmp_path):
+        """Test showing item when repository is empty raises FileOperationError."""
+        from solokit.core.exceptions import FileOperationError
+
+        # Arrange
+        project_root = tmp_path / "empty_project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+        tracking_dir = session_dir / "tracking"
+        tracking_dir.mkdir()
+
+        repository = WorkItemRepository(session_dir)
+        query = WorkItemQuery(repository)
+
+        # Act & Assert
+        with pytest.raises(FileOperationError):
+            query.show_item("any_id")
+
+    def test_show_item_not_found(self, repository_with_data, query):
+        """Test showing non-existent item raises WorkItemNotFoundError."""
+        from solokit.core.exceptions import WorkItemNotFoundError
+
+        # Act & Assert
+        with pytest.raises(WorkItemNotFoundError):
+            query.show_item("nonexistent_work_item")
+
+    def test_show_item_with_spec_file(self, repository_with_data, query, tmp_path):
+        """Test showing item with spec file present."""
+
+        # Create spec file
+        specs_dir = tmp_path / "project" / ".session" / "specs"
+        specs_dir.mkdir(parents=True, exist_ok=True)
+        spec_file = specs_dir / "feature_foundation.md"
+        spec_content = "# Feature: Foundation\n\n## Overview\nFoundation module overview\n" * 30
+        spec_file.write_text(spec_content)
+
+        # Act
+        item = query.show_item("feature_foundation")
+
+        # Assert
+        assert item is not None
+        assert item["id"] == "feature_foundation"
+
+    def test_show_item_with_long_spec_file(self, repository_with_data, query, tmp_path):
+        """Test showing item with spec file >50 lines shows truncation message."""
+        # Create spec file with >50 lines
+        specs_dir = tmp_path / "project" / ".session" / "specs"
+        specs_dir.mkdir(parents=True, exist_ok=True)
+        spec_file = specs_dir / "feature_foundation.md"
+        # Create 100 lines of content
+        spec_content = "\n".join([f"Line {i}" for i in range(100)])
+        spec_file.write_text(spec_content)
+
+        # Act
+        item = query.show_item("feature_foundation")
+
+        # Assert
+        assert item is not None
+        assert item["id"] == "feature_foundation"
+
+    def test_show_item_with_dependencies(self, repository_with_data, query):
+        """Test showing item with dependencies displays dependency info."""
+        # Act
+        item = query.show_item("bug_login_issue")
+
+        # Assert
+        assert item is not None
+        assert "feature_auth" in item["dependencies"]
+
+    def test_show_item_with_git_info(self, repository_with_data, query):
+        """Test showing item with git information."""
+        import json
+
+        # Add git info to an item
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["feature_auth"]["git"] = {
+            "branch": "feature/auth",
+            "commits": ["abc123", "def456"],
+        }
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Act
+        item = query.show_item("feature_auth")
+
+        # Assert
+        assert item is not None
+        assert item["git"]["branch"] == "feature/auth"
+
+    def test_show_item_not_started_with_no_blockers(self, repository_with_data, query):
+        """Test showing not_started item with no blocking dependencies."""
+        import json
+
+        # Create item with no dependencies
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["feature_new"] = {
+            "id": "feature_new",
+            "title": "New Feature",
+            "type": "feature",
+            "status": "not_started",
+            "priority": "high",
+            "dependencies": [],
+            "milestone": "v1.0",
+            "spec_file": ".session/specs/feature_new.md",
+            "created_at": "2025-01-04T00:00:00",
+            "sessions": [],
+        }
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Act
+        item = query.show_item("feature_new")
+
+        # Assert
+        assert item is not None
+        assert item["status"] == "not_started"
+
+    def test_show_item_not_started_with_blockers(self, repository_with_data, query):
+        """Test showing not_started item with blocking dependencies."""
+        # Act - bug_login_issue depends on feature_auth which is in_progress
+        item = query.show_item("bug_login_issue")
+
+        # Assert
+        assert item is not None
+        assert item["status"] == "not_started"
+        assert len(item["dependencies"]) > 0
+
+    def test_show_item_in_progress(self, repository_with_data, query):
+        """Test showing in_progress item."""
+        # Act
+        item = query.show_item("feature_auth")
+
+        # Assert
+        assert item is not None
+        assert item["status"] == "in_progress"
+
+    def test_show_item_completed(self, repository_with_data, query):
+        """Test showing completed item."""
+        # Act
+        item = query.show_item("feature_foundation")
+
+        # Assert
+        assert item is not None
+        assert item["status"] == "completed"
+
+    def test_show_item_with_milestone(self, repository_with_data, query):
+        """Test showing item with milestone displays milestone info."""
+        # Act
+        item = query.show_item("feature_auth")
+
+        # Assert
+        assert item is not None
+        assert item["milestone"] == "v1.0"
+
+    def test_show_item_nonexistent_dependency(self, repository_with_data, query):
+        """Test showing item with dependency that doesn't exist."""
+        import json
+
+        # Add item with nonexistent dependency
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["feature_broken"] = {
+            "id": "feature_broken",
+            "title": "Broken Feature",
+            "type": "feature",
+            "status": "not_started",
+            "priority": "high",
+            "dependencies": ["nonexistent_dep"],
+            "milestone": "",
+            "spec_file": ".session/specs/feature_broken.md",
+            "created_at": "2025-01-04T00:00:00",
+            "sessions": [],
+        }
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Act
+        item = query.show_item("feature_broken")
+
+        # Assert
+        assert item is not None
+        assert "nonexistent_dep" in item["dependencies"]
+
+
+class TestListItems:
+    """Tests for listing and filtering work items."""
+
+    def test_list_items_empty_repository(self, tmp_path):
+        """Test listing items when repository is empty."""
+        # Arrange
+        project_root = tmp_path / "empty_project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+        tracking_dir = session_dir / "tracking"
+        tracking_dir.mkdir()
+
+        repository = WorkItemRepository(session_dir)
+        query = WorkItemQuery(repository)
+
+        # Act
+        result = query.list_items()
+
+        # Assert
+        assert result["count"] == 0
+        assert len(result["items"]) == 0
+
+    def test_list_items_with_filters(self, repository_with_data, query):
+        """Test listing items with status filter."""
+        # Act
+        result = query.list_items(status_filter="completed")
+
+        # Assert
+        assert result["count"] == 1
+        assert result["items"][0]["id"] == "feature_foundation"
+
+    def test_list_items_with_type_filter(self, repository_with_data, query):
+        """Test listing items with type filter."""
+        # Act
+        result = query.list_items(type_filter="bug")
+
+        # Assert
+        assert result["count"] == 1
+        assert result["items"][0]["id"] == "bug_login_issue"
+
+    def test_list_items_with_milestone_filter(self, repository_with_data, query):
+        """Test listing items with milestone filter."""
+        # Act
+        result = query.list_items(milestone_filter="v1.0")
+
+        # Assert
+        assert result["count"] == 2
+
+    def test_display_items_empty_list(self, query):
+        """Test displaying empty list of items."""
+        # Act - should not raise exception
+        query._display_items([])
+
+    def test_display_items_with_urgent_flag(self, repository_with_data, query):
+        """Test displaying items with urgent flag."""
+        import json
+
+        # Add urgent flag to an item
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["bug_login_issue"]["urgent"] = True
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Get all items and add blocking info
+        all_items = repository_with_data.get_all_work_items()
+        items_with_meta = []
+        for work_id, item in all_items.items():
+            item["_blocked"] = query._is_blocked(item, all_items)
+            item["_ready"] = not item["_blocked"] and item["status"] == "not_started"
+            items_with_meta.append(item)
+
+        # Act - should display urgent indicator
+        query._display_items(items_with_meta)
+
+    def test_display_items_with_blocked_status(self, repository_with_data, query):
+        """Test displaying items with blocked status."""
+        # Get all items and compute blocking
+        all_items = repository_with_data.get_all_work_items()
+        items_with_meta = []
+        for work_id, item in all_items.items():
+            item["_blocked"] = query._is_blocked(item, all_items)
+            item["_ready"] = not item["_blocked"] and item["status"] == "not_started"
+            items_with_meta.append(item)
+
+        # Act - should display blocking info
+        query._display_items(items_with_meta)
+
+    def test_display_items_with_ready_status(self, repository_with_data, query):
+        """Test displaying items with ready status."""
+        import json
+
+        # Create item that's ready to start
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["feature_ready"] = {
+            "id": "feature_ready",
+            "title": "Ready Feature",
+            "type": "feature",
+            "status": "not_started",
+            "priority": "high",
+            "dependencies": ["feature_foundation"],  # completed
+            "milestone": "",
+            "spec_file": ".session/specs/feature_ready.md",
+            "created_at": "2025-01-04T00:00:00",
+            "sessions": [],
+        }
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Get all items and compute blocking
+        all_items = repository_with_data.get_all_work_items()
+        items_with_meta = []
+        for work_id, item in all_items.items():
+            item["_blocked"] = query._is_blocked(item, all_items)
+            item["_ready"] = not item["_blocked"] and item["status"] == "not_started"
+            items_with_meta.append(item)
+
+        # Act
+        query._display_items(items_with_meta)
+
+    def test_display_items_with_completed_single_session(self, repository_with_data, query):
+        """Test displaying completed item with single session (singular 'session')."""
+        import json
+
+        # Create completed item with exactly 1 session
+        data = json.loads(repository_with_data.work_items_file.read_text())
+        data["work_items"]["feature_single"] = {
+            "id": "feature_single",
+            "title": "Single Session Feature",
+            "type": "feature",
+            "status": "completed",
+            "priority": "high",
+            "dependencies": [],
+            "milestone": "",
+            "spec_file": ".session/specs/feature_single.md",
+            "created_at": "2025-01-04T00:00:00",
+            "sessions": [{"session_number": 1, "date": "2025-01-05", "duration": "1h"}],
+        }
+        repository_with_data.work_items_file.write_text(json.dumps(data))
+
+        # Get all items and compute blocking
+        all_items = repository_with_data.get_all_work_items()
+        items_with_meta = []
+        for work_id, item in all_items.items():
+            item["_blocked"] = query._is_blocked(item, all_items)
+            item["_ready"] = not item["_blocked"] and item["status"] == "not_started"
+            items_with_meta.append(item)
+
+        # Act
+        query._display_items(items_with_meta)
+
+    def test_display_items_with_no_status_str(self, repository_with_data, query):
+        """Test displaying not_started item that's not ready (no special status string)."""
+
+        # Create not_started item that's not blocked but also not ready (shouldn't happen, but testing the else branch)
+        all_items = repository_with_data.get_all_work_items()
+
+        # Manually construct items with metadata that hits the else branch
+        items_with_meta = []
+        for work_id, item in all_items.items():
+            item["_blocked"] = False
+            item["_ready"] = False  # Not ready and not blocked
+            if item["status"] == "not_started":
+                items_with_meta.append(item)
+                break
+
+        # Act
+        if items_with_meta:
+            query._display_items(items_with_meta)
+
+    def test_is_blocked_with_no_dependencies(self, query):
+        """Test that item with empty dependencies list is not blocked."""
+        # Arrange
+        item = {"id": "test", "status": "not_started", "dependencies": []}
+        all_items = {}
+
+        # Act
+        result = query._is_blocked(item, all_items)
+
+        # Assert
+        assert result is False

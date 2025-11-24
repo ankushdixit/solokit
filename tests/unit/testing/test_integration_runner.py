@@ -1244,3 +1244,147 @@ class TestTeardownEnvironment:
                     runner.teardown_environment()
 
                 assert "Docker daemon not running" in str(exc_info.value)
+
+
+class TestMain:
+    """Tests for main() CLI function."""
+
+    def test_main_missing_work_item_id(self):
+        """Test main function raises ValidationError when work_item_id is missing."""
+        # Arrange
+        from solokit.testing.integration_runner import main
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py"]):
+            with pytest.raises(ValidationError, match="Missing required argument: work_item_id"):
+                main()
+
+    def test_main_work_item_not_found(self, tmp_path, monkeypatch):
+        """Test main function raises WorkItemNotFoundError when work item doesn't exist."""
+        # Arrange
+        from solokit.core.exceptions import WorkItemNotFoundError
+        from solokit.testing.integration_runner import main
+
+        work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
+        work_items_file.parent.mkdir(parents=True)
+        work_items_file.write_text(json.dumps({"work_items": {}}))
+
+        # Change to tmp_path so the main() function finds the work_items.json
+        monkeypatch.chdir(tmp_path)
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py", "INTEG-999"]):
+            with pytest.raises(WorkItemNotFoundError):
+                main()
+
+    def test_main_successful_execution(self, tmp_path):
+        """Test main function with successful test execution."""
+        # Arrange
+        from solokit.testing.integration_runner import main
+
+        work_item = {"id": "INTEG-100", "type": "integration_test", "title": "Test"}
+        work_items_data = {"work_items": {"INTEG-100": work_item}}
+        mock_parsed_spec = {"test_scenarios": [], "environment_requirements": ""}
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py", "INTEG-100"]):
+            with patch("solokit.core.file_ops.load_json", return_value=work_items_data):
+                with patch("solokit.testing.integration_runner.spec_parser") as mock_parser:
+                    mock_parser.parse_spec_file.return_value = mock_parsed_spec
+                    with patch(
+                        "solokit.testing.integration_runner.IntegrationTestRunner"
+                    ) as mock_runner_class:
+                        mock_runner = Mock()
+                        mock_runner.run_tests.return_value = {"passed": 5, "failed": 0}
+                        mock_runner.generate_report.return_value = "Test Report"
+                        mock_runner_class.return_value = mock_runner
+
+                        with pytest.raises(SystemExit) as exc_info:
+                            main()
+
+                        assert exc_info.value.code == 0
+                        mock_runner.setup_environment.assert_called_once()
+                        mock_runner.run_tests.assert_called_once()
+                        mock_runner.teardown_environment.assert_called_once()
+
+    def test_main_failed_tests_exit_code(self, tmp_path):
+        """Test main function exits with code 1 when tests fail."""
+        # Arrange
+        from solokit.testing.integration_runner import main
+
+        work_item = {"id": "INTEG-101", "type": "integration_test", "title": "Test"}
+        work_items_data = {"work_items": {"INTEG-101": work_item}}
+        mock_parsed_spec = {"test_scenarios": [], "environment_requirements": ""}
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py", "INTEG-101"]):
+            with patch("solokit.core.file_ops.load_json", return_value=work_items_data):
+                with patch("solokit.testing.integration_runner.spec_parser") as mock_parser:
+                    mock_parser.parse_spec_file.return_value = mock_parsed_spec
+                    with patch(
+                        "solokit.testing.integration_runner.IntegrationTestRunner"
+                    ) as mock_runner_class:
+                        mock_runner = Mock()
+                        mock_runner.run_tests.return_value = {"passed": 3, "failed": 2}
+                        mock_runner.generate_report.return_value = "Test Report"
+                        mock_runner_class.return_value = mock_runner
+
+                        with pytest.raises(SystemExit) as exc_info:
+                            main()
+
+                        assert exc_info.value.code == 1
+
+    def test_main_exception_with_teardown(self, tmp_path):
+        """Test main function attempts teardown even when exception occurs."""
+        # Arrange
+        from solokit.testing.integration_runner import main
+
+        work_item = {"id": "INTEG-102", "type": "integration_test", "title": "Test"}
+        work_items_data = {"work_items": {"INTEG-102": work_item}}
+        mock_parsed_spec = {"test_scenarios": [], "environment_requirements": ""}
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py", "INTEG-102"]):
+            with patch("solokit.core.file_ops.load_json", return_value=work_items_data):
+                with patch("solokit.testing.integration_runner.spec_parser") as mock_parser:
+                    mock_parser.parse_spec_file.return_value = mock_parsed_spec
+                    with patch(
+                        "solokit.testing.integration_runner.IntegrationTestRunner"
+                    ) as mock_runner_class:
+                        mock_runner = Mock()
+                        mock_runner.setup_environment.side_effect = RuntimeError("Setup failed")
+                        mock_runner_class.return_value = mock_runner
+
+                        with pytest.raises(RuntimeError, match="Setup failed"):
+                            main()
+
+                        # Verify teardown was attempted
+                        mock_runner.teardown_environment.assert_called_once()
+
+    def test_main_exception_with_teardown_failure(self, tmp_path):
+        """Test main function handles teardown failure gracefully."""
+        # Arrange
+        from solokit.testing.integration_runner import main
+
+        work_item = {"id": "INTEG-103", "type": "integration_test", "title": "Test"}
+        work_items_data = {"work_items": {"INTEG-103": work_item}}
+        mock_parsed_spec = {"test_scenarios": [], "environment_requirements": ""}
+
+        # Act & Assert
+        with patch("sys.argv", ["integration_runner.py", "INTEG-103"]):
+            with patch("solokit.core.file_ops.load_json", return_value=work_items_data):
+                with patch("solokit.testing.integration_runner.spec_parser") as mock_parser:
+                    mock_parser.parse_spec_file.return_value = mock_parsed_spec
+                    with patch(
+                        "solokit.testing.integration_runner.IntegrationTestRunner"
+                    ) as mock_runner_class:
+                        mock_runner = Mock()
+                        mock_runner.setup_environment.side_effect = RuntimeError("Setup failed")
+                        mock_runner.teardown_environment.side_effect = RuntimeError(
+                            "Teardown failed"
+                        )
+                        mock_runner_class.return_value = mock_runner
+
+                        # Should re-raise original exception, not teardown exception
+                        with pytest.raises(RuntimeError, match="Setup failed"):
+                            main()

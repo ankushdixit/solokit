@@ -760,7 +760,7 @@ solokit/
 │   ├── project/              # Project initialization
 │   └── templates/            # Project templates & work item specs
 ├── docs/                     # Comprehensive documentation
-├── tests/                    # 2,954 tests (100% passing)
+├── tests/                    # 3,225 tests (100% passing, 96% coverage)
 │   ├── unit/                 # Unit tests
 │   ├── integration/          # Integration tests
 │   └── e2e/                  # End-to-end tests
@@ -810,7 +810,7 @@ While Claude Code is excellent for code generation and exploration, Solokit adds
 
 **Current Version:** v0.1.3 (Production-Ready)
 
-**Test Coverage:** 2,954 tests passing (100%)
+**Test Coverage:** 3,225 tests passing (100%), 96% code coverage
 
 ### Completed Features
 

@@ -327,6 +327,605 @@ Strategy here.
 
         print("✓ Test 12 (BONUS): QualityGates.validate_spec_completeness integration works")
 
+    def test_check_required_sections_empty_section(self):
+        """Test: check_required_sections detects empty required sections."""
+        spec_content = """
+# Feature: Test Feature
+
+## Overview
+
+
+## Rationale
+This is the rationale.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+
+## Implementation Details
+Details here.
+
+## Testing Strategy
+Strategy here.
+"""
+
+        errors = check_required_sections(spec_content, "feature")
+        assert len(errors) > 0
+        assert any("Overview" in error and "empty" in error for error in errors)
+
+        print("✓ Test 13: check_required_sections detects empty sections")
+
+    def test_check_acceptance_criteria_missing_section(self):
+        """Test: check_acceptance_criteria returns None when section missing."""
+        from solokit.work_items.spec_validator import check_acceptance_criteria
+
+        spec_content = """
+# Feature: Test Feature
+
+## Overview
+Overview here.
+"""
+
+        error = check_acceptance_criteria(spec_content, min_items=3)
+        assert error is None
+
+        print("✓ Test 14: check_acceptance_criteria handles missing section")
+
+    def test_check_test_scenarios_missing_section(self):
+        """Test: check_test_scenarios returns None when section missing."""
+        spec_content = """
+# Integration Test: Test
+
+## Scope
+Scope here.
+"""
+
+        error = check_test_scenarios(spec_content, min_scenarios=1)
+        assert error is None
+
+        print("✓ Test 15: check_test_scenarios handles missing section")
+
+    def test_check_test_scenarios_insufficient(self):
+        """Test: check_test_scenarios fails when not enough scenarios."""
+        spec_content = """
+## Test Scenarios
+
+Some text without scenarios.
+"""
+
+        error = check_test_scenarios(spec_content, min_scenarios=1)
+        assert error is not None
+        assert "at least 1 scenario" in error
+
+        print("✓ Test 16: check_test_scenarios detects insufficient scenarios")
+
+    def test_check_smoke_tests_valid(self):
+        """Test: check_smoke_tests passes with sufficient tests."""
+        from solokit.work_items.spec_validator import check_smoke_tests
+
+        spec_content = """
+## Smoke Tests
+
+### Test 1: Basic Functionality
+Test description here.
+
+### Test 2: Error Handling
+Test description here.
+"""
+
+        error = check_smoke_tests(spec_content, min_tests=1)
+        assert error is None
+
+        print("✓ Test 17: check_smoke_tests passes with sufficient tests")
+
+    def test_check_smoke_tests_insufficient(self):
+        """Test: check_smoke_tests fails when not enough tests."""
+        from solokit.work_items.spec_validator import check_smoke_tests
+
+        spec_content = """
+## Smoke Tests
+
+Some text without test cases.
+"""
+
+        error = check_smoke_tests(spec_content, min_tests=1)
+        assert error is not None
+        assert "at least 1 test" in error
+
+        print("✓ Test 18: check_smoke_tests detects insufficient tests")
+
+    def test_check_smoke_tests_missing_section(self):
+        """Test: check_smoke_tests returns None when section missing."""
+        from solokit.work_items.spec_validator import check_smoke_tests
+
+        spec_content = """
+# Deployment: Test
+
+## Deployment Scope
+Scope here.
+"""
+
+        error = check_smoke_tests(spec_content, min_tests=1)
+        assert error is None
+
+        print("✓ Test 19: check_smoke_tests handles missing section")
+
+    def test_check_deployment_subsections_missing_section(self):
+        """Test: check_deployment_subsections returns empty when section missing."""
+        spec_content = """
+# Deployment: Test
+
+## Deployment Scope
+Scope here.
+"""
+
+        errors = check_deployment_subsections(spec_content)
+        assert len(errors) == 0
+
+        print("✓ Test 20: check_deployment_subsections handles missing section")
+
+    def test_check_deployment_subsections_empty_subsection(self):
+        """Test: check_deployment_subsections detects empty subsections."""
+        spec_content = """
+## Deployment Procedure
+
+### Pre-Deployment Checklist
+
+
+### Deployment Steps
+Steps here.
+
+### Post-Deployment Steps
+Steps here.
+"""
+
+        errors = check_deployment_subsections(spec_content)
+        assert len(errors) > 0
+        assert any("Pre-Deployment Checklist" in error and "empty" in error for error in errors)
+
+        print("✓ Test 21: check_deployment_subsections detects empty subsections")
+
+    def test_check_rollback_subsections_valid(self):
+        """Test: check_rollback_subsections passes with all subsections."""
+        from solokit.work_items.spec_validator import check_rollback_subsections
+
+        spec_content = """
+## Rollback Procedure
+
+### Rollback Triggers
+- Trigger 1
+
+### Rollback Steps
+Step 1
+"""
+
+        errors = check_rollback_subsections(spec_content)
+        assert len(errors) == 0
+
+        print("✓ Test 22: check_rollback_subsections passes with valid subsections")
+
+    def test_check_rollback_subsections_missing_subsection(self):
+        """Test: check_rollback_subsections detects missing subsections."""
+        from solokit.work_items.spec_validator import check_rollback_subsections
+
+        spec_content = """
+## Rollback Procedure
+
+### Rollback Triggers
+- Trigger 1
+"""
+
+        errors = check_rollback_subsections(spec_content)
+        assert len(errors) > 0
+        assert any("Rollback Steps" in error and "missing" in error for error in errors)
+
+        print("✓ Test 22b: check_rollback_subsections detects missing subsections")
+
+    def test_check_rollback_subsections_missing_section(self):
+        """Test: check_rollback_subsections returns empty when section missing."""
+        from solokit.work_items.spec_validator import check_rollback_subsections
+
+        spec_content = """
+# Deployment: Test
+
+## Deployment Scope
+Scope here.
+"""
+
+        errors = check_rollback_subsections(spec_content)
+        assert len(errors) == 0
+
+        print("✓ Test 23: check_rollback_subsections handles missing section")
+
+    def test_check_rollback_subsections_empty_subsection(self):
+        """Test: check_rollback_subsections detects empty subsections."""
+        from solokit.work_items.spec_validator import check_rollback_subsections
+
+        spec_content = """
+## Rollback Procedure
+
+### Rollback Triggers
+
+
+### Rollback Steps
+Steps here.
+"""
+
+        errors = check_rollback_subsections(spec_content)
+        assert len(errors) > 0
+        assert any("Rollback Triggers" in error and "empty" in error for error in errors)
+
+        print("✓ Test 24: check_rollback_subsections detects empty subsections")
+
+    def test_validate_spec_file_with_work_items_json(self):
+        """Test: validate_spec_file loads spec path from work_items.json."""
+        import json
+
+        work_item_id = "test_feature_custom"
+        custom_spec_path = ".session/custom_specs/special.md"
+        spec_content = """
+# Feature: Custom Path Feature
+
+## Overview
+Complete overview.
+
+## Rationale
+Rationale here.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Implementation Details
+Details here.
+
+## Testing Strategy
+Strategy here.
+"""
+
+        # Create custom spec directory and file
+        custom_specs_dir = Path(self.temp_dir) / ".session" / "custom_specs"
+        custom_specs_dir.mkdir(parents=True)
+        spec_path = custom_specs_dir / "special.md"
+        spec_path.write_text(spec_content, encoding="utf-8")
+
+        # Create work_items.json with custom spec_file path
+        tracking_dir = Path(self.temp_dir) / ".session" / "tracking"
+        tracking_dir.mkdir(parents=True)
+        work_items_file = tracking_dir / "work_items.json"
+        work_items_data = {
+            "work_items": {
+                work_item_id: {
+                    "id": work_item_id,
+                    "type": "feature",
+                    "spec_file": custom_spec_path,
+                }
+            }
+        }
+        work_items_file.write_text(json.dumps(work_items_data, indent=2))
+
+        # Should not raise any exception
+        validate_spec_file(work_item_id, "feature")
+
+        print("✓ Test 25: validate_spec_file loads spec path from work_items.json")
+
+    def test_validate_spec_file_file_read_error(self):
+        """Test: validate_spec_file raises FileOperationError when spec cannot be read."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        work_item_id = "test_feature_read_error"
+        spec_content = """
+# Feature: Test Feature
+
+## Overview
+Overview here.
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Mock read_text to raise OSError
+        with patch("pathlib.Path.read_text", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                validate_spec_file(work_item_id, "feature")
+
+            error = exc_info.value
+            assert "read" in str(error.context.get("operation", ""))
+
+        print("✓ Test 26: validate_spec_file handles file read errors")
+
+    def test_validate_spec_file_with_json_decode_error(self):
+        """Test: validate_spec_file handles work_items.json decode errors gracefully."""
+
+        work_item_id = "test_feature_json_error"
+        spec_content = """
+# Feature: Test Feature
+
+## Overview
+Overview here.
+
+## Rationale
+Rationale here.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Implementation Details
+Details here.
+
+## Testing Strategy
+Strategy here.
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Create invalid work_items.json
+        tracking_dir = Path(self.temp_dir) / ".session" / "tracking"
+        tracking_dir.mkdir(parents=True)
+        work_items_file = tracking_dir / "work_items.json"
+        work_items_file.write_text("invalid json content")
+
+        # Should fall back to default spec path and pass validation
+        validate_spec_file(work_item_id, "feature")
+
+        print("✓ Test 27: validate_spec_file handles JSON decode errors gracefully")
+
+    def test_format_validation_report_with_errors(self):
+        """Test: format_validation_report creates detailed error report."""
+        from solokit.work_items.spec_validator import format_validation_report
+
+        work_item_id = "test_feature"
+        work_item_type = "feature"
+        errors = ["Missing section: Overview", "Section 'Rationale' is empty"]
+        validation_error = SpecValidationError(work_item_id=work_item_id, errors=errors)
+
+        report = format_validation_report(work_item_id, work_item_type, validation_error)
+
+        assert work_item_id in report
+        assert work_item_type in report
+        assert "Missing section: Overview" in report
+        assert "Section 'Rationale' is empty" in report
+        assert "Suggestions" in report
+
+        print("✓ Test 28: format_validation_report creates detailed error report")
+
+    def test_format_validation_report_valid_spec(self):
+        """Test: format_validation_report shows success message for valid spec."""
+        from solokit.work_items.spec_validator import format_validation_report
+
+        work_item_id = "test_feature"
+        work_item_type = "feature"
+
+        report = format_validation_report(work_item_id, work_item_type, None)
+
+        assert work_item_id in report
+        assert work_item_type in report
+        assert "valid" in report.lower()
+
+        print("✓ Test 29: format_validation_report shows success for valid spec")
+
+    def test_get_validation_rules_unknown_type(self):
+        """Test: get_validation_rules returns empty rules for unknown type."""
+        rules = get_validation_rules("unknown_type")
+
+        assert rules["required_sections"] == []
+        assert rules["optional_sections"] == []
+        assert rules["special_requirements"] == {}
+
+        print("✓ Test 30: get_validation_rules handles unknown types")
+
+    def test_validate_spec_file_integration_test_type(self):
+        """Test: validate_spec_file validates integration_test type correctly."""
+        work_item_id = "test_integration"
+        spec_content = """
+# Integration Test: API Tests
+
+## Scope
+Full API integration testing.
+
+## Test Scenarios
+
+### Scenario 1: User Registration
+Test user registration flow.
+
+## Performance Benchmarks
+Response time < 200ms
+
+## Environment Requirements
+Docker, PostgreSQL
+
+## Acceptance Criteria
+- [ ] All endpoints tested
+- [ ] Performance benchmarks met
+- [ ] Error handling verified
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Should not raise any exception
+        validate_spec_file(work_item_id, "integration_test")
+
+        print("✓ Test 31: validate_spec_file validates integration_test type")
+
+    def test_validate_spec_file_integration_test_missing_scenarios(self):
+        """Test: validate_spec_file fails for integration_test with missing scenarios."""
+        work_item_id = "test_integration_bad"
+        spec_content = """
+# Integration Test: API Tests
+
+## Scope
+Full API integration testing.
+
+## Test Scenarios
+
+No scenarios here.
+
+## Performance Benchmarks
+Response time < 200ms
+
+## Environment Requirements
+Docker, PostgreSQL
+
+## Acceptance Criteria
+- [ ] All endpoints tested
+- [ ] Performance benchmarks met
+- [ ] Error handling verified
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Should raise SpecValidationError
+        with pytest.raises(SpecValidationError) as exc_info:
+            validate_spec_file(work_item_id, "integration_test")
+
+        error = exc_info.value
+        validation_errors = error.context.get("validation_errors", [])
+        assert any("scenario" in err.lower() for err in validation_errors)
+
+        print("✓ Test 31b: validate_spec_file detects missing scenarios in integration_test")
+
+    def test_validate_spec_file_deployment_missing_smoke_tests(self):
+        """Test: validate_spec_file fails for deployment with missing smoke tests."""
+        work_item_id = "test_deployment_bad"
+        spec_content = """
+# Deployment: Production Release
+
+## Deployment Scope
+Deploy v1.0 to production.
+
+## Deployment Procedure
+
+### Pre-Deployment Checklist
+- [ ] Backup database
+
+### Deployment Steps
+1. Deploy code
+
+### Post-Deployment Steps
+1. Verify functionality
+
+## Rollback Procedure
+
+### Rollback Triggers
+- Service unavailable
+
+### Rollback Steps
+1. Restore backup
+
+## Smoke Tests
+
+No actual tests here.
+
+## Acceptance Criteria
+- [ ] All services running
+- [ ] Smoke tests passing
+- [ ] Monitoring active
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Should raise SpecValidationError
+        with pytest.raises(SpecValidationError) as exc_info:
+            validate_spec_file(work_item_id, "deployment")
+
+        error = exc_info.value
+        validation_errors = error.context.get("validation_errors", [])
+        assert any("smoke test" in err.lower() for err in validation_errors)
+
+        print("✓ Test 31c: validate_spec_file detects missing smoke tests in deployment")
+
+    def test_validate_spec_file_feature_insufficient_acceptance_criteria(self):
+        """Test: validate_spec_file fails for feature with insufficient acceptance criteria."""
+        work_item_id = "test_feature_bad_ac"
+        spec_content = """
+# Feature: Test Feature
+
+## Overview
+Complete overview.
+
+## Rationale
+Rationale here.
+
+## Acceptance Criteria
+- [ ] Only one criterion
+
+## Implementation Details
+Details here.
+
+## Testing Strategy
+Strategy here.
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Should raise SpecValidationError
+        with pytest.raises(SpecValidationError) as exc_info:
+            validate_spec_file(work_item_id, "feature")
+
+        error = exc_info.value
+        validation_errors = error.context.get("validation_errors", [])
+        assert any("acceptance criteria" in err.lower() for err in validation_errors)
+
+        print("✓ Test 31d: validate_spec_file detects insufficient acceptance criteria")
+
+    def test_validate_spec_file_deployment_complete(self):
+        """Test: validate_spec_file validates complete deployment spec."""
+        work_item_id = "test_deployment_complete"
+        spec_content = """
+# Deployment: Production Release
+
+## Deployment Scope
+Deploy v1.0 to production.
+
+## Deployment Procedure
+
+### Pre-Deployment Checklist
+- [ ] Backup database
+- [ ] Notify team
+
+### Deployment Steps
+1. Stop services
+2. Deploy code
+3. Run migrations
+
+### Post-Deployment Steps
+1. Start services
+2. Verify functionality
+
+## Rollback Procedure
+
+### Rollback Triggers
+- Service unavailable
+- Data corruption
+
+### Rollback Steps
+1. Restore backup
+2. Restart services
+
+## Smoke Tests
+
+### Test 1: Health Check
+Verify service is responding.
+
+### Test 2: Database Connection
+Verify database connectivity.
+
+## Acceptance Criteria
+- [ ] All services running
+- [ ] Smoke tests passing
+- [ ] Monitoring active
+"""
+
+        self.create_spec_file(work_item_id, spec_content)
+
+        # Should not raise any exception
+        validate_spec_file(work_item_id, "deployment")
+
+        print("✓ Test 32: validate_spec_file validates complete deployment spec")
+
 
 def run_all_tests():
     """Run all tests and report results."""

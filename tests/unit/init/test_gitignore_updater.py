@@ -131,3 +131,81 @@ class TestUpdateGitignore:
         content = gitignore.read_text()
         assert content.count(".DS_Store") == 1
         assert content.count("Thumbs.db") == 1
+
+    def test_update_gitignore_no_project_root_uses_cwd(self, tmp_path, monkeypatch):
+        """Test that update_gitignore uses cwd when project_root is None."""
+        # Change to tmp_path
+        monkeypatch.chdir(tmp_path)
+
+        # Call without project_root (should use cwd)
+        gitignore = update_gitignore("saas_t3", project_root=None)
+
+        assert gitignore.exists()
+        assert gitignore.parent == tmp_path
+        content = gitignore.read_text()
+        assert "node_modules/" in content
+
+    def test_read_error_raises_file_operation_error(self, tmp_path):
+        """Test that read errors raise FileOperationError."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        gitignore = tmp_path / ".gitignore"
+        gitignore.write_text("existing content")
+
+        # Mock read_text to raise an exception
+        with patch("pathlib.Path.read_text", side_effect=PermissionError("Access denied")):
+            try:
+                update_gitignore("saas_t3", tmp_path)
+                assert False, "Should have raised FileOperationError"
+            except FileOperationError as e:
+                assert e.operation == "read"
+                assert ".gitignore" in e.file_path
+                assert "Failed to read" in e.details
+
+    def test_write_error_raises_file_operation_error(self, tmp_path):
+        """Test that write errors raise FileOperationError."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        # Mock open to raise an exception during write
+        with patch("builtins.open", side_effect=PermissionError("Write denied")):
+            try:
+                update_gitignore("saas_t3", tmp_path)
+                assert False, "Should have raised FileOperationError"
+            except FileOperationError as e:
+                assert e.operation == "write"
+                assert ".gitignore" in e.file_path
+                assert "Failed to update" in e.details
+
+    def test_append_to_file_without_trailing_newline(self, tmp_path):
+        """Test appending to file that doesn't end with newline."""
+        gitignore = tmp_path / ".gitignore"
+        # Write content without trailing newline
+        gitignore.write_text("# Existing content\n*.log")
+
+        update_gitignore("saas_t3", tmp_path)
+
+        content = gitignore.read_text()
+        assert "*.log" in content
+        assert "node_modules/" in content
+        # Check that content is properly formatted (no missing newlines between sections)
+        lines = content.split("\n")
+        assert len([line for line in lines if line.strip()]) > 3
+
+    def test_other_template_ids(self, tmp_path):
+        """Test other known template IDs."""
+        # Test dashboard_refine
+        gitignore = update_gitignore("dashboard_refine", tmp_path)
+        content = gitignore.read_text()
+        assert "node_modules/" in content
+        assert ".next/" in content
+
+        # Test fullstack_nextjs
+        gitignore.unlink()
+        gitignore = update_gitignore("fullstack_nextjs", tmp_path)
+        content = gitignore.read_text()
+        assert "node_modules/" in content
+        assert ".next/" in content
