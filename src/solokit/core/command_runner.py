@@ -10,7 +10,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from solokit.core.error_handlers import log_errors
 from solokit.core.exceptions import (
@@ -51,7 +51,7 @@ class CommandRunner:
     def __init__(
         self,
         default_timeout: float = DEFAULT_TIMEOUT,
-        working_dir: Optional[Path] = None,
+        working_dir: Path | None = None,
         raise_on_error: bool = False,
     ):
         """Initialize command runner.
@@ -68,13 +68,13 @@ class CommandRunner:
     @log_errors()
     def run(
         self,
-        command: Union[str, list[str]],
-        timeout: Optional[float] = None,
-        check: Optional[bool] = None,
-        working_dir: Optional[Path] = None,
+        command: str | list[str],
+        timeout: float | None = None,
+        check: bool | None = None,
+        working_dir: Path | None = None,
         retry_count: int = 0,
         retry_delay: float = 1.0,
-        env: Optional[dict] = None,
+        env: dict | None = None,
     ) -> CommandResult:
         """Run a command with consistent error handling.
 
@@ -222,7 +222,7 @@ class CommandRunner:
         raise RuntimeError("Retry logic error")
 
     @log_errors()
-    def run_json(self, command: Union[str, list[str]], **kwargs: Any) -> Optional[dict[str, Any]]:
+    def run_json(self, command: str | list[str], **kwargs: Any) -> dict[str, Any] | None:
         """Run command and parse JSON output.
 
         Args:
@@ -244,7 +244,7 @@ class CommandRunner:
             return None
 
     @log_errors()
-    def run_lines(self, command: Union[str, list[str]], **kwargs: Any) -> list[str]:
+    def run_lines(self, command: str | list[str], **kwargs: Any) -> list[str]:
         """Run command and return output as lines.
 
         Args:
@@ -265,7 +265,7 @@ class CommandRunner:
 _default_runner = CommandRunner()
 
 
-def run_command(command: Union[str, list[str]], **kwargs: Any) -> CommandResult:
+def run_command(command: str | list[str], **kwargs: Any) -> CommandResult:
     """Convenience function to run command with default runner.
 
     Args:

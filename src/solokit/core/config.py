@@ -5,11 +5,12 @@ configuration from .session/config.json. It replaces the duplicated configuratio
 loading logic scattered across multiple modules.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 from solokit.core.exceptions import (
     ConfigurationError,
@@ -190,9 +191,9 @@ class ConfigManager:
         80
     """
 
-    _instance: Optional["ConfigManager"] = None
-    _config: Optional[SolokitConfig] = None
-    _config_path: Optional[Path] = None
+    _instance: ConfigManager | None = None
+    _config: SolokitConfig | None = None
+    _config_path: Path | None = None
 
     def __new__(cls) -> "ConfigManager":
         """Ensure only one instance of ConfigManager exists."""
@@ -432,7 +433,7 @@ class ConfigManager:
 
 
 # Global instance
-_config_manager: Optional[ConfigManager] = None
+_config_manager: ConfigManager | None = None
 
 
 def get_config_manager() -> ConfigManager:

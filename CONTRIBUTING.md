@@ -35,7 +35,7 @@ Before you begin:
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.11 or higher
 - Git
 - Claude Code (for testing slash commands)
 - pytest for running tests

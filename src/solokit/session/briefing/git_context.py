@@ -6,7 +6,7 @@ Part of the briefing module decomposition.
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from solokit.core.command_runner import CommandRunner
 from solokit.core.constants import GIT_QUICK_TIMEOUT
@@ -184,7 +184,7 @@ class GitContext:
     @log_errors()
     def finalize_previous_work_item_git_status(
         self, work_items_data: dict, current_work_item_id: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Finalize git status for previous completed work item when starting a new one.
 
         This handles the case where:

@@ -3,7 +3,7 @@
 import threading
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 class Cache:
@@ -15,7 +15,7 @@ class Cache:
         self._cache: dict[str, tuple[Any, datetime]] = {}
         self._lock = threading.Lock()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache"""
         with self._lock:
             if key in self._cache:
@@ -27,7 +27,7 @@ class Cache:
                     del self._cache[key]
             return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache with TTL"""
         ttl = ttl or self.default_ttl
         expires_at = datetime.now() + timedelta(seconds=ttl)
@@ -58,7 +58,7 @@ def get_cache() -> Cache:
 class FileCache:
     """Cache for JSON files with modification tracking"""
 
-    def __init__(self, cache: Optional[Cache] = None):
+    def __init__(self, cache: Cache | None = None):
         """Initialize file cache"""
         self.cache = cache or get_cache()
 

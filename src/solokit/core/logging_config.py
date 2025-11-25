@@ -6,7 +6,7 @@ import sys
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class StructuredFormatter(logging.Formatter):
@@ -83,7 +83,7 @@ class HumanReadableFormatter(logging.Formatter):
 
 def setup_logging(
     level: str = "INFO",
-    log_file: Optional[Path] = None,
+    log_file: Path | None = None,
     structured: bool = False,
 ) -> None:
     """
@@ -145,7 +145,7 @@ class LogContext:
         """
         self.logger = logger
         self.context = context
-        self.old_factory: Optional[Callable[..., logging.LogRecord]] = None
+        self.old_factory: Callable[..., logging.LogRecord] | None = None
 
     def __enter__(self) -> "LogContext":
         """Add context to log records."""

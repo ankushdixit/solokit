@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from solokit.core.command_runner import CommandRunner
 from solokit.core.constants import TEST_RUNNER_TIMEOUT
@@ -171,7 +171,7 @@ class ExecutionChecker(QualityChecker):
             checker_name=self.name(),
             passed=passed,
             status="passed" if passed else "failed",
-            errors=cast(list[Union[dict[str, Any], str]], errors),
+            errors=cast(list[dict[str, Any] | str], errors),
             warnings=[],
             info={
                 "coverage": coverage,

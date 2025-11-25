@@ -10,7 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 
 @dataclass
@@ -30,8 +30,8 @@ class CheckResult:
     checker_name: str
     passed: bool
     status: str
-    errors: list[Union[dict[str, Any], str]] = field(default_factory=list)  # noqa: UP007
-    warnings: list[Union[dict[str, Any], str]] = field(default_factory=list)  # noqa: UP007
+    errors: list[dict[str, Any] | str] = field(default_factory=list)
+    warnings: list[dict[str, Any] | str] = field(default_factory=list)
     info: dict[str, Any] = field(default_factory=dict)
     execution_time: float = 0.0
 

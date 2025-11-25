@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/solokit)](https://pypi.org/project/solokit/)
 [![Tests](https://github.com/ankushdixit/solokit/workflows/Tests/badge.svg)](https://github.com/ankushdixit/solokit/actions?query=workflow%3ATests)
-[![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/ankushdixit/solokit)
 
@@ -586,7 +586,7 @@ graph TD
 ### Prerequisites
 
 **Required:**
-- **Python 3.9+** - Core runtime
+- **Python 3.11+** - Core runtime
 - **pip/pip3** - Package installer (see OS-specific notes below)
 - **Git** - Version control
 - **Claude Code** - *Strongly recommended* for slash command integration and optimal workflow experience. While Solokit can be used via CLI alone, Claude Code provides the richest experience with interactive prompts, context continuity, and intelligent assistance.
@@ -631,15 +631,15 @@ If you see a warning that `sk` is not on PATH, add it to your shell configuratio
 
 ```bash
 # For zsh (default on modern macOS)
-echo 'export PATH="$HOME/Library/Python/3.9/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/Library/Python/3.11/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 
 # For bash
-echo 'export PATH="$HOME/Library/Python/3.9/bin:$PATH"' >> ~/.bash_profile
+echo 'export PATH="$HOME/Library/Python/3.11/bin:$PATH"' >> ~/.bash_profile
 source ~/.bash_profile
 ```
 
-> **Note:** Adjust the Python version (3.9) to match your installed version if different.
+> **Note:** Adjust the Python version (3.11) to match your installed version if different.
 
 ### Option 2: From Source
 
@@ -677,7 +677,7 @@ The `sk` command is installed in your Python user bin directory, which may not b
 pip3 show solokit
 
 # Add to PATH (example for macOS with zsh)
-echo 'export PATH="$HOME/Library/Python/3.9/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/Library/Python/3.11/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 
 # Verify
@@ -688,7 +688,7 @@ sk status
 ```powershell
 # Add Python Scripts to PATH
 # Go to System Properties > Environment Variables
-# Add: C:\Users\YourUsername\AppData\Local\Programs\Python\Python39\Scripts
+# Add: C:\Users\YourUsername\AppData\Local\Programs\Python\Python311\Scripts
 ```
 
 #### "command not found: pip" (macOS)
@@ -723,14 +723,14 @@ py -m pip install --upgrade pip
 
 #### Python Version Issues
 
-**Problem:** Solokit requires Python 3.9 or higher.
+**Problem:** Solokit requires Python 3.11 or higher.
 
 **Check your Python version:**
 ```bash
 python3 --version
 ```
 
-**Solution:** If you have an older version, install Python 3.9+ from [python.org](https://www.python.org/downloads/)
+**Solution:** If you have an older version, install Python 3.11+ from [python.org](https://www.python.org/downloads/)
 
 #### Permission Errors on Linux
 

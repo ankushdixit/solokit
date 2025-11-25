@@ -227,20 +227,24 @@ class TestErrorFormatterEdgeCases:
         # The function will try stdout as fallback
         ErrorFormatter.print_error(error, verbose=False, file=closed_file)
 
-    def test_print_error_both_streams_closed(self, caplog):
-        """Test printing error when both stderr and stdout fail logs the error"""
-        import logging
-        from unittest.mock import patch
+    def test_print_error_both_streams_closed(self):
+        """Test printing error when both stderr and stdout fail handles gracefully"""
+        from unittest.mock import MagicMock, patch
 
         error = WorkItemNotFoundError("my_feature")
 
-        # Mock print to always raise ValueError
-        with patch("builtins.print", side_effect=ValueError("stream closed")):
-            with caplog.at_level(logging.ERROR):
-                ErrorFormatter.print_error(error, verbose=False)
+        # Mock the logger to capture logging calls without writing to streams
+        mock_logger = MagicMock()
 
-        # Should have logged the error
-        assert "Could not write error" in caplog.text or len(caplog.records) > 0
+        with (
+            patch("builtins.print", side_effect=ValueError("stream closed")),
+            patch("logging.getLogger", return_value=mock_logger),
+        ):
+            # Should not raise - handles gracefully
+            ErrorFormatter.print_error(error, verbose=False)
+
+        # Verify the error was logged (logger.error was called)
+        assert mock_logger.error.called or mock_logger.warning.called
 
 
 class TestErrorFormatterIntegration:

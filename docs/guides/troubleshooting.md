@@ -9,7 +9,7 @@ sk doctor
 ```
 
 This command performs a comprehensive system check and identifies common problems:
-- ✓ Python version compatibility (>= 3.9.0)
+- ✓ Python version compatibility (>= 3.11.0)
 - ✓ Git installation and availability
 - ✓ Project structure (`.session/` directory and config.json)
 - ✓ Configuration file validity
@@ -20,7 +20,7 @@ This command performs a comprehensive system check and identifies common problem
 ```
 Running system diagnostics...
 
-✓ Python 3.11.7 (>= 3.9.0 required)
+✓ Python 3.11.7 (>= 3.11.0 required)
 ✓ git version 2.45.2 installed
 ✓ .session/ directory exists with config.json
 ✓ config.json is valid

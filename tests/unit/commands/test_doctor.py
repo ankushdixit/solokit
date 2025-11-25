@@ -59,7 +59,7 @@ def test_parse_version_non_numeric():
 def test_check_python_version_passes():
     """Test that Python version check passes for current Python."""
     result = check_python_version()
-    # Current Python should meet minimum requirements (3.9+)
+    # Current Python should meet minimum requirements (3.11+)
     assert result.passed is True
     assert "Python" in result.message
     assert result.name == "Python Version"

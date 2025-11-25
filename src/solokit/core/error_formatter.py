@@ -16,7 +16,7 @@ Usage:
 """
 
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from solokit.core.exceptions import ErrorCategory, SolokitError
 
@@ -178,7 +178,7 @@ class ErrorFormatter:
             return 1  # Generic error
 
 
-def format_validation_errors(errors: list[str], header: Optional[str] = None) -> str:
+def format_validation_errors(errors: list[str], header: str | None = None) -> str:
     """
     Format a list of validation errors for display.
 

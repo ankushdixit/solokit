@@ -19,7 +19,7 @@ from solokit.core.output import get_output
 output = get_output()
 
 # Minimum required versions
-MIN_PYTHON_VERSION = (3, 9, 0)
+MIN_PYTHON_VERSION = (3, 11, 0)
 
 
 @dataclass
