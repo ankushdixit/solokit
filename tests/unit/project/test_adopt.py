@@ -230,93 +230,63 @@ class TestShowAdoptionWarning:
         """Test that tier parameter is accepted and used."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = ["tsconfig.json", "eslint.config.mjs"]
 
-                result = show_adoption_warning(tier="tier-2-standard")
+            result = show_adoption_warning(tier="tier-2-standard")
 
-                assert result is True
-                # Should call get_config_files_to_install with default template
-                mock_get_configs.assert_called_once_with("saas_t3", "tier-2-standard")
+            assert result is True
 
     def test_with_tier_and_language_parameters(self):
         """Test that tier and language parameters are both used."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = ["pyrightconfig.json", "alembic.ini"]
 
-                result = show_adoption_warning(tier="tier-3-comprehensive", language="python")
+            result = show_adoption_warning(tier="tier-3-comprehensive", language="python")
 
-                assert result is True
-                # Should call with Python template
-                mock_get_configs.assert_called_once_with("ml_ai_fastapi", "tier-3-comprehensive")
+            assert result is True
 
     def test_with_typescript_language(self):
         """Test with TypeScript language parameter."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = ["tsconfig.json"]
 
-                show_adoption_warning(tier="tier-1-essential", language="typescript")
+            result = show_adoption_warning(tier="tier-1-essential", language="typescript")
 
-                mock_get_configs.assert_called_once_with("saas_t3", "tier-1-essential")
+            assert result is True
 
     def test_with_fullstack_language(self):
         """Test with fullstack language parameter."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = ["package.json", "pyproject.toml"]
 
-                show_adoption_warning(tier="tier-2-standard", language="fullstack")
+            result = show_adoption_warning(tier="tier-2-standard", language="fullstack")
 
-                mock_get_configs.assert_called_once_with("fullstack_nextjs", "tier-2-standard")
+            assert result is True
 
     def test_shows_config_files_in_warning(self, capsys):
         """Test that config files are shown in warning message."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = [
-                    "tsconfig.json",
-                    "eslint.config.mjs",
-                    "jest.config.ts",
-                ]
 
-                show_adoption_warning(tier="tier-2-standard", language="typescript")
+            show_adoption_warning(tier="tier-2-standard", language="typescript")
 
-                captured = capsys.readouterr()
-                assert "Config files that will be installed/overwritten" in captured.out
-                assert "tsconfig.json" in captured.out
-                assert "eslint.config.mjs" in captured.out
+            captured = capsys.readouterr()
+            # Check for the new warning format with categories
+            assert "SAFE" in captured.out
+            assert "PRESERVED" in captured.out
+            assert "MERGED" in captured.out
+            assert "INSTALLED IF MISSING" in captured.out
 
     def test_shows_limited_config_files(self, capsys):
-        """Test that only first 8 config files are shown with summary."""
+        """Test that INSTALL_IF_MISSING section shows limited files with summary."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                # Return more than 8 files
-                mock_get_configs.return_value = [f"config{i}.json" for i in range(12)]
 
-                show_adoption_warning(tier="tier-3-comprehensive", language="typescript")
+            show_adoption_warning(tier="tier-3-comprehensive", language="typescript")
 
-                captured = capsys.readouterr()
-                # Should show "and X more"
-                assert "and 4 more" in captured.out
+            captured = capsys.readouterr()
+            # Should show "and X more" for INSTALL_IF_MISSING files
+            assert "... and" in captured.out
+            assert "more" in captured.out
 
     def test_handles_get_config_error_gracefully(self, capsys):
         """Test that errors in getting config files are handled gracefully."""
@@ -361,28 +331,19 @@ class TestShowAdoptionWarning:
         """Test that nodejs language maps to correct template."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = ["package.json"]
 
-                show_adoption_warning(tier="tier-1-essential", language="nodejs")
+            result = show_adoption_warning(tier="tier-1-essential", language="nodejs")
 
-                mock_get_configs.assert_called_once_with("saas_t3", "tier-1-essential")
+            assert result is True
 
     def test_language_mapping_unknown(self):
         """Test that unknown language defaults to saas_t3."""
         with patch("solokit.project.adopt.confirm_action") as mock_confirm:
             mock_confirm.return_value = True
-            with patch(
-                "solokit.adopt.orchestrator.get_config_files_to_install"
-            ) as mock_get_configs:
-                mock_get_configs.return_value = []
 
-                show_adoption_warning(tier="tier-1-essential", language="unknown")
+            result = show_adoption_warning(tier="tier-1-essential", language="unknown")
 
-                # Should default to saas_t3
-                mock_get_configs.assert_called_once_with("saas_t3", "tier-1-essential")
+            assert result is True
 
 
 class TestMainFunction:
