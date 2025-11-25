@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+- **Test Coverage Improvements**
+  - Increased overall test coverage from 96% to 97%
+  - Added 131 new tests (3,460 → 3,591 total tests)
+  - Test breakdown: 3,333 unit + 178 integration + 80 e2e tests
+  - Files improved to >95% coverage:
+    - `adopt/orchestrator.py`: 88% → 97%
+    - `session/complete.py`: 88% → 92%
+    - `cli.py`: 92% → 99%
+    - `quality/gates.py`: 91% → 98%
+    - `work_items/delete.py`: 92% → 97%
+    - `deployment/executor.py`: 93% → 95%
+    - `work_items/spec_parser.py`: 93% → 98%
+    - `core/error_formatter.py`: 91% → 100%
+  - All quality checks passing: ruff, mypy, formatting
 
 ## [0.1.4] - 2025-11-24
 

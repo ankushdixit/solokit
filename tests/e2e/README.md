@@ -6,7 +6,7 @@ This directory contains end-to-end tests that validate the complete Solokit syst
 
 ## Test Coverage
 
-The E2E test suite includes 88 tests across 8 test files:
+The E2E test suite includes 80 tests across 8 test files:
 
 - `test_init_workflow.py` (19 tests) - Project initialization and setup
 - `test_core_session_workflow.py` (18 tests) - Core session workflows
@@ -55,8 +55,8 @@ E2E tests run **80x slower** than unit tests due to:
 
 E2E tests are **intentionally skipped in GitHub workflows** because:
 
-1. **Long Runtime**: 4-8 minutes for 88 tests adds significant CI time
-2. **Redundant Validation**: Unit (2,980) and integration (165) tests provide 96% coverage
+1. **Long Runtime**: 4-8 minutes for 80 tests adds significant CI time
+2. **Redundant Validation**: Unit (3,333) and integration (178) tests provide 97% coverage
 3. **Local Validation Sufficient**: Developers run full test suite locally via `sk validate`
 4. **Fast Feedback**: CI runs complete in 1-2 minutes without E2E tests
 
@@ -165,5 +165,5 @@ When adding new E2E tests:
 
 - [Test Infrastructure Progress](../../TEST_PROGRESS.md) - Complete test development journey
 - [GitHub Workflows](../../.github/workflows/tests.yml) - CI configuration
-- [Unit Tests](../unit/) - Fast, focused tests (2,980 tests)
-- [Integration Tests](../integration/) - Workflow integration tests (165 tests)
+- [Unit Tests](../unit/) - Fast, focused tests (3,333 tests)
+- [Integration Tests](../integration/) - Workflow integration tests (178 tests)

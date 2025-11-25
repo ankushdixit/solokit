@@ -1152,3 +1152,141 @@ Just an overview.
         assert result["documentation_updates"] == []
         assert result["dependencies"] is None
         assert result["estimated_effort"] is None
+
+
+class TestExtractSubsectionEdgeCases:
+    """Tests for extract_subsection edge cases."""
+
+    def test_extract_subsection_empty_content(self):
+        """Test extract_subsection returns None for empty content."""
+        result = spec_parser.extract_subsection("", "Approach")
+        assert result is None
+
+    def test_extract_subsection_none_content(self):
+        """Test extract_subsection returns None for None content."""
+        result = spec_parser.extract_subsection(None, "Approach")
+        assert result is None
+
+    def test_extract_subsection_stopped_by_h2(self):
+        """Test extract_subsection stops at H2 heading."""
+        content = """### Approach
+Some approach content here.
+
+## Next Section
+This should not be included."""
+
+        result = spec_parser.extract_subsection(content, "Approach")
+        assert "approach content" in result
+        assert "Next Section" not in result
+        assert "should not be included" not in result
+
+
+class TestExtractChecklistEdgeCases:
+    """Tests for extract_checklist edge cases."""
+
+    def test_extract_checklist_empty_content(self):
+        """Test extract_checklist returns empty list for empty content."""
+        result = spec_parser.extract_checklist("")
+        assert result == []
+
+    def test_extract_checklist_none_content(self):
+        """Test extract_checklist returns empty list for None content."""
+        result = spec_parser.extract_checklist(None)
+        assert result == []
+
+
+class TestExtractCodeBlocksEdgeCases:
+    """Tests for extract_code_blocks edge cases."""
+
+    def test_extract_code_blocks_empty_content(self):
+        """Test extract_code_blocks returns empty list for empty content."""
+        result = spec_parser.extract_code_blocks("")
+        assert result == []
+
+    def test_extract_code_blocks_none_content(self):
+        """Test extract_code_blocks returns empty list for None content."""
+        result = spec_parser.extract_code_blocks(None)
+        assert result == []
+
+
+class TestParseSpecFileEdgeCases:
+    """Tests for parse_spec_file edge cases."""
+
+    def test_parse_spec_file_os_error(self, temp_project_dir, monkeypatch):
+        """Test parse_spec_file raises ValidationError on OSError."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(temp_project_dir)
+        specs_dir = temp_project_dir / ".session" / "specs"
+        specs_dir.mkdir(parents=True)
+
+        # Create spec file
+        spec_file = specs_dir / "test_file.md"
+        spec_file.write_text("# Feature: Test")
+
+        # Mock open to raise OSError
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(ValidationError) as exc_info:
+                spec_parser.parse_spec_file("test_file")
+
+            assert exc_info.value.code.name == "FILE_OPERATION_FAILED"
+
+    def test_parse_spec_file_invalid_heading_format(self, temp_project_dir, monkeypatch):
+        """Test parse_spec_file raises error for heading without colon."""
+        monkeypatch.chdir(temp_project_dir)
+        specs_dir = temp_project_dir / ".session" / "specs"
+        specs_dir.mkdir(parents=True)
+
+        # Create spec file with invalid heading (no colon)
+        spec_file = specs_dir / "invalid_heading.md"
+        spec_file.write_text("# FeatureWithoutColon\n\n## Overview\nContent")
+
+        with pytest.raises(ValidationError) as exc_info:
+            spec_parser.parse_spec_file("invalid_heading")
+
+        assert "Type: Name" in exc_info.value.remediation
+
+    def test_parse_spec_file_parser_exception(self, temp_project_dir, monkeypatch):
+        """Test parse_spec_file wraps unexpected parser errors."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(temp_project_dir)
+        specs_dir = temp_project_dir / ".session" / "specs"
+        specs_dir.mkdir(parents=True)
+
+        # Create valid spec file
+        spec_file = specs_dir / "feature_test.md"
+        spec_file.write_text("# Feature: Test\n\n## Overview\nTest content")
+
+        # Mock the parser to raise an unexpected exception
+        with patch.object(
+            spec_parser, "parse_feature_spec", side_effect=RuntimeError("Unexpected")
+        ):
+            with pytest.raises(ValidationError) as exc_info:
+                spec_parser.parse_spec_file("feature_test")
+
+            assert exc_info.value.code.name == "SPEC_VALIDATION_FAILED"
+            assert "Unexpected" in str(exc_info.value.context.get("error", ""))
+
+    def test_parse_spec_file_reraises_validation_error(self, temp_project_dir, monkeypatch):
+        """Test parse_spec_file re-raises ValidationError from parser."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(temp_project_dir)
+        specs_dir = temp_project_dir / ".session" / "specs"
+        specs_dir.mkdir(parents=True)
+
+        # Create valid spec file
+        spec_file = specs_dir / "feature_test2.md"
+        spec_file.write_text("# Feature: Test\n\n## Overview\nTest content")
+
+        # Mock the parser to raise a ValidationError
+        original_error = ValidationError(
+            message="Parser validation failed", code=spec_parser.ErrorCode.SPEC_VALIDATION_FAILED
+        )
+        with patch.object(spec_parser, "parse_feature_spec", side_effect=original_error):
+            with pytest.raises(ValidationError) as exc_info:
+                spec_parser.parse_spec_file("feature_test2")
+
+            # Should be the same error, re-raised
+            assert exc_info.value.message == "Parser validation failed"

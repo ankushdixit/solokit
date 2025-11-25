@@ -204,8 +204,9 @@ class TestCheckBlankProjectOrExit:
             check_blank_project_or_exit(non_blank_project)
 
         assert "Solutions:" in exc.value.message
+        assert "sk adopt" in exc.value.message
         assert "mkdir my-project" in exc.value.message
-        assert exc.value.remediation == "Use a blank directory for initialization"
+        assert "sk adopt" in exc.value.remediation
 
     def test_context_includes_existing_files(self, non_blank_project):
         """Test that exception context includes existing files list."""

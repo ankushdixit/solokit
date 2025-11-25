@@ -761,3 +761,63 @@ class TestMainCLI:
                 main()
 
             assert "work_item_id" in exc_info.value.message.lower()
+
+
+class TestDeploymentConfigLoading:
+    """Tests for deployment configuration loading."""
+
+    def test_load_config_file_not_found_uses_defaults(self, sample_work_item, temp_config_dir):
+        """Test that missing config file uses default config."""
+        # Create a path that doesn't exist
+        nonexistent_path = Path(temp_config_dir) / "nonexistent" / "config.json"
+
+        executor = DeploymentExecutor(sample_work_item, config_path=nonexistent_path)
+
+        # Should use defaults
+        assert "pre_deployment_checks" in executor.config
+        assert executor.config["pre_deployment_checks"]["integration_tests"] is True
+
+    def test_load_config_json_decode_error(self, sample_work_item, temp_config_dir):
+        """Test that invalid JSON raises FileOperationError."""
+        from solokit.core.exceptions import FileOperationError
+
+        # Create config file with invalid JSON
+        config_path = Path(temp_config_dir) / ".session" / "bad_config.json"
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text("{invalid json}")
+
+        with pytest.raises(FileOperationError) as exc_info:
+            DeploymentExecutor(sample_work_item, config_path=config_path)
+
+        assert exc_info.value.context["operation"] == "parse"
+
+    def test_execute_deployment_no_steps(self, sample_work_item):
+        """Test execute_deployment with no deployment steps parsed."""
+        executor = DeploymentExecutor(sample_work_item)
+
+        with patch.object(executor, "_parse_deployment_steps", return_value=[]):
+            results = executor.execute_deployment(dry_run=True)
+
+        assert results["success"] is True
+        assert len(results["steps"]) == 0
+
+    def test_rollback_no_steps(self, sample_work_item):
+        """Test rollback with no rollback steps parsed."""
+        executor = DeploymentExecutor(sample_work_item)
+
+        with patch.object(executor, "_parse_rollback_steps", return_value=[]):
+            results = executor.rollback()
+
+        assert results["success"] is True
+        assert len(results["steps"]) == 0
+
+    def test_run_smoke_tests_no_tests(self, sample_work_item):
+        """Test run_smoke_tests with no tests parsed."""
+        executor = DeploymentExecutor(sample_work_item)
+        executor.config["smoke_tests"]["enabled"] = True
+
+        with patch.object(executor, "_parse_smoke_tests", return_value=[]):
+            results = executor.run_smoke_tests()
+
+        assert results["passed"] is True
+        assert len(results["tests"]) == 0

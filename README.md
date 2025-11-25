@@ -65,11 +65,17 @@ py -m pip install solokit
 
 ### 2. Initialize Your Project
 
+**For new projects:**
 ```bash
 sk init
 ```
 
-Choose from **4 production-ready stacks**:
+**For existing projects with code:**
+```bash
+sk adopt
+```
+
+Choose from **4 production-ready stacks** (with `sk init`):
 - **SaaS T3 Stack** - Next.js + tRPC + Prisma (full-stack SaaS)
 - **ML/AI FastAPI** - FastAPI + Python ML libraries (model serving, data pipelines)
 - **Dashboard Refine** - Refine + shadcn/ui (admin panels, internal tools)
@@ -408,6 +414,54 @@ sk learn-curate                # Run curation
 - Automatic merging of similar learnings
 - Configurable similarity threshold (default: 0.7)
 
+### 🔄 Adopting Existing Projects
+
+Already have a project? Use `sk adopt` to add Solokit's session management without modifying your existing code:
+
+```bash
+sk adopt
+```
+
+**What `sk adopt` does:**
+- Auto-detects your project type (Python, Node.js, TypeScript, Fullstack)
+- Creates `.session/` directory for tracking
+- Installs Claude Code slash commands
+- Appends Solokit sections to README.md and CLAUDE.md
+- Updates `.gitignore` with Solokit entries
+- Installs git hooks for quality enforcement
+
+**What `sk adopt` does NOT do:**
+- Modify your existing source code
+- Overwrite your documentation content
+- Install project templates or starter code
+- Change your existing tooling configuration
+
+**When to use `sk adopt` vs `sk init`:**
+
+| Scenario | Command |
+|----------|---------|
+| Starting a brand new project | `sk init` |
+| Adding Solokit to existing codebase | `sk adopt` |
+| Project already has package.json/pyproject.toml | `sk adopt` |
+| Want production-ready templates | `sk init` |
+
+**Example adoption workflow:**
+
+```bash
+# Navigate to your existing project
+cd my-existing-project
+
+# Adopt Solokit (interactive prompts)
+sk adopt
+
+# Or with arguments
+sk adopt --tier=tier-2-standard --coverage=80 --yes
+
+# Start using Solokit
+sk work-new
+sk start
+```
+
 ## Commands Reference
 
 > 💡 **Best Experience: Use these commands in Claude Code for AI-assisted development**
@@ -415,7 +469,8 @@ sk learn-curate                # Run curation
 ### Session Commands (Claude Code)
 
 ```
-/init                 # Initialize project with template selection
+/init                 # Initialize new project with template selection
+/adopt                # Add Solokit to existing project
 /start [item_id]      # Start session with comprehensive briefing
 /end                  # Complete session with quality gates
 /status               # Quick session overview
@@ -460,7 +515,8 @@ sk config show --json # Display configuration as JSON
 
 ### Session Commands
 ```bash
-sk init               # Initialize project
+sk init               # Initialize new project
+sk adopt              # Add Solokit to existing project
 sk start [item_id]    # Start session
 sk end                # Complete session
 sk status             # Session status
@@ -503,8 +559,13 @@ sk config show --json # Display as JSON
 
 ```mermaid
 graph TD
-    A[sk init] --> B[Choose Template & Quality Tier]
+    Start{New or Existing Project?}
+    Start -->|New| A[sk init]
+    Start -->|Existing| A2[sk adopt]
+    A --> B[Choose Template & Quality Tier]
+    A2 --> B2[Choose Quality Tier]
     B --> C[sk work-new]
+    B2 --> C
     C --> D[Write Spec]
     D --> E[sk start]
     E --> F[Develop with Claude]
@@ -788,7 +849,7 @@ solokit/
 │   ├── project/              # Project initialization
 │   └── templates/            # Project templates & work item specs
 ├── docs/                     # Comprehensive documentation
-├── tests/                    # 3,225 tests (100% passing, 96% coverage)
+├── tests/                    # 3,591 tests (100% passing, 97% coverage)
 │   ├── unit/                 # Unit tests
 │   ├── integration/          # Integration tests
 │   └── e2e/                  # End-to-end tests
@@ -838,7 +899,7 @@ While Claude Code is excellent for code generation and exploration, Solokit adds
 
 **Current Version:** v0.1.4 (Production-Ready)
 
-**Test Coverage:** 3,225 tests passing (100%), 96% code coverage
+**Test Coverage:** 3,591 tests passing (100%), 97% code coverage
 
 ### Completed Features
 

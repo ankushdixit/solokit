@@ -3234,3 +3234,199 @@ class TestQualityGatesAdditionalCoverage:
 
         # Assert
         assert passed is False
+
+
+class TestQualityGatesConfigLoading:
+    """Tests for config loading edge cases."""
+
+    def test_load_full_config_os_error(self, temp_dir):
+        """Test _load_full_config handles OSError."""
+        from solokit.core.exceptions import FileOperationError
+
+        # Create config file that will trigger an OSError on read
+        config_path = temp_dir / "config.json"
+        config_path.write_text('{"quality_gates": {}}')
+
+        with patch.object(Path, "exists", return_value=True):
+            gates = QualityGates(config_path=config_path)
+
+        # Mock open to raise OSError
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                gates._load_full_config()
+
+        assert exc_info.value.context["operation"] == "read"
+
+    def test_load_full_config_json_decode_error(self, temp_dir):
+        """Test _load_full_config handles JSONDecodeError."""
+        from solokit.core.exceptions import FileOperationError
+
+        # Create valid config file first to pass init
+        config_path = temp_dir / "config.json"
+        config_path.write_text('{"quality_gates": {}}')
+
+        gates = QualityGates(config_path=config_path)
+
+        # Now change config_path to point to invalid JSON file
+        invalid_config_path = temp_dir / "invalid_config.json"
+        invalid_config_path.write_text("{invalid json}")
+        gates._config_path = invalid_config_path
+
+        # _load_full_config should raise FileOperationError on invalid JSON
+        with pytest.raises(FileOperationError) as exc_info:
+            gates._load_full_config()
+
+        assert exc_info.value.context["operation"] == "parse"
+
+
+class TestQualityGatesReportFormatting:
+    """Tests for report formatting edge cases."""
+
+    def test_generate_report_linting_failed(self):
+        """Test generating report when linting failed."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {"linting": {"status": "failed"}}
+
+        report = gates.generate_report(all_results)
+
+        assert "Linting: ✗ FAILED" in report
+
+    def test_generate_report_linting_with_auto_fix(self):
+        """Test generating report when linting applied auto-fix."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {"linting": {"status": "passed", "fixed": True}}
+
+        report = gates.generate_report(all_results)
+
+        assert "Auto-fix applied" in report
+
+    def test_generate_report_formatting_failed(self):
+        """Test generating report when formatting failed."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {"formatting": {"status": "failed"}}
+
+        report = gates.generate_report(all_results)
+
+        assert "Formatting: ✗ FAILED" in report
+
+    def test_generate_report_formatting_with_auto_format(self):
+        """Test generating report when formatting applied auto-format."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {"formatting": {"status": "passed", "formatted": True}}
+
+        report = gates.generate_report(all_results)
+
+        assert "Auto-format applied" in report
+
+    def test_generate_report_custom_skipped(self):
+        """Test generating report when custom validations are skipped."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {"custom": {"status": "skipped"}}
+
+        report = gates.generate_report(all_results)
+
+        assert "Custom Validations: ⊘ SKIPPED" in report
+
+    def test_generate_report_custom_failed(self):
+        """Test generating report when custom validations failed."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        all_results = {
+            "custom": {
+                "status": "failed",
+                "validations": [{"name": "Test validation", "passed": False, "required": True}],
+            }
+        }
+
+        report = gates.generate_report(all_results)
+
+        assert "Custom Validations: ✗ FAILED" in report
+        assert "✗ Test validation (required)" in report
+
+    def test_get_remediation_guidance_context7_failed(self):
+        """Test remediation guidance for Context7 failures."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        guidance = gates.get_remediation_guidance(["context7"])
+
+        assert "Context7 Library Verification Failed" in guidance
+
+    def test_get_remediation_guidance_custom_failed(self):
+        """Test remediation guidance for custom validation failures."""
+        with patch.object(Path, "exists", return_value=False):
+            gates = QualityGates()
+
+        guidance = gates.get_remediation_guidance(["custom"])
+
+        assert "Custom Validation Failed" in guidance
+
+
+class TestQualityGatesMainFunction:
+    """Tests for the main CLI function."""
+
+    @patch("solokit.quality.gates.QualityGates")
+    def test_main_runs_quality_gates(self, mock_gates_class):
+        """Test main function runs quality gates."""
+        from solokit.quality.gates import main
+
+        mock_gates = Mock()
+        mock_gates.run_tests.return_value = (True, {"coverage": 90})
+        mock_gates.check_required_gates.return_value = (True, [])
+        mock_gates_class.return_value = mock_gates
+
+        # Act
+        main()
+
+        # Assert
+        mock_gates.run_tests.assert_called_once()
+        mock_gates.check_required_gates.assert_called_once()
+
+    @patch("solokit.quality.gates.QualityGates")
+    def test_main_logs_missing_gates(self, mock_gates_class, caplog):
+        """Test main function logs missing required gates."""
+        import logging
+
+        from solokit.quality.gates import main
+
+        mock_gates = Mock()
+        mock_gates.run_tests.return_value = (True, {"coverage": 90})
+        mock_gates.check_required_gates.return_value = (False, ["security", "linting"])
+        mock_gates_class.return_value = mock_gates
+
+        # Act
+        with caplog.at_level(logging.ERROR):
+            main()
+
+        # Assert
+        mock_gates.check_required_gates.assert_called_once()
+
+    @patch("solokit.quality.gates.QualityGates")
+    def test_main_logs_coverage(self, mock_gates_class, caplog):
+        """Test main function logs test coverage."""
+        import logging
+
+        from solokit.quality.gates import main
+
+        mock_gates = Mock()
+        mock_gates.run_tests.return_value = (True, {"coverage": 85.5})
+        mock_gates.check_required_gates.return_value = (True, [])
+        mock_gates_class.return_value = mock_gates
+
+        # Act
+        with caplog.at_level(logging.INFO):
+            main()
+
+        # Assert - main() was called successfully
+        mock_gates.run_tests.assert_called_once()

@@ -121,18 +121,17 @@ def check_blank_project_or_exit(project_root: Path | None = None) -> None:
             "Found existing project files:\n"
             + "\n".join(f"  - {f}" for f in blocking_files)
             + "\n\n"
-            "Solokit initialization must be run in a blank project directory to avoid conflicts.\n\n"
             "Solutions:\n"
-            "  1. Create a new directory: mkdir my-project && cd my-project\n"
-            "  2. Clone an empty repo: git clone <repo-url> && cd <repo>\n"
-            "  3. Clear existing project (CAUTION): Remove conflicting files manually\n"
+            "  1. Use 'sk adopt' to add Solokit to this existing project\n"
+            "  2. Create a new directory: mkdir my-project && cd my-project\n"
+            "  3. Clone an empty repo: git clone <repo-url> && cd <repo>\n"
         )
 
         raise ValidationError(
             message=error_msg,
             code=ErrorCode.PROJECT_NOT_BLANK,
             context={"existing_files": blocking_files},
-            remediation="Use a blank directory for initialization",
+            remediation="Use 'sk adopt' for existing projects, or use a blank directory for 'sk init'",
         )
 
 
