@@ -6,8 +6,9 @@ Centralized file I/O operations with consistent error handling and atomicity gua
 import json
 import logging
 import shutil
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from solokit.core.exceptions import (
     ErrorCode,

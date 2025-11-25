@@ -19,7 +19,8 @@ import functools
 import logging
 import subprocess
 import time
-from typing import Any, Callable, Literal, TypeVar
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar
 
 from solokit.core.exceptions import ErrorCode, GitError, SolokitError, SubprocessError, SystemError
 from solokit.core.exceptions import TimeoutError as SolokitTimeoutError

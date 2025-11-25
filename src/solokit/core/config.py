@@ -195,7 +195,7 @@ class ConfigManager:
     _config: SolokitConfig | None = None
     _config_path: Path | None = None
 
-    def __new__(cls) -> "ConfigManager":
+    def __new__(cls) -> ConfigManager:
         """Ensure only one instance of ConfigManager exists."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)

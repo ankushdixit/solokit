@@ -1,9 +1,10 @@
 """Caching layer for frequently accessed data"""
 
 import threading
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 class Cache:
