@@ -105,10 +105,16 @@ def prompt_additional_options() -> list[str]:
 
 def show_adoption_warning(tier: str | None = None, language: str | None = None) -> bool:
     """
-    Display adoption warning and get user confirmation.
+    Display adoption warning with detailed file handling info.
+
+    Shows how different file categories will be handled:
+    - SAFE: Files that will be created/appended (no overwrites)
+    - PRESERVED: Project-specific configs that won't be touched
+    - MERGED: Files that will be intelligently merged
+    - INSTALLED: Quality configs installed only if missing
 
     Args:
-        tier: Selected quality tier (for showing config files that will be overwritten)
+        tier: Selected quality tier (for showing config files that will be processed)
         language: Detected project language (for determining template)
 
     Returns:
@@ -118,51 +124,51 @@ def show_adoption_warning(tier: str | None = None, language: str | None = None) 
     print("⚠️  ADOPTION WARNING")
     print("=" * 60)
     print("")
-    print("The following will happen:")
-    print("")
-    print("  • .session/ directory will be created")
-    print("  • .claude/commands/ will be installed (overwrites existing)")
-    print("  • CLAUDE.md will be appended (or created if missing)")
-    print("  • README.md will be appended (or created if missing)")
-    print("  • .gitignore will be appended with Solokit entries")
-    print("  • Git hooks will be installed (overwrites existing)")
 
-    # Show config files that will be overwritten based on tier
+    # Safe operations
+    print("✅ SAFE - The following will be CREATED/APPENDED:")
+    print("  • .session/ directory (session tracking)")
+    print("  • .claude/commands/ (slash commands)")
+    print("  • README.md (Solokit section appended)")
+    print("  • CLAUDE.md (Solokit guidance appended)")
+    print("  • .gitignore (Solokit patterns appended)")
+    print("")
+
+    # Preserved files
+    print("🔒 PRESERVED - Project-specific configs will NOT be touched:")
+    print("  • tsconfig.json, next.config.ts, tailwind.config.ts")
+    print("  • postcss.config.mjs, components.json, vercel.json")
+    print("  • alembic.ini, prisma/schema.prisma, .npmrc")
+    print("")
+
+    # Merged files
+    print("🔀 MERGED - These files will be intelligently merged:")
+    print("  • package.json (scripts/devDependencies added)")
+    print("  • pyproject.toml (dev deps and tool configs added)")
+    print("  • requirements.txt (missing packages added)")
+    print("  • eslint.config.mjs, .prettierrc (options added)")
+    print("")
+
+    # Show quality configs based on tier
+    print("📦 INSTALLED IF MISSING - Quality configs:")
     if tier:
         try:
-            from solokit.adopt.orchestrator import (
-                _get_template_id_for_language,
-                get_config_files_to_install,
-            )
-            from solokit.adopt.project_detector import ProjectLanguage
+            from solokit.adopt.orchestrator import INSTALL_IF_MISSING
 
-            # Map language string to enum if provided
-            template_id = "saas_t3"  # Default
-            if language:
-                lang_map = {
-                    "python": ProjectLanguage.PYTHON,
-                    "nodejs": ProjectLanguage.NODEJS,
-                    "typescript": ProjectLanguage.TYPESCRIPT,
-                    "fullstack": ProjectLanguage.FULLSTACK,
-                }
-                lang_enum = lang_map.get(language.lower(), ProjectLanguage.UNKNOWN)
-                template_id = _get_template_id_for_language(lang_enum)
-
-            config_files = get_config_files_to_install(template_id, tier)
-            if config_files:
-                print("")
-                print("  📦 Config files that will be installed/overwritten:")
-                # Show first 8 files, then summarize
-                for config_file in config_files[:8]:
-                    print(f"     - {config_file}")
-                if len(config_files) > 8:
-                    print(f"     ... and {len(config_files) - 8} more")
+            # Show sample of files that would be installed
+            sample_files = sorted(INSTALL_IF_MISSING)[:6]
+            for config_file in sample_files:
+                print(f"  • {config_file}")
+            remaining = len(INSTALL_IF_MISSING) - 6
+            if remaining > 0:
+                print(f"  ... and {remaining} more")
         except Exception:
-            # If we can't get config files, just continue without showing them
-            pass
+            print("  • jest.config.ts, pytest.ini, .coveragerc, etc.")
 
     print("")
-    print("Existing source code files will NOT be modified.")
+    print("💾 BACKUP - All modified files backed up to .solokit-backup/<timestamp>/")
+    print("")
+    print("💡 TIP: Use --dry-run to preview changes without making modifications")
     print("")
     print("=" * 60)
 
@@ -212,6 +218,11 @@ def main() -> int:
         action="store_true",
         help="Skip creating adoption commit",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview changes without making modifications",
+    )
 
     args = parser.parse_args()
 
@@ -230,8 +241,8 @@ def main() -> int:
         if args.options:
             additional_options = [opt.strip() for opt in args.options.split(",")]
 
-        # Show warning unless --yes flag is set
-        if not args.yes:
+        # Show warning unless --yes flag or --dry-run is set
+        if not args.yes and not args.dry_run:
             if not show_adoption_warning(tier=tier):
                 print("\n❌ Adoption cancelled")
                 return 1
@@ -272,8 +283,8 @@ def main() -> int:
             print("Additional:       None")
         print("=" * 60)
 
-        # Show warning and get confirmation
-        if not show_adoption_warning(tier=tier):
+        # Show warning and get confirmation (skip in dry-run mode)
+        if not args.dry_run and not show_adoption_warning(tier=tier):
             print("\n❌ Adoption cancelled")
             return 1
 
@@ -283,6 +294,7 @@ def main() -> int:
         coverage_target=coverage_target,
         additional_options=additional_options,
         skip_commit=args.skip_commit,
+        dry_run=args.dry_run,
     )
 
 

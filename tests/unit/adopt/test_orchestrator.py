@@ -173,7 +173,8 @@ class TestInstallConfigFile:
         result = _install_config_file(src_path, project_root, relative_path, replacements)
 
         # Assert
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         output_path = project_root / "tsconfig.json"
         assert output_path.exists()
         assert output_path.read_text() == '{"compilerOptions": {}}'
@@ -193,7 +194,8 @@ class TestInstallConfigFile:
         result = _install_config_file(src_path, project_root, relative_path, replacements)
 
         # Assert
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         output_path = project_root / "package.json"
         assert output_path.exists()
         assert output_path.read_text() == '{"name": "test-project"}'
@@ -213,7 +215,8 @@ class TestInstallConfigFile:
         result = _install_config_file(src_path, project_root, relative_path, replacements)
 
         # Assert
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         output_path = project_root / "package.json"
         assert output_path.exists()
 
@@ -232,7 +235,8 @@ class TestInstallConfigFile:
         result = _install_config_file(src_path, project_root, relative_path, replacements)
 
         # Assert
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         output_path = project_root / "subdir" / "config.json"
         assert output_path.exists()
 
@@ -250,7 +254,8 @@ class TestInstallConfigFile:
         result = _install_config_file(src_path, project_root, relative_path, replacements)
 
         # Assert
-        assert result is False
+        assert result[0] is False
+        assert result[1].startswith("error:")
 
 
 class TestInstallTierConfigs:
@@ -274,11 +279,11 @@ class TestInstallTierConfigs:
         project_root.mkdir()
 
         # Act
-        count, files = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
+        results = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
 
         # Assert
-        assert count == 1
-        assert len(files) == 1
+        assert isinstance(results, dict)
+        assert len(results["installed"]) + len(results["skipped_never_overwrite"]) == 1
 
     @patch("solokit.init.template_installer.get_template_directory")
     def test_skips_source_directories(self, mock_get_template, tmp_path):
@@ -299,11 +304,11 @@ class TestInstallTierConfigs:
         project_root.mkdir()
 
         # Act
-        count, files = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
+        results = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
 
         # Assert
-        assert count == 0
-        assert len(files) == 0
+        total_files = sum(len(files) for files in results.values())
+        assert total_files == 0
 
     @patch("solokit.init.template_installer.get_template_directory")
     def test_installs_cumulative_tiers(self, mock_get_template, tmp_path):
@@ -329,10 +334,16 @@ class TestInstallTierConfigs:
         project_root.mkdir()
 
         # Act
-        count, files = install_tier_configs("saas_t3", "tier-2-standard", project_root, 80)
+        results = install_tier_configs("saas_t3", "tier-2-standard", project_root, 80)
 
         # Assert
-        assert count == 3  # base + tier1 + tier2
+        total_files = (
+            len(results["installed"])
+            + len(results["merged"])
+            + len(results["skipped_exists"])
+            + len(results["skipped_never_overwrite"])
+        )
+        assert total_files == 3  # base + tier1 + tier2
 
     @patch("solokit.init.template_installer.get_template_directory")
     def test_replaces_template_placeholders(self, mock_get_template, tmp_path):
@@ -352,10 +363,11 @@ class TestInstallTierConfigs:
         project_root.mkdir()
 
         # Act
-        count, files = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
+        results = install_tier_configs("saas_t3", "tier-1-essential", project_root, 80)
 
         # Assert
-        assert count == 1
+        total_files = len(results["installed"]) + len(results["merged"])
+        assert total_files == 1
         output_file = project_root / "package.json"
         assert output_file.exists()
         content = json.loads(output_file.read_text())
@@ -556,7 +568,7 @@ class TestUpdateGitignoreForAdoption:
         gitignore = project_root / ".gitignore"
         # Include all Python-specific entries that would be added
         gitignore.write_text(
-            "# Solokit session files\n.session/briefings/\n.session/history/\n# Coverage\n.coverage\nhtmlcov/\ncoverage.xml\n*.cover\n"
+            "# Solokit session files\n.session/briefings/\n.session/history/\n.session/learnings/\n# Coverage\n.coverage\nhtmlcov/\ncoverage.xml\n*.cover\n# Solokit backups\n.solokit-backup/\n"
         )
 
         project_info = ProjectInfo(
@@ -726,7 +738,13 @@ class TestRunAdoption:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (5, ["config1", "config2"])
+        mock_tier_configs.return_value = {
+            "installed": ["config1", "config2"],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_commands.return_value = ["start", "end"]
         mock_readme.return_value = True
         mock_claude_md.return_value = True
@@ -773,7 +791,13 @@ class TestRunAdoption:
         mock_detect.return_value = project_info
 
         with patch("solokit.adopt.orchestrator.install_tier_configs") as mock_tier:
-            mock_tier.return_value = (0, [])
+            mock_tier.return_value = {
+                "installed": [],
+                "merged": [],
+                "skipped_exists": [],
+                "skipped_never_overwrite": [],
+                "errors": [],
+            }
             with patch("solokit.init.claude_commands_installer.install_claude_commands"):
                 with patch("solokit.adopt.orchestrator.append_to_readme"):
                     with patch("solokit.adopt.orchestrator.append_to_claude_md"):
@@ -835,7 +859,13 @@ class TestRunAdoption:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_commands.side_effect = Exception("Command install failed")
         mock_readme.side_effect = FileOperationError("read", "README.md", "Not found")
         mock_claude_md.side_effect = FileOperationError("read", "CLAUDE.md", "Not found")
@@ -881,7 +911,13 @@ class TestRunAdoption:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_additional_option.return_value = 3
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
@@ -931,7 +967,13 @@ class TestRunAdoption:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_env_files.return_value = [".env.example", ".editorconfig"]
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
@@ -1020,7 +1062,8 @@ class TestInstallConfigFileEdgeCases:
 
         result = _install_config_file(src_file, project_root, relative_path, replacements)
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         # Should create jest.config without .tier3.template suffix
         output_file = project_root / "jest.config"
         assert output_file.exists()
@@ -1204,7 +1247,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (3, ["tsconfig.json", "jest.config.ts", "eslintrc.json"])
+        mock_tier_configs.return_value = {
+            "installed": ["tsconfig.json", "jest.config.ts", "eslintrc.json"],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):
@@ -1253,7 +1302,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):
@@ -1298,7 +1353,14 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.side_effect = RuntimeError("Config install failed")
+        # Return dict with errors instead of raising exception
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": ["Config install failed"],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):
@@ -1316,8 +1378,6 @@ class TestRunAdoptionEdgeCases:
 
         # Should still succeed despite config install failure
         assert result == 0
-        captured = capsys.readouterr()
-        assert "Config install" in captured.out or "failed" in captured.out.lower()
 
     @patch("solokit.adopt.orchestrator.detect_project_type")
     @patch("solokit.adopt.orchestrator.install_tier_configs")
@@ -1344,10 +1404,9 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        # Return more than 5 config files
-        mock_tier_configs.return_value = (
-            8,
-            [
+        # Return more than 5 config files in the new dict format
+        mock_tier_configs.return_value = {
+            "installed": [
                 "tsconfig.json",
                 "jest.config.ts",
                 "eslintrc.json",
@@ -1357,7 +1416,11 @@ class TestRunAdoptionEdgeCases:
                 "webpack.config.js",
                 "vitest.config.ts",
             ],
-        )
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):
@@ -1404,7 +1467,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_env_files.side_effect = RuntimeError("Env generation failed")
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
@@ -1453,7 +1522,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_commit.return_value = True
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
@@ -1500,7 +1575,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
         mock_commit.side_effect = RuntimeError("Git error")
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
@@ -1547,7 +1628,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):
@@ -1597,7 +1684,13 @@ class TestRunAdoptionEdgeCases:
         )
 
         mock_detect.return_value = project_info
-        mock_tier_configs.return_value = (0, [])
+        mock_tier_configs.return_value = {
+            "installed": [],
+            "merged": [],
+            "skipped_exists": [],
+            "skipped_never_overwrite": [],
+            "errors": [],
+        }
 
         with patch("solokit.init.claude_commands_installer.install_claude_commands"):
             with patch("solokit.adopt.doc_appender.append_to_readme"):

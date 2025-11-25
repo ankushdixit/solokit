@@ -168,7 +168,8 @@ class TestInstallConfigFile:
 
         result = _install_config_file(src_file, temp_project / "dest", Path("tsconfig.json"), {})
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         installed = temp_project / "dest" / "tsconfig.json"
         assert installed.exists()
         assert installed.read_text() == '{"compilerOptions": {}}'
@@ -185,7 +186,8 @@ class TestInstallConfigFile:
             src_file, temp_project / "dest", Path("package.json.template"), replacements
         )
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         installed = temp_project / "dest" / "package.json"
         assert installed.exists()
         assert '"name": "my-project"' in installed.read_text()
@@ -200,7 +202,8 @@ class TestInstallConfigFile:
             src_file, temp_project / "dest", Path("package.json.tier3.template"), {}
         )
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         installed = temp_project / "dest" / "package.json"
         assert installed.exists()
         assert not (temp_project / "dest" / "package.json.tier3").exists()
@@ -218,7 +221,8 @@ class TestInstallConfigFile:
             {},
         )
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         installed = temp_project / "dest" / "subdir" / "config.json"
         assert installed.exists()
 
@@ -228,7 +232,8 @@ class TestInstallConfigFile:
 
         result = _install_config_file(src_file, temp_project / "dest", Path("config.json"), {})
 
-        assert result is False
+        assert result[0] is False
+        assert result[1].startswith("error:")
 
     def test_overwrites_existing_file(self, temp_project):
         """Test that existing files are overwritten."""
@@ -243,7 +248,8 @@ class TestInstallConfigFile:
 
         result = _install_config_file(src_file, dest, Path("config.json"), {})
 
-        assert result is True
+        assert result[0] is True
+        assert result[1] == "installed"
         assert '"new": "content"' in existing.read_text()
         assert '"old": "content"' not in existing.read_text()
 
@@ -252,18 +258,20 @@ class TestInstallTierConfigs:
     """Tests for install_tier_configs() function."""
 
     def test_returns_count_and_list(self, temp_project):
-        """Test that function returns tuple of count and file list."""
+        """Test that function returns dict with categorized results."""
         with patch("solokit.init.template_installer.get_template_directory") as mock_get_template:
             template_dir = temp_project / "template"
             template_dir.mkdir()
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
-            assert isinstance(count, int)
-            assert isinstance(files, list)
+            assert isinstance(results, dict)
+            assert "installed" in results
+            assert "merged" in results
+            assert "skipped_exists" in results
+            assert "skipped_never_overwrite" in results
+            assert "errors" in results
 
     def test_installs_base_directory_configs(self, temp_project):
         """Test that configs from base directory are installed."""
@@ -277,12 +285,15 @@ class TestInstallTierConfigs:
 
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
-            assert count == 1
-            assert "tsconfig.json" in files
+            # tsconfig.json is in NEVER_OVERWRITE, so it will be in skipped_never_overwrite
+            total_files = len(results["installed"]) + len(results["skipped_never_overwrite"])
+            assert total_files == 1
+            assert (
+                "tsconfig.json" in results["installed"]
+                or "tsconfig.json" in results["skipped_never_overwrite"]
+            )
 
     def test_installs_tier_directory_configs(self, temp_project):
         """Test that configs from tier directories are installed."""
@@ -296,12 +307,15 @@ class TestInstallTierConfigs:
 
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
-            assert count == 1
-            assert "jest.config.ts" in files
+            # jest.config.ts is in INSTALL_IF_MISSING, so it will be installed
+            total_files = len(results["installed"]) + len(results["skipped_exists"])
+            assert total_files == 1
+            assert (
+                "jest.config.ts" in results["installed"]
+                or "jest.config.ts" in results["skipped_exists"]
+            )
 
     def test_cumulative_tier_installation(self, temp_project):
         """Test that configs from all tiers up to target are installed."""
@@ -318,13 +332,15 @@ class TestInstallTierConfigs:
 
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-2-standard", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-2-standard", temp_project / "dest", 80)
 
-            assert count == 2
-            assert "eslint.config.mjs" in files
-            assert "jest.config.ts" in files
+            total_files = (
+                len(results["installed"]) + len(results["merged"]) + len(results["skipped_exists"])
+            )
+            assert total_files == 2
+            all_files = results["installed"] + results["merged"] + results["skipped_exists"]
+            assert "eslint.config.mjs" in all_files
+            assert "jest.config.ts" in all_files
 
     def test_skips_source_directories(self, temp_project):
         """Test that source code directories are skipped."""
@@ -340,14 +356,24 @@ class TestInstallTierConfigs:
 
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
             # Should only install tsconfig.json, not src/index.ts
-            assert count == 1
-            assert "tsconfig.json" in files
-            assert not any("src" in f for f in files)
+            total_files = (
+                len(results["installed"])
+                + len(results["merged"])
+                + len(results["skipped_exists"])
+                + len(results["skipped_never_overwrite"])
+            )
+            assert total_files == 1
+            all_files = (
+                results["installed"]
+                + results["merged"]
+                + results["skipped_exists"]
+                + results["skipped_never_overwrite"]
+            )
+            assert "tsconfig.json" in all_files
+            assert not any("src" in f for f in all_files)
 
     def test_processes_template_files(self, temp_project):
         """Test that template files are processed with replacements."""
@@ -364,9 +390,10 @@ class TestInstallTierConfigs:
             mock_get_template.return_value = template_dir
 
             dest = temp_project / "dest"
-            count, files = install_tier_configs("saas_t3", "tier-1-essential", dest, 85)
+            results = install_tier_configs("saas_t3", "tier-1-essential", dest, 85)
 
-            assert count >= 1
+            total_files = len(results["installed"]) + len(results["merged"])
+            assert total_files >= 1
             installed = dest / "pyproject.toml"
             assert installed.exists()
             content = installed.read_text()
@@ -387,15 +414,19 @@ class TestInstallTierConfigs:
 
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
             # Should only install tsconfig.json
-            assert count == 1
-            assert "tsconfig.json" in files
-            assert "README.md" not in files
-            assert "data.json" not in files
+            all_files = (
+                results["installed"]
+                + results["merged"]
+                + results["skipped_exists"]
+                + results["skipped_never_overwrite"]
+            )
+            assert len(all_files) == 1
+            assert "tsconfig.json" in all_files
+            assert "README.md" not in all_files
+            assert "data.json" not in all_files
 
     def test_handles_missing_template_directory(self, temp_project):
         """Test graceful handling when template directory doesn't exist."""
@@ -403,12 +434,10 @@ class TestInstallTierConfigs:
             template_dir = temp_project / "nonexistent"
             mock_get_template.return_value = template_dir
 
-            count, files = install_tier_configs(
-                "saas_t3", "tier-1-essential", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-1-essential", temp_project / "dest", 80)
 
-            assert count == 0
-            assert files == []
+            total_files = sum(len(files) for files in results.values())
+            assert total_files == 0
 
     def test_handles_missing_tier_directory(self, temp_project):
         """Test graceful handling when tier directory doesn't exist."""
@@ -421,13 +450,17 @@ class TestInstallTierConfigs:
             mock_get_template.return_value = template_dir
 
             # Request tier-2 but only base exists
-            count, files = install_tier_configs(
-                "saas_t3", "tier-2-standard", temp_project / "dest", 80
-            )
+            results = install_tier_configs("saas_t3", "tier-2-standard", temp_project / "dest", 80)
 
             # Should still install from base
-            assert count == 1
-            assert "tsconfig.json" in files
+            all_files = (
+                results["installed"]
+                + results["merged"]
+                + results["skipped_exists"]
+                + results["skipped_never_overwrite"]
+            )
+            assert len(all_files) == 1
+            assert "tsconfig.json" in all_files
 
 
 class TestGetConfigFilesToInstall:

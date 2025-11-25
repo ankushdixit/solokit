@@ -8,20 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Test Coverage Improvements**
-  - Increased overall test coverage from 96% to 97%
-  - Added 131 new tests (3,460 → 3,591 total tests)
-  - Test breakdown: 3,333 unit + 178 integration + 80 e2e tests
-  - Files improved to >95% coverage:
-    - `adopt/orchestrator.py`: 88% → 97%
-    - `session/complete.py`: 88% → 92%
-    - `cli.py`: 92% → 99%
-    - `quality/gates.py`: 91% → 98%
-    - `work_items/delete.py`: 92% → 97%
-    - `deployment/executor.py`: 93% → 95%
-    - `work_items/spec_parser.py`: 93% → 98%
-    - `core/error_formatter.py`: 91% → 100%
-  - All quality checks passing: ruff, mypy, formatting
+- **Safe Config Implementation for `sk adopt`**
+  - Added intelligent file categorization: NEVER_OVERWRITE, MERGE_IF_EXISTS, INSTALL_IF_MISSING
+  - New backup system: all modified files backed up to `.solokit-backup/<timestamp>/`
+  - Smart merge strategies for 7 file types: package.json, pyproject.toml, eslint.config.mjs, .prettierrc, .pre-commit-config.yaml, requirements.txt, .husky/pre-commit
+  - Added `--dry-run` flag to preview changes without modifications
+  - Improved warning message showing categorized file handling
+  - Added 119 new tests for backup and merge modules (3,591 → 3,710 total tests)
+  - Test breakdown: 3,452 unit + 178 integration + 80 e2e tests
+  - New files: `adopt/backup.py`, `adopt/merge_strategies.py`
+  - All quality checks passing: ruff, mypy, formatting, 97% coverage
 
 ## [0.1.4] - 2025-11-24
 
