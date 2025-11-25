@@ -2030,3 +2030,261 @@ class TestAdditionalCoverage:
         with patch("builtins.open", side_effect=OSError("Permission denied")):
             with pytest.raises(FileOperationError, match="File read operation failed"):
                 load_work_items()
+
+    def test_run_quality_gates_documentation_failure(self, tmp_path, monkeypatch):
+        """Test run_quality_gates adds documentation to failed gates (lines 163-164)."""
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        mock_gates = MagicMock()
+        mock_gates.run_tests.return_value = (True, {"status": "passed"})
+        mock_gates.run_security_scan.return_value = (True, {"status": "passed"})
+        mock_gates.run_linting.return_value = (True, {"status": "passed"})
+        mock_gates.run_formatting.return_value = (True, {"status": "passed"})
+        mock_gates.validate_documentation.return_value = (False, {"status": "failed"})
+        mock_gates.verify_context7_libraries.return_value = (True, {"status": "passed"})
+        mock_gates.run_custom_validations.return_value = (True, {"status": "passed"})
+        mock_gates.generate_report.return_value = "Report"
+        mock_gates.get_remediation_guidance.return_value = "Guidance"
+        mock_gates.config.test_execution.required = True
+        mock_gates.config.security.required = True
+        mock_gates.config.linting.required = True
+        mock_gates.config.formatting.required = True
+        mock_gates.config.documentation.required = True
+
+        with patch("solokit.session.complete.QualityGates", return_value=mock_gates):
+            results, all_passed, failed_gates = run_quality_gates({})
+
+        assert "documentation" in failed_gates
+        assert not all_passed
+
+    def test_run_quality_gates_context7_failure_warning(self, tmp_path, monkeypatch, caplog):
+        """Test run_quality_gates logs warning for Context7 failure (line 172)."""
+        import logging
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+
+        mock_gates = MagicMock()
+        mock_gates.run_tests.return_value = (True, {"status": "passed"})
+        mock_gates.run_security_scan.return_value = (True, {"status": "passed"})
+        mock_gates.run_linting.return_value = (True, {"status": "passed"})
+        mock_gates.run_formatting.return_value = (True, {"status": "passed"})
+        mock_gates.validate_documentation.return_value = (True, {"status": "passed"})
+        mock_gates.verify_context7_libraries.return_value = (False, {"status": "failed"})
+        mock_gates.run_custom_validations.return_value = (True, {"status": "passed"})
+        mock_gates.generate_report.return_value = "Report"
+        mock_gates.get_remediation_guidance.return_value = ""
+        mock_gates.config.test_execution.required = True
+        mock_gates.config.security.required = True
+        mock_gates.config.linting.required = True
+        mock_gates.config.formatting.required = True
+        mock_gates.config.documentation.required = True
+
+        with patch("solokit.session.complete.QualityGates", return_value=mock_gates):
+            with caplog.at_level(logging.WARNING):
+                results, all_passed, failed_gates = run_quality_gates({})
+
+        # Context7 failure should be warning, not a failed gate
+        assert "context7" not in failed_gates
+        assert all_passed  # Should still pass
+
+    def test_run_quality_gates_custom_validation_failure(self, tmp_path, monkeypatch):
+        """Test run_quality_gates adds custom to failed gates (lines 179-180)."""
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+
+        mock_gates = MagicMock()
+        mock_gates.run_tests.return_value = (True, {"status": "passed"})
+        mock_gates.run_security_scan.return_value = (True, {"status": "passed"})
+        mock_gates.run_linting.return_value = (True, {"status": "passed"})
+        mock_gates.run_formatting.return_value = (True, {"status": "passed"})
+        mock_gates.validate_documentation.return_value = (True, {"status": "passed"})
+        mock_gates.verify_context7_libraries.return_value = (True, {"status": "passed"})
+        mock_gates.run_custom_validations.return_value = (False, {"status": "failed"})
+        mock_gates.generate_report.return_value = "Report"
+        mock_gates.get_remediation_guidance.return_value = "Guidance"
+        mock_gates.config.test_execution.required = True
+        mock_gates.config.security.required = True
+        mock_gates.config.linting.required = True
+        mock_gates.config.formatting.required = True
+        mock_gates.config.documentation.required = True
+
+        work_item = {"id": "test"}
+        with patch("solokit.session.complete.QualityGates", return_value=mock_gates):
+            results, all_passed, failed_gates = run_quality_gates(work_item)
+
+        assert "custom" in failed_gates
+        assert not all_passed
+
+    def test_update_all_tracking_stack_exception(self, tmp_path, monkeypatch, capsys):
+        """Test update_all_tracking handles stack update exception (lines 240-242)."""
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+
+        with patch("solokit.session.complete.CommandRunner") as mock_runner_class:
+            mock_runner = MagicMock()
+            mock_runner.run.side_effect = RuntimeError("Stack script failed")
+            mock_runner_class.return_value = mock_runner
+
+            update_all_tracking(session_num=1)
+
+        # Should continue despite exception
+        captured = capsys.readouterr()
+        assert "failed" in captured.out.lower()
+
+    def test_extract_learnings_from_session_os_error(self, tmp_path, monkeypatch, capsys):
+        """Test extract_learnings_from_session handles OSError (lines 403-406)."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(tmp_path)
+
+        learnings_file = tmp_path / "learnings.txt"
+        learnings_file.write_text("Learning 1\nLearning 2")
+
+        # Mock open to raise OSError
+        original_open = open
+
+        def mock_open_func(path, *args, **kwargs):
+            if str(learnings_file) in str(path):
+                raise OSError("Permission denied")
+            return original_open(path, *args, **kwargs)
+
+        with patch("builtins.open", mock_open_func):
+            result = extract_learnings_from_session(learnings_file)
+
+        # Should return empty list on error
+        assert result == []
+        captured = capsys.readouterr()
+        assert "Failed to read" in captured.out
+
+    def test_complete_git_workflow_load_work_items_error(self, tmp_path, monkeypatch):
+        """Test complete_git_workflow handles work items load error (lines 468-470)."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        # Create invalid work_items.json
+        work_items_file = session_dir / "work_items.json"
+        work_items_file.write_text("{invalid json}")
+
+        with patch("solokit.git.integration.GitWorkflow"):
+            result = complete_git_workflow("test_item", "Test commit", 1)
+
+        assert result["success"] is False
+        assert "Failed to load" in result["message"]
+
+    def test_complete_git_workflow_work_item_not_found(self, tmp_path, monkeypatch):
+        """Test complete_git_workflow handles work item not found (lines 473-474)."""
+        from unittest.mock import patch
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        work_items_file = session_dir / "work_items.json"
+        work_items_file.write_text(json.dumps({"work_items": {}}))
+
+        with patch("solokit.git.integration.GitWorkflow"):
+            result = complete_git_workflow("nonexistent_item", "Test commit", 1)
+
+        assert result["success"] is False
+        assert "not found" in result["message"]
+
+    def test_record_session_commits_work_item_not_found(self, tmp_path, monkeypatch, caplog):
+        """Test record_session_commits handles missing work item (lines 507-508)."""
+        import logging
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        work_items_file = session_dir / "work_items.json"
+        work_items_file.write_text(json.dumps({"work_items": {}}))
+
+        with caplog.at_level(logging.WARNING):
+            record_session_commits("nonexistent_item")
+
+        # Should log warning about missing work item
+        assert "not found" in caplog.text.lower()
+
+    def test_record_session_commits_git_log_failure(self, tmp_path, monkeypatch, caplog):
+        """Test record_session_commits handles git log failure (lines 530-531)."""
+        import logging
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        work_items_data = {
+            "work_items": {
+                "test_item": {
+                    "id": "test_item",
+                    "status": "in_progress",
+                    "git": {"branch": "feature/test", "parent_branch": "main"},
+                }
+            }
+        }
+        work_items_file = session_dir / "work_items.json"
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        with patch("solokit.session.complete.CommandRunner") as mock_runner_class:
+            mock_runner = MagicMock()
+            mock_runner.run.return_value = MagicMock(
+                success=False, returncode=128, stderr="fatal: not a git repository"
+            )
+            mock_runner_class.return_value = mock_runner
+
+            with caplog.at_level(logging.DEBUG):
+                record_session_commits("test_item")
+
+        # Should handle silently
+        # No assertion needed, just verify no exception raised
+
+    def test_record_session_commits_exception_handling(self, tmp_path, monkeypatch, caplog):
+        """Test record_session_commits handles exceptions (lines 548-550)."""
+        import logging
+
+        monkeypatch.chdir(tmp_path)
+
+        # Don't create the work_items.json file to trigger FileNotFoundError
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        with caplog.at_level(logging.DEBUG):
+            # This should not raise, just log
+            record_session_commits("test_item")
+
+        # Should silently handle exception
+
+    def test_auto_extract_learnings_no_new_learnings(self, tmp_path, monkeypatch, capsys):
+        """Test auto_extract_learnings when no new learnings found (lines 367-368)."""
+        from unittest.mock import MagicMock, patch
+
+        monkeypatch.chdir(tmp_path)
+        session_dir = tmp_path / ".session" / "tracking"
+        session_dir.mkdir(parents=True)
+
+        mock_curator = MagicMock()
+        mock_curator.add_learning_if_new.return_value = False
+
+        mock_extractor = MagicMock()
+        mock_extractor.extract_from_git_diff.return_value = []
+        mock_extractor.extract_from_spec_file.return_value = []
+
+        with patch("solokit.learning.curator.LearningsCurator", return_value=mock_curator):
+            with patch("solokit.learning.extractor.LearningExtractor", return_value=mock_extractor):
+                # auto_extract_learnings takes only session_num parameter
+                result = auto_extract_learnings(1)
+
+        assert result == 0
+        captured = capsys.readouterr()
+        assert "No new learnings" in captured.out

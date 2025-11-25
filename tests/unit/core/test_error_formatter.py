@@ -202,6 +202,47 @@ class TestFormatHelpers:
         assert formatted == "ℹ️ Loading configuration"
 
 
+class TestErrorFormatterEdgeCases:
+    """Edge case tests for error formatting"""
+
+    def test_format_error_with_large_dict_context(self):
+        """Test formatting error with dict context > 10 items shows truncation message"""
+        # Create a dict with more than 10 items
+        large_dict = {f"key{i}": f"value{i}" for i in range(15)}
+        error = ValidationError(message="Test error", context={"large_data": large_dict})
+        formatted = ErrorFormatter.format_error(error, verbose=True)
+
+        # Should show truncation message for large dicts
+        assert "... and 5 more items" in formatted
+
+    def test_print_error_with_closed_file(self):
+        """Test printing error when file is closed falls back to stdout"""
+        from io import StringIO
+
+        error = WorkItemNotFoundError("my_feature")
+        closed_file = StringIO()
+        closed_file.close()
+
+        # Should not raise - should handle gracefully
+        # The function will try stdout as fallback
+        ErrorFormatter.print_error(error, verbose=False, file=closed_file)
+
+    def test_print_error_both_streams_closed(self, caplog):
+        """Test printing error when both stderr and stdout fail logs the error"""
+        import logging
+        from unittest.mock import patch
+
+        error = WorkItemNotFoundError("my_feature")
+
+        # Mock print to always raise ValueError
+        with patch("builtins.print", side_effect=ValueError("stream closed")):
+            with caplog.at_level(logging.ERROR):
+                ErrorFormatter.print_error(error, verbose=False)
+
+        # Should have logged the error
+        assert "Could not write error" in caplog.text or len(caplog.records) > 0
+
+
 class TestErrorFormatterIntegration:
     """Integration tests for error formatting"""
 

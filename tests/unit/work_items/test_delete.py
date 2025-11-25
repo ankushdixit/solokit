@@ -541,3 +541,107 @@ class TestMainFunction:
         assert result != 0
         captured = capsys.readouterr()
         assert "and" in captured.out and "more" in captured.out  # Shows "... and X more"
+
+
+class TestDeleteWorkItemEdgeCases:
+    """Test edge cases for work item deletion."""
+
+    def test_delete_work_item_load_json_error(self, tmp_path, monkeypatch):
+        """Test deleting when work_items.json is corrupted."""
+        from solokit.core.exceptions import FileOperationError
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+        tracking_dir = session_dir / "tracking"
+        tracking_dir.mkdir()
+
+        # Create invalid JSON file
+        work_items_file = tracking_dir / "work_items.json"
+        work_items_file.write_text("{invalid json")
+
+        with pytest.raises(FileOperationError) as exc_info:
+            delete_work_item("any_item", delete_spec=False, project_root=project_root)
+
+        # Invalid JSON raises a parse operation error
+        assert exc_info.value.context["operation"] == "parse"
+
+    def test_delete_work_item_save_json_error(self, project_with_work_items, monkeypatch):
+        """Test deleting when saving work_items.json fails."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import FileOperationError
+
+        # Mock save_json to raise an error
+        with patch("solokit.work_items.delete.save_json", side_effect=OSError("Write failed")):
+            with pytest.raises(FileOperationError) as exc_info:
+                delete_work_item(
+                    "feature_isolated", delete_spec=False, project_root=project_with_work_items
+                )
+
+        assert exc_info.value.context["operation"] == "write"
+
+    def test_delete_work_item_spec_delete_permission_error(
+        self, project_with_work_items, capsys, monkeypatch
+    ):
+        """Test deleting when spec file deletion fails due to permission error."""
+        from unittest.mock import patch
+
+        spec_file = project_with_work_items / ".session" / "specs" / "feature_isolated.md"
+        assert spec_file.exists()
+
+        # Mock unlink to raise PermissionError
+        def mock_unlink(*args, **kwargs):
+            raise PermissionError("Permission denied")
+
+        with patch.object(type(spec_file), "unlink", mock_unlink):
+            result = delete_work_item(
+                "feature_isolated", delete_spec=True, project_root=project_with_work_items
+            )
+
+        # Should still succeed but show warning
+        assert result is True
+        captured = capsys.readouterr()
+        assert "Could not delete spec file" in captured.out
+
+    def test_delete_work_item_without_metadata(self, tmp_path):
+        """Test deleting work item when metadata section doesn't exist."""
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        session_dir = project_root / ".session"
+        session_dir.mkdir()
+        tracking_dir = session_dir / "tracking"
+        tracking_dir.mkdir()
+        specs_dir = session_dir / "specs"
+        specs_dir.mkdir()
+
+        # Create work_items.json without metadata
+        work_items_data = {
+            "work_items": {
+                "test_item": {
+                    "id": "test_item",
+                    "title": "Test Item",
+                    "type": "feature",
+                    "status": "not_started",
+                    "priority": "low",
+                    "dependencies": [],
+                    "spec_file": ".session/specs/test_item.md",
+                }
+            }
+            # No metadata key
+        }
+        work_items_file = tracking_dir / "work_items.json"
+        work_items_file.write_text(json.dumps(work_items_data))
+
+        # Create spec file
+        spec_file = specs_dir / "test_item.md"
+        spec_file.write_text("# Test spec")
+
+        # Delete should succeed and create metadata
+        result = delete_work_item("test_item", delete_spec=False, project_root=project_root)
+
+        assert result is True
+        updated_data = json.loads(work_items_file.read_text())
+        assert "metadata" in updated_data
+        assert updated_data["metadata"]["total_items"] == 0

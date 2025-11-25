@@ -78,7 +78,7 @@ solokit/
 │   ├── reference/          # Reference documentation
 │   ├── project/            # Project planning
 │   └── development/        # Development notes
-├── tests/                  # Test suites (96% code coverage)
+├── tests/                  # Test suites (97% code coverage)
 ├── Makefile                # Developer convenience targets
 └── pyproject.toml          # Package configuration (PEP 517/518)
 ```

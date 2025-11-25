@@ -624,3 +624,104 @@ class TestJSONFileOperations:
             # Assert
             assert result == {}
             assert isinstance(result, dict)
+
+
+class TestErrorHandlingPaths:
+    """Tests for error handling code paths."""
+
+    def test_load_json_oserror_handling(self, tmp_path):
+        """Test load_json handles OSError during file read."""
+        # Arrange
+        from unittest.mock import patch
+
+        test_file = tmp_path / "test.json"
+        test_file.write_text('{"key": "value"}')
+
+        # Act & Assert
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                JSONFileOperations.load_json(test_file)
+
+            assert exc_info.value.context["operation"] == "read"
+
+    def test_load_json_unexpected_exception(self, tmp_path):
+        """Test load_json handles unexpected exceptions."""
+        from unittest.mock import patch
+
+        from solokit.core.exceptions import SystemError
+
+        test_file = tmp_path / "test.json"
+        test_file.write_text('{"key": "value"}')
+
+        # Act & Assert
+        with patch("builtins.open", side_effect=RuntimeError("Unexpected error")):
+            with pytest.raises(SystemError) as exc_info:
+                JSONFileOperations.load_json(test_file)
+
+            assert "Unexpected error reading" in str(exc_info.value)
+
+    def test_save_json_oserror_handling(self, tmp_path):
+        """Test save_json handles OSError during write."""
+        from unittest.mock import patch
+
+        test_file = tmp_path / "test.json"
+
+        # Act & Assert
+        with patch("builtins.open", side_effect=OSError("Disk full")):
+            with pytest.raises(FileOperationError) as exc_info:
+                JSONFileOperations.save_json(test_file, {"key": "value"})
+
+            assert exc_info.value.context["operation"] == "write"
+
+    def test_backup_file_oserror(self, tmp_path):
+        """Test backup_file handles OSError."""
+        from unittest.mock import patch
+
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("content")
+
+        # Act & Assert
+        with patch("shutil.copy2", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                backup_file(test_file)
+
+            assert exc_info.value.context["operation"] == "backup"
+
+    def test_read_file_not_found(self, tmp_path):
+        """Test read_file raises error for non-existent file."""
+        from solokit.core.exceptions import FileNotFoundError
+
+        non_existent = tmp_path / "missing.txt"
+
+        # Act & Assert
+        with pytest.raises(FileNotFoundError) as exc_info:
+            read_file(non_existent)
+
+        assert exc_info.value.context["file_type"] == "text file"
+
+    def test_read_file_oserror(self, tmp_path):
+        """Test read_file handles OSError."""
+        from unittest.mock import patch
+
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("content")
+
+        # Act & Assert
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with pytest.raises(FileOperationError) as exc_info:
+                read_file(test_file)
+
+            assert exc_info.value.context["operation"] == "read"
+
+    def test_write_file_oserror(self, tmp_path):
+        """Test write_file handles OSError."""
+        from unittest.mock import patch
+
+        test_file = tmp_path / "test.txt"
+
+        # Act & Assert
+        with patch("builtins.open", side_effect=OSError("Disk full")):
+            with pytest.raises(FileOperationError) as exc_info:
+                write_file(test_file, "content")
+
+            assert exc_info.value.context["operation"] == "write"

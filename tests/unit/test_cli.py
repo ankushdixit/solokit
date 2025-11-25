@@ -535,3 +535,162 @@ class TestMainFunction:
             # Should show work-delete specific help from help command
             assert "work-delete" in captured.out
             assert result == 0
+
+
+class TestWorkUpdateRouting:
+    """Test routing for work-update command with all flag combinations."""
+
+    def test_route_work_update_with_priority(self):
+        """Test routing work-update command with priority flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--priority", "high"])
+
+            assert result == 0
+            mock_instance.update_work_item.assert_called_once()
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("priority") == "high"
+
+    def test_route_work_update_with_milestone(self):
+        """Test routing work-update command with milestone flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--milestone", "v1.0"])
+
+            assert result == 0
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("milestone") == "v1.0"
+
+    def test_route_work_update_with_add_dependency(self):
+        """Test routing work-update command with add-dependency flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--add-dependency", "feat_002"])
+
+            assert result == 0
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("add_dependency") == "feat_002"
+
+    def test_route_work_update_with_remove_dependency(self):
+        """Test routing work-update command with remove-dependency flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--remove-dependency", "feat_000"])
+
+            assert result == 0
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("remove_dependency") == "feat_000"
+
+    def test_route_work_update_with_set_urgent(self):
+        """Test routing work-update command with set-urgent flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--set-urgent"])
+
+            assert result == 0
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("set_urgent") is True
+
+    def test_route_work_update_with_clear_urgent(self):
+        """Test routing work-update command with clear-urgent flag."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.update_work_item.return_value = 0
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-update", ["feat_001", "--clear-urgent"])
+
+            assert result == 0
+            call_kwargs = mock_instance.update_work_item.call_args[1]
+            assert call_kwargs.get("clear_urgent") is True
+
+    def test_route_command_returns_none_as_zero(self):
+        """Test that route_command converts None return to 0."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.list_work_items.return_value = None
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-list", [])
+
+            assert result == 0
+
+    def test_route_command_returns_bool_true_as_zero(self):
+        """Test that route_command converts True return to 0."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.list_work_items.return_value = True
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-list", [])
+
+            assert result == 0
+
+    def test_route_command_returns_bool_false_as_one(self):
+        """Test that route_command converts False return to 1."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.list_work_items.return_value = False
+            mock_manager.return_value = mock_instance
+
+            result = route_command("work-list", [])
+
+            assert result == 1
+
+
+class TestGlobalFlagEdgeCases:
+    """Test edge cases for global flag parsing."""
+
+    def test_parse_log_file_missing_value(self):
+        """Test --log-file flag without value stops parsing."""
+        args, remaining = parse_global_flags(["--log-file"])
+        # When --log-file is at the end without value, remaining should include it
+        assert remaining == ["--log-file"]
+        assert args.log_file is None
+
+
+class TestRouteCommandExceptions:
+    """Test exception handling in route_command."""
+
+    def test_route_command_wraps_unexpected_exception(self):
+        """Test that unexpected exceptions are wrapped in SystemError."""
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            mock_instance.list_work_items.side_effect = RuntimeError("Unexpected!")
+            mock_manager.return_value = mock_instance
+
+            with pytest.raises(SolokitSystemError) as exc_info:
+                route_command("work-list", [])
+
+            assert exc_info.value.code == ErrorCode.COMMAND_FAILED
+            assert "Unexpected error" in exc_info.value.message
+
+    def test_route_command_reraises_solokit_error(self):
+        """Test that SolokitError exceptions are re-raised unchanged."""
+        from solokit.core.exceptions import ValidationError
+
+        with patch("solokit.work_items.manager.WorkItemManager") as mock_manager:
+            mock_instance = MagicMock()
+            original_error = ValidationError(message="Validation failed")
+            mock_instance.list_work_items.side_effect = original_error
+            mock_manager.return_value = mock_instance
+
+            with pytest.raises(ValidationError) as exc_info:
+                route_command("work-list", [])
+
+            assert exc_info.value is original_error

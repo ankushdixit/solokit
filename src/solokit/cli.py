@@ -91,6 +91,7 @@ COMMANDS = {
     "learn-curate": ("solokit.learning.curator", None, "main", True),
     # Project Initialization
     "init": ("solokit.project.init", None, "main", True),
+    "adopt": ("solokit.project.adopt", None, "main", True),
     # Utility Commands
     "help": ("solokit.commands.help", None, "main", True),
     "version": ("solokit.commands.version", None, "main", False),
