@@ -2,7 +2,7 @@
 Item service - handles business logic for items
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -88,7 +88,7 @@ class ItemService:
             setattr(item, key, value)
 
         # Update timestamp
-        item.updated_at = datetime.now(timezone.utc)
+        item.updated_at = datetime.now(UTC)
 
         self.db.add(item)
         await self.db.commit()

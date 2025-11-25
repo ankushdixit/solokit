@@ -664,34 +664,32 @@ class TestAutoExtractLearnings:
         mock_curator.extract_from_git_commits.return_value = []
         mock_curator.extract_from_code_comments.return_value = []
 
-        with patch(
-            "builtins.__import__",
-            side_effect=lambda name, *args, **kwargs: MagicMock(
-                LearningsCurator=lambda: mock_curator
-            )
-            if name == "learning_curator"
-            else __import__(name, *args, **kwargs),
-        ):
+        # Use sys.modules patching instead of __import__ to avoid recursion issues
+        mock_module = MagicMock()
+        mock_module.LearningsCurator = lambda: mock_curator
+
+        with patch.dict("sys.modules", {"learning_curator": mock_module}):
             # Act
             result = auto_extract_learnings(5)
 
         # Assert
         assert result == 0
 
-    def test_auto_extract_failure(self):
+    def test_auto_extract_failure(self, tmp_path, monkeypatch):
         """Test auto-extraction handles import failure."""
-
         # Arrange
-        def import_side_effect(name, *args, **kwargs):
-            if name == "learning_curator":
-                raise ImportError("Module not found")
-            return __import__(name, *args, **kwargs)
+        monkeypatch.chdir(tmp_path)
 
-        with patch("builtins.__import__", side_effect=import_side_effect):
+        # Create a mock that raises ImportError when LearningsCurator is accessed
+        mock_module = MagicMock()
+        mock_module.LearningsCurator = MagicMock(side_effect=ImportError("Module not found"))
+
+        # Use sys.modules patching - when the module exists but class instantiation fails
+        with patch.dict("sys.modules", {"learning_curator": mock_module}):
             # Act
             result = auto_extract_learnings(5)
 
-        # Assert
+        # Assert - should return 0 on failure (graceful handling)
         assert result == 0
 
 
