@@ -6,7 +6,6 @@ Handles deletion of work items with dependency checking and interactive confirma
 """
 
 from pathlib import Path
-from typing import Optional
 
 from solokit.core.error_handlers import log_errors
 from solokit.core.exceptions import (
@@ -47,7 +46,7 @@ def find_dependents(work_items: dict, work_item_id: str) -> list[str]:
 
 @log_errors()
 def delete_work_item(
-    work_item_id: str, delete_spec: Optional[bool] = None, project_root: Optional[Path] = None
+    work_item_id: str, delete_spec: bool | None = None, project_root: Path | None = None
 ) -> bool:
     """
     Delete a work item from the system.

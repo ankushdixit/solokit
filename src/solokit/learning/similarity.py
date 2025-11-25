@@ -1,6 +1,6 @@
 """Learning similarity detection engine with pluggable algorithms"""
 
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 from solokit.core.logging_config import get_logger
 from solokit.core.performance import measure_time
@@ -60,7 +60,7 @@ class JaccardContainmentSimilarity:
 
     def __init__(
         self,
-        stopwords: Optional[set[str]] = None,
+        stopwords: set[str] | None = None,
         jaccard_threshold: float = 0.6,
         containment_threshold: float = 0.8,
     ) -> None:
@@ -151,7 +151,7 @@ class LearningSimilarityEngine:
     Supports multiple similarity algorithms and caches results for performance.
     """
 
-    def __init__(self, algorithm: Optional[SimilarityAlgorithm] = None) -> None:
+    def __init__(self, algorithm: SimilarityAlgorithm | None = None) -> None:
         """
         Initialize similarity engine
 
@@ -332,7 +332,7 @@ class LearningSimilarityEngine:
 
     def _find_learning_by_id(
         self, learnings: dict[str, Any], learning_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Find a learning by its ID"""
         categories = learnings.get("categories", {})
         for category_learnings in categories.values():

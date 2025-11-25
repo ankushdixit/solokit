@@ -10,7 +10,7 @@ Part of Phase 5.7.5: Spec File Validation System
 
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from solokit.core.error_handlers import log_errors
 from solokit.core.exceptions import (
@@ -195,7 +195,7 @@ def check_required_sections(spec_content: str, work_item_type: str) -> list[str]
     return errors
 
 
-def check_acceptance_criteria(spec_content: str, min_items: int = 3) -> Optional[str]:
+def check_acceptance_criteria(spec_content: str, min_items: int = 3) -> str | None:
     """
     Check if Acceptance Criteria section has enough items.
 
@@ -220,7 +220,7 @@ def check_acceptance_criteria(spec_content: str, min_items: int = 3) -> Optional
     return None
 
 
-def check_test_scenarios(spec_content: str, min_scenarios: int = 1) -> Optional[str]:
+def check_test_scenarios(spec_content: str, min_scenarios: int = 1) -> str | None:
     """
     Check if Test Scenarios section has enough scenarios.
 
@@ -246,7 +246,7 @@ def check_test_scenarios(spec_content: str, min_scenarios: int = 1) -> Optional[
     return None
 
 
-def check_smoke_tests(spec_content: str, min_tests: int = 1) -> Optional[str]:
+def check_smoke_tests(spec_content: str, min_tests: int = 1) -> str | None:
     """
     Check if Smoke Tests section has enough test cases.
 
@@ -430,7 +430,7 @@ def validate_spec_file(work_item_id: str, work_item_type: str) -> None:
 
 
 def format_validation_report(
-    work_item_id: str, work_item_type: str, validation_error: Optional[SpecValidationError] = None
+    work_item_id: str, work_item_type: str, validation_error: SpecValidationError | None = None
 ) -> str:
     """
     Format validation errors into a human-readable report.

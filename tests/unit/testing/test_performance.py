@@ -522,11 +522,16 @@ class TestExceptionHandling:
         work_item = {"id": "test_perf", "performance_benchmarks": {}}
         benchmark = PerformanceBenchmark(work_item)
 
-        # Mock time to immediately exit loop with no successful requests
-        mock_times = [0.0, 1.1, 1.1]  # start, loop check (exceeds duration), final duration
+        # Use a function to return time values that cause immediate loop exit
+        # First call (start_time) returns 0.0, all subsequent calls return 1.1
+        # This ensures the while loop condition fails immediately (1.1 - 0.0 >= 1)
+        call_count = [0]
 
-        with patch("time.time") as mock_time_func, patch("requests.get") as mock_get:
-            mock_time_func.side_effect = mock_times
+        def mock_time():
+            call_count[0] += 1
+            return 0.0 if call_count[0] == 1 else 1.1
+
+        with patch("time.time", side_effect=mock_time), patch("requests.get") as mock_get:
             mock_get.side_effect = Exception("Connection refused")
 
             with pytest.raises(LoadTestFailedError) as exc_info:

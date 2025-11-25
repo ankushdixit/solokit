@@ -6,8 +6,9 @@ Centralized file I/O operations with consistent error handling and atomicity gua
 import json
 import logging
 import shutil
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 from solokit.core.exceptions import (
     ErrorCode,
@@ -27,8 +28,8 @@ class JSONFileOperations:
     @staticmethod
     def load_json(
         file_path: Path,
-        default: Optional[dict[str, Any]] = None,
-        validator: Optional[Callable[[dict], bool]] = None,
+        default: dict[str, Any] | None = None,
+        validator: Callable[[dict], bool] | None = None,
     ) -> dict[str, Any]:
         """
         Load JSON file with optional default and validation

@@ -6,7 +6,6 @@ Part of the briefing module decomposition.
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 from solokit.core.command_runner import CommandRunner
 from solokit.core.constants import SESSION_STATUS_TIMEOUT
@@ -381,8 +380,8 @@ class BriefingFormatter:
         work_item_spec: str,
         env_checks: list[str],
         git_status: dict,
-        spec_validation_warning: Optional[str],
-        milestone_context: Optional[dict],
+        spec_validation_warning: str | None,
+        milestone_context: dict | None,
         relevant_learnings: list[dict],
     ) -> str:
         """Generate comprehensive markdown briefing with full project context.

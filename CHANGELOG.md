@@ -440,7 +440,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Global `--version` and `-V` flags supported
     - Created `src/solokit/commands/version.py`
   - Added `sk doctor` command for comprehensive system diagnostics
-    - Checks Python version (>= 3.9.0), git installation, project structure
+    - Checks Python version (>= 3.11.0), git installation, project structure
     - Validates config.json and work_items.json integrity
     - Verifies quality tools availability (pytest, ruff)
     - Provides actionable suggestions for failed checks

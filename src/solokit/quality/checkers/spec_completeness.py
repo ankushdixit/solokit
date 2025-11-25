@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from solokit.core.exceptions import (
     FileNotFoundError as SolokitFileNotFoundError,
@@ -94,7 +94,7 @@ class SpecCompletenessChecker(QualityChecker):
                 checker_name=self.name(),
                 passed=False,
                 status="failed",
-                errors=cast(list[Union[dict[str, Any], str]], errors),
+                errors=cast(list[dict[str, Any] | str], errors),
                 warnings=[],
                 info={
                     "message": f"Spec file for '{work_item_id}' is incomplete",

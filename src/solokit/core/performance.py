@@ -1,8 +1,9 @@
 """Performance monitoring and profiling"""
 
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from solokit.core.logging_config import get_logger
 
@@ -11,7 +12,7 @@ logger = get_logger(__name__)
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def measure_time(operation: Optional[str] = None) -> Callable[[F], F]:
+def measure_time(operation: str | None = None) -> Callable[[F], F]:
     """Decorator to measure function execution time"""
 
     def decorator(func: F) -> F:
@@ -41,8 +42,8 @@ class Timer:
     def __init__(self, name: str):
         """Initialize timer with name"""
         self.name = name
-        self.start: Optional[float] = None
-        self.duration: Optional[float] = None
+        self.start: float | None = None
+        self.duration: float | None = None
 
     def __enter__(self) -> "Timer":
         """Start timer"""

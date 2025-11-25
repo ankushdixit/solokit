@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from solokit.core.command_runner import CommandRunner
 from solokit.core.constants import QUALITY_CHECK_LONG_TIMEOUT, QUALITY_CHECK_STANDARD_TIMEOUT
@@ -116,8 +116,8 @@ class CustomValidationChecker(QualityChecker):
             checker_name=self.name(),
             passed=passed,
             status="passed" if passed else "failed",
-            errors=cast(list[Union[dict[str, Any], str]], errors),
-            warnings=cast(list[Union[dict[str, Any], str]], warnings),
+            errors=cast(list[dict[str, Any] | str], errors),
+            warnings=cast(list[dict[str, Any] | str], warnings),
             info={"validations": validations},
             execution_time=execution_time,
         )

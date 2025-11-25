@@ -1547,7 +1547,7 @@ Framework emphasizes comprehensive documentation:
 
 **Prerequisites:**
 - Git repository
-- Python 3.9+
+- Python 3.11+
 - Project documentation (vision.md, architecture.md recommended)
 
 **Installation:**

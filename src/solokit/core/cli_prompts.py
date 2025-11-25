@@ -8,7 +8,8 @@ All prompts gracefully fall back to non-interactive defaults when stdin is not a
 from __future__ import annotations
 
 import sys
-from typing import Callable, cast
+from collections.abc import Callable
+from typing import cast
 
 import questionary
 
