@@ -5,7 +5,7 @@ All notable changes to the Solokit (Session-Driven Development) project will be 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.5] - 2025-11-25
 
 ### Added
 - **Safe Config Implementation for `sk adopt`**
@@ -1394,8 +1394,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.1.4** = Current release ✅ **Current**
-- v0.1.3 = Previous release (Documentation model improvements)
+- **v0.1.5** = Current release ✅ **Current**
+- v0.1.4 = Previous release (Test coverage improvements)
+- v0.1.3 = Earlier release (Documentation model improvements)
 - v0.1.1 = Earlier release (UX improvements & bug fixes)
 - v0.2.0+ = Future enhancements (planned)
 - v1.0.0 = Stable API release (planned)
