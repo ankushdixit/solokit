@@ -20,10 +20,12 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 ### Critical Rules
 
 1. **Always activate virtual environment**
+
    ```bash
    source venv/bin/activate  # Unix/macOS
    venv\Scripts\activate     # Windows
    ```
+
    All Python commands must run in the venv.
 
 2. **Use SQLModel for database models**
@@ -47,18 +49,19 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 ### File Organization
 
-| New Code Type | Location |
-|--------------|----------|
-| API routes | `src/api/routes/` |
-| Database models & schemas | `src/models/` |
-| Business logic | `src/services/` |
-| Database migrations | `alembic/versions/` |
-| Utilities | `src/utils/` |
-| Tests | `tests/` |
+| New Code Type             | Location            |
+| ------------------------- | ------------------- |
+| API routes                | `src/api/routes/`   |
+| Database models & schemas | `src/models/`       |
+| Business logic            | `src/services/`     |
+| Database migrations       | `alembic/versions/` |
+| Utilities                 | `src/utils/`        |
+| Tests                     | `tests/`            |
 
 ### Code Patterns
 
 **Creating a SQLModel:**
+
 ```python
 # src/models/user.py
 from sqlmodel import SQLModel, Field
@@ -73,6 +76,7 @@ class User(SQLModel, table=True):
 ```
 
 **Creating an API Route:**
+
 ```python
 # src/api/routes/users.py
 from fastapi import APIRouter, Depends, HTTPException
@@ -192,10 +196,12 @@ sk work-delete <work_item_id>
 **CRITICAL: When creating work items, spec files are automatically created from templates.**
 
 #### Spec File Location
+
 - Spec files are stored in `.session/specs/`
 - Each work item gets a spec file: `.session/specs/{work_item_id}.md`
 
 #### When to Update Spec Files
+
 1. **After creating a work item** - Fill in the template placeholders
 2. **Before starting work** - Ensure spec is complete
 3. **During implementation** - Update with any changes or discoveries
@@ -226,23 +232,29 @@ sk work-delete <work_item_id>
 # Work Item: {title}
 
 ## Overview
+
 [Clear description of what this work item accomplishes]
 
 ## Acceptance Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
 
 ## Technical Approach
+
 [How will this be implemented?]
 
 ## Dependencies
+
 [List any work items this depends on]
 
 ## Testing Requirements
+
 [What tests need to be written?]
 
 ## Notes
+
 [Any additional context]
 ```
 
@@ -259,6 +271,7 @@ sk start
 ```
 
 The start command:
+
 - Updates work item status to `in_progress`
 - Generates a session briefing in `.session/briefings/`
 - Provides context about the work item and dependencies
@@ -270,6 +283,7 @@ sk status
 ```
 
 Shows:
+
 - Current work item
 - Session duration
 - Quality gate status
@@ -282,6 +296,7 @@ sk validate
 ```
 
 Runs quality gates without ending the session:
+
 - Test coverage check
 - Linting
 - Type checking
@@ -296,6 +311,7 @@ sk end
 ```
 
 The end command:
+
 - Runs all quality gate validations
 - Prompts for session summary
 - Updates work item status if complete
@@ -309,6 +325,7 @@ The end command:
 #### When to Capture Learnings
 
 Capture learnings when you:
+
 - Solve a tricky problem
 - Discover a better pattern
 - Find an important gotcha
@@ -320,11 +337,13 @@ Capture learnings when you:
 When running `sk end`, you'll be prompted to capture learnings. This is the preferred method as it links learnings to the session context.
 
 **Method 2: Explicit Command**
+
 ```bash
 sk learn
 ```
 
 This will prompt for:
+
 - Learning title
 - Description
 - Category
@@ -356,6 +375,7 @@ sk learn-show --tag authentication
 ```
 
 **IMPORTANT**:
+
 - Always capture learnings through Solokit commands, not by editing JSON directly
 - Don't put learnings in commit messages - use the learning system
 - Learnings should be reusable knowledge, not task-specific notes
@@ -468,6 +488,7 @@ sk work-graph --bottlenecks
 ### Stack-Specific Anti-Patterns
 
 #### ml_ai_fastapi
+
 - DON'T run Python commands outside the virtual environment
 - DON'T use raw SQL - use SQLModel
 - DON'T skip Alembic migrations for schema changes
@@ -484,6 +505,7 @@ sk work-graph --bottlenecks
 All code changes must pass these quality gates before completion:
 
 #### All Tiers
+
 - [ ] All tests pass
 - [ ] Code is formatted (run formatter before commit)
 - [ ] No linting errors
@@ -515,11 +537,13 @@ pyright                          # Run type checking
 This project has pre-commit hooks installed. They run automatically on `git commit`.
 
 If hooks fail:
+
 1. Fix the issues reported
 2. Stage the fixes: `git add .`
 3. Commit again
 
 To bypass hooks (NOT RECOMMENDED):
+
 ```bash
 git commit --no-verify
 ```
@@ -530,35 +554,35 @@ git commit --no-verify
 
 ### Solokit Commands
 
-| Command | Description |
-|---------|-------------|
-| `sk work-list` | List all work items |
-| `sk work-show <id>` | Show work item details |
-| `sk work-new --help` | Create new work item |
-| `sk work-update <id>` | Update work item |
-| `sk work-delete <id>` | Delete work item |
-| `sk work-graph` | Visualize dependencies |
-| `sk work-next` | Get next recommended work item |
-| `sk start [id]` | Start a session |
-| `sk status` | Check session status |
-| `sk validate` | Validate quality gates |
-| `sk end` | End session |
-| `sk learn` | Capture a learning |
-| `sk learn-show` | View learnings |
-| `sk learn-search <query>` | Search learnings |
+| Command                   | Description                    |
+| ------------------------- | ------------------------------ |
+| `sk work-list`            | List all work items            |
+| `sk work-show <id>`       | Show work item details         |
+| `sk work-new --help`      | Create new work item           |
+| `sk work-update <id>`     | Update work item               |
+| `sk work-delete <id>`     | Delete work item               |
+| `sk work-graph`           | Visualize dependencies         |
+| `sk work-next`            | Get next recommended work item |
+| `sk start [id]`           | Start a session                |
+| `sk status`               | Check session status           |
+| `sk validate`             | Validate quality gates         |
+| `sk end`                  | End session                    |
+| `sk learn`                | Capture a learning             |
+| `sk learn-show`           | View learnings                 |
+| `sk learn-search <query>` | Search learnings               |
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | AI guidance (this file) |
-| `ARCHITECTURE.md` | Stack architecture guide (detailed patterns) |
-| `README.md` | Project quick start |
-| `.session/tracking/work_items.json` | Work item data (use `sk` commands) |
-| `.session/tracking/learnings.json` | Captured learnings (use `sk` commands) |
-| `.session/specs/` | Work item specifications |
-| `.session/briefings/` | Session briefings |
-| `.session/history/` | Session summaries |
+| File                                | Purpose                                      |
+| ----------------------------------- | -------------------------------------------- |
+| `CLAUDE.md`                         | AI guidance (this file)                      |
+| `ARCHITECTURE.md`                   | Stack architecture guide (detailed patterns) |
+| `README.md`                         | Project quick start                          |
+| `.session/tracking/work_items.json` | Work item data (use `sk` commands)           |
+| `.session/tracking/learnings.json`  | Captured learnings (use `sk` commands)       |
+| `.session/specs/`                   | Work item specifications                     |
+| `.session/briefings/`               | Session briefings                            |
+| `.session/history/`                 | Session summaries                            |
 
 ### Development Commands
 

@@ -6,15 +6,15 @@ This document describes the architecture, patterns, and conventions used in this
 
 The T3 Stack is a full-stack TypeScript framework optimized for type safety and developer experience:
 
-| Component | Purpose |
-|-----------|---------|
-| **Next.js 16** | React framework with App Router |
-| **tRPC** | End-to-end typesafe APIs |
-| **Prisma** | Type-safe database ORM |
-| **PostgreSQL** | Production database |
-| **TanStack Query** | Data fetching and caching |
-| **Zod** | Runtime validation |
-| **Tailwind CSS** | Utility-first styling |
+| Component          | Purpose                         |
+| ------------------ | ------------------------------- |
+| **Next.js 16**     | React framework with App Router |
+| **tRPC**           | End-to-end typesafe APIs        |
+| **Prisma**         | Type-safe database ORM          |
+| **PostgreSQL**     | Production database             |
+| **TanStack Query** | Data fetching and caching       |
+| **Zod**            | Runtime validation              |
+| **Tailwind CSS**   | Utility-first styling           |
 
 ## Architecture Decisions
 
@@ -23,6 +23,7 @@ The T3 Stack is a full-stack TypeScript framework optimized for type safety and 
 **What**: All API communication uses tRPC instead of REST or GraphQL.
 
 **Why**:
+
 - Full stack type safety without code generation
 - Automatic TypeScript inference from server to client
 - Excellent DX with autocomplete everywhere
@@ -30,6 +31,7 @@ The T3 Stack is a full-stack TypeScript framework optimized for type safety and 
 - Automatic request batching
 
 **Trade-offs**:
+
 - TypeScript only (no other language clients)
 - Requires shared code (monorepo or fullstack repo)
 - Not suitable for public APIs
@@ -41,11 +43,13 @@ The T3 Stack is a full-stack TypeScript framework optimized for type safety and 
 **What**: The Prisma client is exported as `db` from `@/server/db`.
 
 **Why**:
+
 - T3 Stack community convention
 - Shorter, cleaner imports
 - Consistent with create-t3-app
 
 **Usage**:
+
 ```typescript
 import { db } from "@/server/db";
 const users = await db.user.findMany();
@@ -58,11 +62,13 @@ const users = await db.user.findMany();
 **What**: All server-side code lives in `server/` directory.
 
 **Why**:
+
 - Clear boundary between server and client code
 - Prevents accidental client-side imports of server code
 - Makes security audits easier
 
 **Implication**:
+
 - Never import from `server/` in client components
 - Database access only happens in `server/`
 
@@ -71,11 +77,13 @@ const users = await db.user.findMany();
 **What**: All environment variables are validated at startup using Zod in `lib/env.ts`.
 
 **Why**:
+
 - Fail fast on misconfiguration
 - Type-safe env vars throughout the app
 - Clear error messages for missing/invalid vars
 
 **Usage**:
+
 ```typescript
 import { env } from "@/lib/env";
 // NOT process.env.DATABASE_URL
@@ -89,6 +97,7 @@ const url = env.DATABASE_URL;
 **What**: tRPC uses SuperJSON for data serialization.
 
 **Why**:
+
 - Automatic handling of Date, Map, Set, BigInt
 - No manual serialization needed
 - Preserves JavaScript types across the wire
@@ -132,15 +141,15 @@ const url = env.DATABASE_URL;
 
 ## Key Files Reference
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `server/api/trpc.ts` | tRPC initialization, context, procedures | Adding auth, changing context |
-| `server/api/root.ts` | Root router combining all routers | Adding new routers |
-| `server/api/routers/*.ts` | Individual feature routers | Adding new API endpoints |
-| `server/db.ts` | Prisma client singleton | Rarely (singleton pattern) |
-| `lib/api.tsx` | tRPC React provider | Adding React Query options |
-| `lib/env.ts` | Environment validation | Adding new env vars |
-| `prisma/schema.prisma` | Database models | Adding/changing data models |
+| File                      | Purpose                                  | When to Modify                |
+| ------------------------- | ---------------------------------------- | ----------------------------- |
+| `server/api/trpc.ts`      | tRPC initialization, context, procedures | Adding auth, changing context |
+| `server/api/root.ts`      | Root router combining all routers        | Adding new routers            |
+| `server/api/routers/*.ts` | Individual feature routers               | Adding new API endpoints      |
+| `server/db.ts`            | Prisma client singleton                  | Rarely (singleton pattern)    |
+| `lib/api.tsx`             | tRPC React provider                      | Adding React Query options    |
+| `lib/env.ts`              | Environment validation                   | Adding new env vars           |
+| `prisma/schema.prisma`    | Database models                          | Adding/changing data models   |
 
 ## Code Patterns
 
@@ -160,20 +169,20 @@ export const postsRouter = createTRPCRouter({
   }),
 
   // Query with input
-  getById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ ctx, input }) => {
-      return await ctx.db.post.findUnique({
-        where: { id: input.id },
-      });
-    }),
+  getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
+    return await ctx.db.post.findUnique({
+      where: { id: input.id },
+    });
+  }),
 
   // Mutation - for creating/updating/deleting
   create: protectedProcedure
-    .input(z.object({
-      title: z.string().min(1),
-      content: z.string(),
-    }))
+    .input(
+      z.object({
+        title: z.string().min(1),
+        content: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.post.create({
         data: {
@@ -195,7 +204,7 @@ import { postsRouter } from "./routers/posts";
 
 export const appRouter = createTRPCRouter({
   example: exampleRouter,
-  posts: postsRouter,  // Add new routers here
+  posts: postsRouter, // Add new routers here
 });
 
 export type AppRouter = typeof appRouter;
@@ -338,6 +347,7 @@ model Post {
 **Symptom**: Types not updating after adding procedures
 
 **Solutions**:
+
 1. Ensure router is registered in `server/api/root.ts`
 2. Restart TypeScript server (VS Code: Cmd/Ctrl+Shift+P → "Restart TS Server")
 3. Check for circular imports
@@ -347,6 +357,7 @@ model Post {
 **Symptom**: Cannot connect to database
 
 **Solutions**:
+
 1. Verify PostgreSQL is running
 2. Check `DATABASE_URL` format in `.env`
 3. Ensure database exists
@@ -357,6 +368,7 @@ model Post {
 **Symptom**: Server/client content mismatch warnings
 
 **Solutions**:
+
 1. Ensure dates are serialized consistently
 2. Don't use `Math.random()` or `Date.now()` in render
 3. Use SuperJSON for complex types
@@ -366,6 +378,7 @@ model Post {
 **Symptom**: Cannot serialize certain values
 
 **Solutions**:
+
 1. SuperJSON handles Date, Map, Set, BigInt automatically
 2. For custom classes, transform to plain objects
 3. Check for undefined values in responses

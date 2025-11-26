@@ -130,6 +130,66 @@ def check_python_version(
     return False, None, None
 
 
+def check_git_installed() -> tuple[bool, str | None]:
+    """
+    Check if git is installed and return version.
+
+    Returns:
+        Tuple of (installed: bool, version: str | None)
+        - installed: True if git is available
+        - version: Version string or None if not installed
+    """
+    git_path = shutil.which("git")
+    if not git_path:
+        return False, None
+
+    runner = CommandRunner(default_timeout=15)
+    result = runner.run([git_path, "--version"], check=False)
+
+    if not result.success:
+        return False, None
+
+    # git --version outputs "git version 2.39.0" or similar
+    version_output = result.stdout.strip()
+    version_match = re.search(r"git version (\d+\.\d+(?:\.\d+)?)", version_output)
+    if version_match:
+        return True, version_match.group(1)
+
+    return True, version_output  # Return raw output if parsing fails
+
+
+def check_gh_installed() -> tuple[bool, str | None, bool]:
+    """
+    Check if GitHub CLI (gh) is installed and authenticated.
+
+    Returns:
+        Tuple of (installed: bool, version: str | None, authenticated: bool)
+        - installed: True if gh CLI is available
+        - version: Version string or None if not installed
+        - authenticated: True if user is logged in to GitHub
+    """
+    gh_path = shutil.which("gh")
+    if not gh_path:
+        return False, None, False
+
+    runner = CommandRunner(default_timeout=15)
+
+    # Get version
+    version_result = runner.run([gh_path, "--version"], check=False)
+    version = None
+    if version_result.success:
+        # gh version 2.40.0 (2023-12-13)
+        version_match = re.search(r"gh version (\d+\.\d+\.\d+)", version_result.stdout)
+        if version_match:
+            version = version_match.group(1)
+
+    # Check authentication status
+    auth_result = runner.run([gh_path, "auth", "status"], check=False)
+    authenticated = auth_result.returncode == 0
+
+    return True, version, authenticated
+
+
 def attempt_node_install_with_nvm() -> tuple[bool, str]:
     """
     Attempt to install Node.js >= 18.0.0 using nvm if available.
@@ -227,6 +287,8 @@ def validate_environment(
     Returns:
         Dictionary with validation results:
         {
+            "git_ok": bool,
+            "git_version": str | None,
             "node_ok": bool,
             "node_version": str | None,
             "python_ok": bool,
@@ -243,6 +305,8 @@ def validate_environment(
     warnings: list[str] = []
 
     result: dict[str, bool | str | None | list[str]] = {
+        "git_ok": True,
+        "git_version": None,
         "node_ok": True,
         "node_version": None,
         "python_ok": True,
@@ -251,6 +315,20 @@ def validate_environment(
         "errors": errors,
         "warnings": warnings,
     }
+
+    # Check git (required for all stacks)
+    git_ok, git_version = check_git_installed()
+    result["git_ok"] = git_ok
+    result["git_version"] = git_version
+
+    if not git_ok:
+        errors.append(
+            "git is required but not installed.\n"
+            "Please install git:\n"
+            "  macOS:   xcode-select --install   # or: brew install git\n"
+            "  Ubuntu:  sudo apt install git\n"
+            "  Windows: https://git-scm.com/download/win"
+        )
 
     # Check Node.js for Next.js-based stacks
     if stack_type in ["saas_t3", "dashboard_refine", "fullstack_nextjs"]:
@@ -330,10 +408,11 @@ def validate_environment(
             code=ErrorCode.INVALID_CONFIGURATION,
             context={
                 "stack_type": stack_type,
+                "git_ok": result["git_ok"],
                 "node_ok": result["node_ok"],
                 "python_ok": result["python_ok"],
             },
-            remediation="Install required runtime versions and try again",
+            remediation="Install required tools and try again",
         )
 
     return result

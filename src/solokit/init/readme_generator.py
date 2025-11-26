@@ -313,8 +313,7 @@ See `ARCHITECTURE.md` for detailed technical documentation including:
                 )
 
     # Add Session-Driven Development section
-    readme_content += """
-## Session-Driven Development
+    readme_content += """## Session-Driven Development
 
 This project uses Session-Driven Development (Solokit) for organized, AI-augmented development.
 
@@ -341,6 +340,10 @@ See `.session/` directory for:
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 """
+
+    # Ensure file ends with a single newline (prettier requirement)
+    if not readme_content.endswith("\n"):
+        readme_content += "\n"
 
     # Write README
     readme_path = project_root / "README.md"

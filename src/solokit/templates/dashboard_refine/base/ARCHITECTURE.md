@@ -6,14 +6,14 @@ This document describes the architecture, patterns, and conventions used in this
 
 This stack is optimized for building admin dashboards and data-intensive CRUD applications:
 
-| Component | Purpose |
-|-----------|---------|
-| **Refine.dev** | Headless CRUD framework |
-| **Next.js 16** | React framework with App Router |
-| **shadcn/ui** | High-quality UI components |
-| **Tailwind CSS** | Utility-first styling |
-| **React Hook Form** | Form state management |
-| **Zod** | Schema validation |
+| Component           | Purpose                         |
+| ------------------- | ------------------------------- |
+| **Refine.dev**      | Headless CRUD framework         |
+| **Next.js 16**      | React framework with App Router |
+| **shadcn/ui**       | High-quality UI components      |
+| **Tailwind CSS**    | Utility-first styling           |
+| **React Hook Form** | Form state management           |
+| **Zod**             | Schema validation               |
 
 ## Architecture Decisions
 
@@ -22,12 +22,14 @@ This stack is optimized for building admin dashboards and data-intensive CRUD ap
 **What**: All data operations (Create, Read, Update, Delete) go through Refine's data provider system.
 
 **Why**:
+
 - Standardized data layer abstraction
 - Built-in hooks for common patterns (useTable, useForm, useShow)
 - Easy backend switching (REST, GraphQL, Supabase, etc.)
 - Automatic caching and refetching
 
 **Trade-offs**:
+
 - Learning curve for Refine concepts
 - Some custom scenarios need workarounds
 
@@ -38,6 +40,7 @@ This stack is optimized for building admin dashboards and data-intensive CRUD ap
 **What**: The template includes a mock data provider that simulates a backend.
 
 **Why**:
+
 - Quick start without backend setup
 - Explore all features immediately
 - Test UI independently
@@ -46,6 +49,7 @@ This stack is optimized for building admin dashboards and data-intensive CRUD ap
 The mock data provider is for **DEVELOPMENT ONLY**. You MUST replace it with a real data provider before production.
 
 **Migration Path**:
+
 ```typescript
 // Current (development - uses mock/simple data)
 // See lib/refine.tsx for current data provider configuration
@@ -60,12 +64,14 @@ const API_URL = "https://api.example.com";
 **What**: Use shadcn/ui components with the built-in theming system.
 
 **Why**:
+
 - High-quality, accessible components
 - Full customization via CSS variables
 - Dark mode support built-in
 - Consistent design language
 
 **Theme Configuration**:
+
 - CSS variables defined in `app/globals.css`
 - 16 semantic color tokens (background, foreground, primary, etc.)
 - Automatic light/dark mode switching
@@ -77,11 +83,13 @@ const API_URL = "https://api.example.com";
 **What**: Dashboard pages live in the `(dashboard)` route group.
 
 **Why**:
+
 - Shared layout without URL prefix
 - Clear separation of dashboard vs public pages
 - Layout components applied automatically
 
 **Structure**:
+
 ```
 app/
 ├── (dashboard)/           # Dashboard route group
@@ -96,11 +104,13 @@ app/
 **What**: Each Refine resource maps to a folder in `(dashboard)/`.
 
 **Why**:
+
 - Predictable URL structure
 - Co-located resource pages
 - Refine's routing integration
 
 **Pattern**:
+
 ```
 resources: [
   {
@@ -159,20 +169,21 @@ resources: [
 ```
 
 **Note**: The template provides a basic users list page. To add full CRUD functionality, create additional pages following the patterns in Code Patterns section:
+
 - `users/create/page.tsx` for create
 - `users/edit/[id]/page.tsx` for edit
 - `users/show/[id]/page.tsx` for detail view
 
 ## Key Files Reference
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `lib/refine.tsx` | Refine resources and data provider | Adding resources, changing backend |
-| `lib/validations.ts` | Zod schemas for forms | Adding/changing form validation |
-| `providers/refine-provider.tsx` | Refine context provider | Changing provider config |
-| `app/(dashboard)/layout.tsx` | Dashboard layout | Changing sidebar/header |
-| `components/ui/*` | UI primitives | Rarely (customize via CSS) |
-| `app/globals.css` | Theme variables | Changing colors/theming |
+| File                            | Purpose                            | When to Modify                     |
+| ------------------------------- | ---------------------------------- | ---------------------------------- |
+| `lib/refine.tsx`                | Refine resources and data provider | Adding resources, changing backend |
+| `lib/validations.ts`            | Zod schemas for forms              | Adding/changing form validation    |
+| `providers/refine-provider.tsx` | Refine context provider            | Changing provider config           |
+| `app/(dashboard)/layout.tsx`    | Dashboard layout                   | Changing sidebar/header            |
+| `components/ui/*`               | UI primitives                      | Rarely (customize via CSS)         |
+| `app/globals.css`               | Theme variables                    | Changing colors/theming            |
 
 ## Code Patterns
 
@@ -503,6 +514,7 @@ import { supabaseClient } from "@/lib/supabase";
 **Symptom**: Empty tables, no data
 
 **Solutions**:
+
 1. Check browser console for errors
 2. Verify mock data provider is properly configured
 3. Ensure resource name matches in useTable/useForm
@@ -512,6 +524,7 @@ import { supabaseClient } from "@/lib/supabase";
 **Symptom**: Form submits without validation
 
 **Solutions**:
+
 1. Ensure `zodResolver` is passed to `useForm`
 2. Check that schema matches form fields
 3. Verify error messages are displayed
@@ -521,6 +534,7 @@ import { supabaseClient } from "@/lib/supabase";
 **Symptom**: Components unstyled or wrong colors
 
 **Solutions**:
+
 1. Verify `globals.css` is imported in root layout
 2. Check CSS variable definitions
 3. Ensure Tailwind is processing your files
@@ -530,6 +544,7 @@ import { supabaseClient } from "@/lib/supabase";
 **Symptom**: TypeScript errors with Refine hooks
 
 **Solutions**:
+
 1. Check resource type definitions
 2. Ensure proper typing for data responses
 3. Use generics with hooks: `useTable<User>()`

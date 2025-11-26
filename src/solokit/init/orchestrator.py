@@ -2,7 +2,7 @@
 Template-Based Init Orchestrator
 
 Main orchestration logic for template-based project initialization.
-Implements the complete 18-step initialization flow.
+Implements the complete 20-step initialization flow.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal, cast
 
 from solokit.core.output import get_output
+from solokit.github.setup import GitHubSetup
 from solokit.init.claude_commands_installer import install_claude_commands
 from solokit.init.claude_md_generator import generate_claude_md
 from solokit.init.dependency_installer import install_dependencies
@@ -39,7 +40,7 @@ def run_template_based_init(
     project_root: Path | None = None,
 ) -> int:
     """
-    Run complete template-based initialization with 18-step flow.
+    Run complete template-based initialization with 20-step flow.
 
     Args:
         template_id: Template identifier (e.g., "saas_t3")
@@ -263,6 +264,18 @@ def run_template_based_init(
         logger.warning("Initial commit failed (you can commit manually later)\n")
         output.warning("Initial commit failed (you can commit manually later)")
 
+    # Step 20: GitHub repository setup (optional)
+    output.info("")
+    logger.info("Step 20: GitHub repository setup...")
+    github_setup = GitHubSetup(project_root)
+    github_result = github_setup.run_interactive()
+    if github_result.success and not github_result.skipped:
+        logger.info(f"✓ GitHub repository configured: {github_result.repo_url}\n")
+    elif github_result.skipped:
+        logger.info("GitHub setup skipped\n")
+    else:
+        logger.warning(f"GitHub setup failed: {github_result.error_message}\n")
+
     # =========================================================================
     # SUCCESS SUMMARY
     # =========================================================================
@@ -282,6 +295,8 @@ def run_template_based_init(
     output.info("✓ Documentation structure created")
     output.info("✓ Session tracking initialized")
     output.info("✓ Git repository configured")
+    if github_result.success and not github_result.skipped and github_result.repo_url:
+        output.info(f"✓ GitHub repository: {github_result.repo_url}")
     output.info("")
     output.info("=" * 70)
     output.info("💡 Best used with Claude Code!")

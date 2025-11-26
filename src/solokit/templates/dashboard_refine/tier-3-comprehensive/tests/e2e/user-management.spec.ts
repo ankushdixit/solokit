@@ -48,7 +48,8 @@ test.describe("User Management", () => {
     await page.waitForSelector("table");
 
     // Run accessibility scan on table
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    // Cast page to any to avoid type conflict between @playwright/test and @axe-core/playwright
+    const accessibilityScanResults = await new AxeBuilder({ page } as any)
       .include("table")
       .withTags(["wcag2a", "wcag2aa"])
       .analyze();
@@ -83,7 +84,8 @@ test.describe("User Management", () => {
     await page.waitForLoadState("networkidle");
 
     // Run comprehensive accessibility scan
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    // Cast page to any to avoid type conflict between @playwright/test and @axe-core/playwright
+    const accessibilityScanResults = await new AxeBuilder({ page } as any)
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])
       .analyze();
 
