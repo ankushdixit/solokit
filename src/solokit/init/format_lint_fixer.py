@@ -78,7 +78,6 @@ def _run_nodejs_fixes(project_root: Path) -> dict[str, bool]:
     format_result = runner.run(
         ["npm", "run", "format"],
         check=False,
-        capture_output=True,
     )
 
     if format_result.success:
@@ -93,7 +92,6 @@ def _run_nodejs_fixes(project_root: Path) -> dict[str, bool]:
     lint_result = runner.run(
         ["npm", "run", "lint:fix"],
         check=False,
-        capture_output=True,
     )
 
     if lint_result.success:
@@ -143,7 +141,6 @@ def _run_python_fixes(project_root: Path) -> dict[str, bool]:
     format_result = runner.run(
         [ruff_cmd, "format", "."],
         check=False,
-        capture_output=True,
     )
 
     if format_result.success:
@@ -158,7 +155,6 @@ def _run_python_fixes(project_root: Path) -> dict[str, bool]:
     lint_result = runner.run(
         [ruff_cmd, "check", "--fix", "."],
         check=False,
-        capture_output=True,
     )
 
     if lint_result.success:
