@@ -5,6 +5,19 @@ All notable changes to the Solokit (Session-Driven Development) project will be 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Format/Lint Auto-Fix Before Initial Commit**
+  - New Step 19 in `sk init` workflow: runs format and lint auto-fix before initial commit
+  - Fixes user-provided files (PRD.md, ROADMAP.md, etc.) that may have formatting issues
+  - Node.js projects: runs `npm run format` (Prettier) and `npm run lint:fix` (ESLint)
+  - Python projects: runs `ruff format .` and `ruff check --fix .`
+  - Silent operation: only logs at debug level, non-blocking on failure
+  - Init flow updated from 20 to 21 steps (GitHub setup moved to Step 21)
+  - New module: `src/solokit/init/format_lint_fixer.py`
+  - Added 18 new tests for format_lint_fixer module (3,755 → 3,773 total tests)
+
 ## [0.1.5] - 2025-11-26
 
 ### Added

@@ -2,7 +2,7 @@
 Template-Based Init Orchestrator
 
 Main orchestration logic for template-based project initialization.
-Implements the complete 20-step initialization flow.
+Implements the complete 21-step initialization flow.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from solokit.init.dependency_installer import install_dependencies
 from solokit.init.docs_structure import create_docs_structure
 from solokit.init.env_generator import generate_env_files
 from solokit.init.environment_validator import validate_environment
+from solokit.init.format_lint_fixer import run_format_lint_fix
 from solokit.init.git_hooks_installer import install_git_hooks
 from solokit.init.git_setup import check_blank_project_or_exit, check_or_init_git
 from solokit.init.gitignore_updater import update_gitignore
@@ -246,9 +247,18 @@ def run_template_based_init(
     logger.info("✓ Updated .gitignore\n")
     output.info("✓ Updated .gitignore")
 
-    # Step 19: Create initial commit
+    # Step 19: Run format/lint auto-fix (silent)
+    # This fixes user-provided files (PRD.md, etc.) before commit
+    logger.info("Step 19: Running format/lint auto-fix...")
+    fix_result = run_format_lint_fix(template_id, project_root)
+    if fix_result["format_success"] and fix_result["lint_success"]:
+        logger.info("✓ Format/lint auto-fix completed\n")
+    else:
+        logger.info("Format/lint auto-fix completed with warnings\n")
+
+    # Step 20: Create initial commit
     output.progress("Creating initial commit...")
-    logger.info("Step 19: Creating initial commit...")
+    logger.info("Step 20: Creating initial commit...")
     commit_success = create_initial_commit(
         template_name=template_info["display_name"],
         tier=tier,
@@ -264,9 +274,9 @@ def run_template_based_init(
         logger.warning("Initial commit failed (you can commit manually later)\n")
         output.warning("Initial commit failed (you can commit manually later)")
 
-    # Step 20: GitHub repository setup (optional)
+    # Step 21: GitHub repository setup (optional)
     output.info("")
-    logger.info("Step 20: GitHub repository setup...")
+    logger.info("Step 21: GitHub repository setup...")
     github_setup = GitHubSetup(project_root)
     github_result = github_setup.run_interactive()
     if github_result.success and not github_result.skipped:
