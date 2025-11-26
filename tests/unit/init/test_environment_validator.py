@@ -20,6 +20,8 @@ from solokit.core.exceptions import ErrorCode, ValidationError
 from solokit.init.environment_validator import (
     attempt_node_install_with_nvm,
     attempt_python_install_with_pyenv,
+    check_gh_installed,
+    check_git_installed,
     check_node_version,
     check_python_version,
     parse_version,
@@ -256,6 +258,140 @@ class TestCheckPythonVersion:
                 assert binary is None
 
 
+class TestCheckGitInstalled:
+    """Tests for check_git_installed()."""
+
+    def test_git_not_installed(self):
+        """Test when git is not installed."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value=None):
+            installed, version = check_git_installed()
+
+            assert installed is False
+            assert version is None
+
+    def test_git_installed(self):
+        """Test when git is installed."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/git"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=True, stdout="git version 2.39.0")
+
+                installed, version = check_git_installed()
+
+                assert installed is True
+                assert version == "2.39.0"
+
+    def test_git_version_with_extra_info(self):
+        """Test parsing git version with extra info (e.g., Apple Git)."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/git"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(
+                    success=True, stdout="git version 2.39.3 (Apple Git-145)"
+                )
+
+                installed, version = check_git_installed()
+
+                assert installed is True
+                assert version == "2.39.3"
+
+    def test_git_command_fails(self):
+        """Test when git --version command fails."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/git"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=False, stdout="")
+
+                installed, version = check_git_installed()
+
+                assert installed is False
+                assert version is None
+
+    def test_git_version_unparseable(self):
+        """Test when git version output is unparseable but git works."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/git"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+                mock_runner.run.return_value = Mock(success=True, stdout="git custom build")
+
+                installed, version = check_git_installed()
+
+                assert installed is True
+                assert version == "git custom build"  # Returns raw output
+
+
+class TestCheckGhInstalled:
+    """Tests for check_gh_installed()."""
+
+    def test_gh_not_installed(self):
+        """Test when gh CLI is not installed."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value=None):
+            installed, version, authenticated = check_gh_installed()
+
+            assert installed is False
+            assert version is None
+            assert authenticated is False
+
+    def test_gh_installed_and_authenticated(self):
+        """Test when gh CLI is installed and authenticated."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/gh"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                # First call for version, second call for auth status
+                mock_runner.run.side_effect = [
+                    Mock(success=True, stdout="gh version 2.40.0 (2023-12-13)"),
+                    Mock(returncode=0, success=True),
+                ]
+
+                installed, version, authenticated = check_gh_installed()
+
+                assert installed is True
+                assert version == "2.40.0"
+                assert authenticated is True
+
+    def test_gh_installed_but_not_authenticated(self):
+        """Test when gh CLI is installed but not authenticated."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/gh"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                mock_runner.run.side_effect = [
+                    Mock(success=True, stdout="gh version 2.40.0 (2023-12-13)"),
+                    Mock(returncode=1, success=False),
+                ]
+
+                installed, version, authenticated = check_gh_installed()
+
+                assert installed is True
+                assert version == "2.40.0"
+                assert authenticated is False
+
+    def test_gh_version_parse_failure(self):
+        """Test when gh version output cannot be parsed."""
+        with patch("solokit.init.environment_validator.shutil.which", return_value="/usr/bin/gh"):
+            with patch("solokit.init.environment_validator.CommandRunner") as mock_runner_class:
+                mock_runner = Mock()
+                mock_runner_class.return_value = mock_runner
+
+                mock_runner.run.side_effect = [
+                    Mock(success=True, stdout="unknown version format"),
+                    Mock(returncode=0, success=True),
+                ]
+
+                installed, version, authenticated = check_gh_installed()
+
+                assert installed is True
+                assert version is None  # Could not parse
+                assert authenticated is True
+
+
 class TestAttemptNodeInstallWithNvm:
     """Tests for attempt_node_install_with_nvm()."""
 
@@ -364,13 +500,36 @@ class TestAttemptPythonInstallWithPyenv:
 class TestValidateEnvironment:
     """Tests for validate_environment()."""
 
+    @pytest.fixture(autouse=True)
+    def mock_git_installed(self):
+        """Automatically mock git as installed for all tests except git-specific ones."""
+        with patch(
+            "solokit.init.environment_validator.check_git_installed",
+            return_value=(True, "2.39.0"),
+        ):
+            yield
+
+    def test_git_missing_raises_error(self):
+        """Test validation fails when git is not installed."""
+        # Override the autouse fixture for this specific test
+        with patch(
+            "solokit.init.environment_validator.check_git_installed", return_value=(False, None)
+        ):
+            with pytest.raises(ValidationError) as exc:
+                validate_environment("saas_t3", auto_update=False)
+
+            assert "git is required" in str(exc.value)
+            assert exc.value.context["git_ok"] is False
+
     def test_saas_t3_node_ok(self):
         """Test validation for saas_t3 stack with valid Node.js."""
         with patch(
-            "solokit.init.environment_validator.check_node_version", return_value=(True, "v20.0.0")
+            "solokit.init.environment_validator.check_node_version",
+            return_value=(True, "v20.0.0"),
         ):
             result = validate_environment("saas_t3", auto_update=False)
 
+            assert result["git_ok"] is True
             assert result["node_ok"] is True
             assert result["node_version"] == "v20.0.0"
             assert len(result["errors"]) == 0

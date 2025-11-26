@@ -13,6 +13,7 @@ These tests run actual CLI commands and verify the complete system integration.
 
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -432,9 +433,9 @@ class TestStackAndTreeTracking:
         env = os.environ.copy()
         env["PYTHONPATH"] = str(src_dir)
 
-        # Act
+        # Act - use sys.executable to ensure we use the same Python as pytest
         result = subprocess.run(
-            ["python3", "-m", "solokit.project.tree", "--non-interactive"],
+            [sys.executable, "-m", "solokit.project.tree", "--non-interactive"],
             cwd=temp_solokit_project,
             capture_output=True,
             text=True,

@@ -5,9 +5,17 @@ All notable changes to the Solokit (Session-Driven Development) project will be 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] - 2025-11-25
+## [0.1.5] - 2025-11-26
 
 ### Added
+- **GitHub Repository Setup Integration**
+  - New `src/solokit/github/` module for post-init GitHub repository setup
+  - Interactive prompts to create new repo or connect to existing one
+  - Supports both `gh` CLI and manual remote configuration
+  - Added `check_git_installed()` and `check_gh_installed()` to environment validator
+  - Integrated as Step 20 in `sk init` workflow (after initial commit)
+  - Added 45 new tests for GitHub setup module (3,710 → 3,755 total tests)
+
 - **Safe Config Implementation for `sk adopt`**
   - Added intelligent file categorization: NEVER_OVERWRITE, MERGE_IF_EXISTS, INSTALL_IF_MISSING
   - New backup system: all modified files backed up to `.solokit-backup/<timestamp>/`
@@ -18,6 +26,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Test breakdown: 3,452 unit + 178 integration + 80 e2e tests
   - New files: `adopt/backup.py`, `adopt/merge_strategies.py`
   - All quality checks passing: ruff, mypy, formatting, 97% coverage
+
+### Security
+- **Fixed Sentry Security Vulnerability (GHSA-6465-jgvq-jhgp)**
+  - Upgraded `@sentry/nextjs` from 10.23.0 to 10.27.0 in all Next.js templates
+  - Vulnerability: Sensitive headers leaked when `sendDefaultPii` is set to `true`
+  - Affected versions: 10.11.0 - 10.26.0
+  - Updated: `stack-versions.yaml` and all tier-4 `package.json.tier4.template` files
+
+- **Fixed npm audit vulnerabilities**
+  - Added `tmp: 0.2.5` override to fix `@lhci/cli` vulnerability
+  - All Next.js templates now pass `npm audit` with 0 vulnerabilities
+
+### Fixed
+- **TypeScript Type Conflicts in E2E Tests**
+  - Fixed AxeBuilder type conflict between `@playwright/test` and `@axe-core/playwright`
+  - Applied `as any` cast workaround in all tier-3 e2e test files
+  - Affected: `saas_t3`, `dashboard_refine`, `fullstack_nextjs` templates
+
+- **Prettier Formatting Issues in Templates**
+  - Fixed ARCHITECTURE.md and CLAUDE.md.template formatting across all stacks
+  - Fixed blank line handling in `readme_generator.py` and `claude_md_generator.py`
+  - All templates now pass `prettier --check`
+
+- **E2E Test Python Executable**
+  - Fixed `test_core_session_workflow.py` to use `sys.executable` instead of hardcoded `python3`
 
 ## [0.1.4] - 2025-11-24
 

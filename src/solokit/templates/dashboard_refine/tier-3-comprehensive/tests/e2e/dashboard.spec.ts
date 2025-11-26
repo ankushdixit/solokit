@@ -62,7 +62,8 @@ test.describe("Dashboard Page", () => {
     await page.goto("/");
 
     // Run accessibility scan
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    // Cast page to any to avoid type conflict between @playwright/test and @axe-core/playwright
+    const accessibilityScanResults = await new AxeBuilder({ page } as any)
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
 

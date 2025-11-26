@@ -5,7 +5,7 @@
 # Source: Fresh build testing of all 4 stacks with Tier 1-4 tooling
 
 metadata:
-  validation_date: "2025-11-22"
+  validation_date: "2025-11-26"
   python_min_version: "3.11"
   node_min_version: "18.0.0"
   npm_min_version: "9.0.0"
@@ -81,7 +81,7 @@ stacks:
       "@next/bundle-analyzer": "16.0.1"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
-      "@sentry/nextjs": "10.23.0"
+      "@sentry/nextjs": "10.27.0"
       "@vercel/analytics": "1.5.0"
 
     installation:
@@ -100,7 +100,7 @@ stacks:
 
         # CRITICAL: patch-package MUST be installed before Sentry
         tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
-        tier4_prod: "npm install @sentry/nextjs@10.23.0 @vercel/analytics@1.5.0"
+        tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
       test_command: "npm run build"
       dev_command: "npm run dev"
@@ -327,7 +327,7 @@ stacks:
       "@next/bundle-analyzer": "16.0.1"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
-      "@sentry/nextjs": "10.23.0"
+      "@sentry/nextjs": "10.27.0"
       "@vercel/analytics": "1.5.0"
 
     installation:
@@ -347,7 +347,7 @@ stacks:
         # CRITICAL: patch-package MUST be installed before Sentry
         tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
 
-        tier4_prod: "npm install @sentry/nextjs@10.23.0 @vercel/analytics@1.5.0"
+        tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
       test_command: "npm run build"
       dev_command: "npm run dev"
@@ -430,7 +430,7 @@ stacks:
       "@next/bundle-analyzer": "16.0.1"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
-      "@sentry/nextjs": "10.23.0"
+      "@sentry/nextjs": "10.27.0"
       "@vercel/analytics": "1.5.0"
 
     installation:
@@ -450,7 +450,7 @@ stacks:
         # CRITICAL: patch-package MUST be installed before Sentry
         tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
 
-        tier4_prod: "npm install @sentry/nextjs@10.23.0 @vercel/analytics@1.5.0"
+        tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
       test_command: "npm run build"
       dev_command: "npm run dev"

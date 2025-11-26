@@ -77,14 +77,14 @@ def _get_tier_specific_requirements(tier: str, registry: dict) -> str:
 
     # Tier 2+: Pre-commit hooks
     if tier in tier_order[1:]:
-        requirements += "**Tier 2+ (Standard and above)**:\n"
+        requirements += "**Tier 2+ (Standard and above)**:\n\n"
         requirements += "- [ ] Pre-commit hooks pass\n"
         requirements += "- [ ] No secrets in code (git-secrets)\n"
         requirements += "- [ ] No dependency vulnerabilities\n\n"
 
     # Tier 3+: Advanced testing
     if tier in tier_order[2:]:
-        requirements += "**Tier 3+ (Comprehensive and above)**:\n"
+        requirements += "**Tier 3+ (Comprehensive and above)**:\n\n"
         requirements += "- [ ] E2E tests pass (for JS stacks)\n"
         requirements += "- [ ] Load tests pass (for Python stacks)\n"
         requirements += "- [ ] Code complexity within limits\n"
@@ -93,7 +93,7 @@ def _get_tier_specific_requirements(tier: str, registry: dict) -> str:
 
     # Tier 4: Production requirements
     if tier == "tier-4-production":
-        requirements += "**Tier 4 (Production-Ready)**:\n"
+        requirements += "**Tier 4 (Production-Ready)**:\n\n"
         requirements += (
             "- [ ] Lighthouse CI passes (JS stacks: performance >90, accessibility >90)\n"
         )
@@ -177,6 +177,10 @@ def generate_claude_md(
         "{tier_specific_requirements}",
         _get_tier_specific_requirements(tier, registry),
     )
+
+    # Ensure file ends with a single newline (prettier requirement)
+    if not claude_content.endswith("\n"):
+        claude_content += "\n"
 
     # Write CLAUDE.md
     claude_path = project_root / "CLAUDE.md"

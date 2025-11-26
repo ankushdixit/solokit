@@ -6,14 +6,14 @@ This document describes the architecture, patterns, and conventions used in this
 
 This stack is optimized for building ML/AI backends and data-intensive APIs:
 
-| Component | Purpose |
-|-----------|---------|
-| **FastAPI** | High-performance async web framework |
-| **SQLModel** | Type-safe ORM (SQLAlchemy + Pydantic) |
-| **PostgreSQL** | Production database |
-| **Alembic** | Database migrations |
-| **Pydantic** | Data validation and serialization |
-| **Uvicorn** | ASGI server |
+| Component      | Purpose                               |
+| -------------- | ------------------------------------- |
+| **FastAPI**    | High-performance async web framework  |
+| **SQLModel**   | Type-safe ORM (SQLAlchemy + Pydantic) |
+| **PostgreSQL** | Production database                   |
+| **Alembic**    | Database migrations                   |
+| **Pydantic**   | Data validation and serialization     |
+| **Uvicorn**    | ASGI server                           |
 
 ## Architecture Decisions
 
@@ -22,16 +22,19 @@ This stack is optimized for building ML/AI backends and data-intensive APIs:
 **What**: Use SQLModel instead of raw SQLAlchemy for all database models.
 
 **Why**:
+
 - Combines SQLAlchemy ORM with Pydantic validation
 - Single class for both database model and API schema
 - Type safety with full IDE support
 - Reduces boilerplate significantly
 
 **Trade-offs**:
+
 - Less mature than SQLAlchemy alone
 - Some advanced SQLAlchemy features require workarounds
 
 **Usage**:
+
 ```python
 from sqlmodel import SQLModel, Field
 
@@ -48,11 +51,13 @@ class User(SQLModel, table=True):
 **What**: Separate Pydantic models for API schemas, distinct from database models.
 
 **Why**:
+
 - Control over what fields are exposed in API
 - Different validation rules for create vs update
 - Clear separation of concerns
 
 **Pattern**:
+
 ```python
 # Database model
 class User(SQLModel, table=True):
@@ -78,12 +83,14 @@ class UserResponse(SQLModel):
 **What**: Use FastAPI's `Depends()` for database session management.
 
 **Why**:
+
 - Automatic session lifecycle management
 - Easy to mock for testing
 - Clean separation of concerns
 - Connection pooling handled automatically
 
 **Pattern**:
+
 ```python
 from fastapi import Depends
 from sqlmodel import Session
@@ -104,6 +111,7 @@ async def get_users(db: Session = Depends(get_db)):
 **What**: All database schema changes go through Alembic migrations.
 
 **Why**:
+
 - Version-controlled schema changes
 - Rollback capability
 - Team collaboration on schema
@@ -116,6 +124,7 @@ async def get_users(db: Session = Depends(get_db)):
 **What**: All Python code runs inside a virtual environment (`venv/`).
 
 **Why**:
+
 - Isolated dependencies per project
 - Reproducible environments
 - No conflicts with system Python
@@ -127,11 +136,13 @@ async def get_users(db: Session = Depends(get_db)):
 **What**: Use `async def` for all route handlers and I/O operations.
 
 **Why**:
+
 - Better performance under load
 - Non-blocking I/O
 - Native FastAPI pattern
 
 **Pattern**:
+
 ```python
 @router.get("/users/{user_id}")
 async def get_user(user_id: int, db: Session = Depends(get_db)):
@@ -181,16 +192,16 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 
 ## Key Files Reference
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `src/main.py` | FastAPI app initialization | Adding middleware, startup events |
-| `src/core/database.py` | Database engine and session | Rarely (connection settings) |
-| `src/core/config.py` | Settings management | Adding new config options |
-| `src/api/dependencies.py` | Dependency injection | Adding new dependencies |
-| `src/api/routes/*.py` | API endpoints | Adding new routes |
-| `src/models/*.py` | Database models | Adding/changing tables |
-| `src/services/*.py` | Business logic | Adding business rules |
-| `alembic/env.py` | Migration config | Rarely |
+| File                      | Purpose                     | When to Modify                    |
+| ------------------------- | --------------------------- | --------------------------------- |
+| `src/main.py`             | FastAPI app initialization  | Adding middleware, startup events |
+| `src/core/database.py`    | Database engine and session | Rarely (connection settings)      |
+| `src/core/config.py`      | Settings management         | Adding new config options         |
+| `src/api/dependencies.py` | Dependency injection        | Adding new dependencies           |
+| `src/api/routes/*.py`     | API endpoints               | Adding new routes                 |
+| `src/models/*.py`         | Database models             | Adding/changing tables            |
+| `src/services/*.py`       | Business logic              | Adding business rules             |
+| `alembic/env.py`          | Migration config            | Rarely                            |
 
 ## Code Patterns
 
@@ -504,6 +515,7 @@ def test_get_user_not_found(client: TestClient):
 **Symptom**: `ModuleNotFoundError` or wrong Python version
 
 **Solutions**:
+
 1. Ensure venv is activated: `source venv/bin/activate`
 2. Verify Python version: `python --version`
 3. Reinstall dependencies: `pip install -r requirements.txt`
@@ -513,6 +525,7 @@ def test_get_user_not_found(client: TestClient):
 **Symptom**: Cannot connect to PostgreSQL
 
 **Solutions**:
+
 1. Verify PostgreSQL is running
 2. Check `DATABASE_URL` format: `postgresql://user:pass@host:5432/dbname`
 3. Ensure database exists: `createdb mydb`
@@ -523,6 +536,7 @@ def test_get_user_not_found(client: TestClient):
 **Symptom**: Alembic heads out of sync
 
 **Solutions**:
+
 1. Check current state: `alembic current`
 2. Merge heads if needed: `alembic merge heads`
 3. Reset for development: `alembic downgrade base && alembic upgrade head`
@@ -532,6 +546,7 @@ def test_get_user_not_found(client: TestClient):
 **Symptom**: Pydantic/SQLModel validation errors
 
 **Solutions**:
+
 1. Use `Optional[int]` for nullable fields with default None
 2. Use `Field(default=None)` for primary keys
 3. Check `from_attributes = True` in response schemas

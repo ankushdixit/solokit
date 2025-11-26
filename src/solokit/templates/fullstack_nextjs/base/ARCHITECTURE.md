@@ -6,13 +6,13 @@ This document describes the architecture, patterns, and conventions used in this
 
 This stack provides a minimal but complete full-stack foundation:
 
-| Component | Purpose |
-|-----------|---------|
-| **Next.js 16** | React framework with App Router |
-| **Prisma** | Type-safe database ORM |
-| **PostgreSQL** | Production database |
-| **Zod** | Runtime validation |
-| **Tailwind CSS** | Utility-first styling |
+| Component        | Purpose                         |
+| ---------------- | ------------------------------- |
+| **Next.js 16**   | React framework with App Router |
+| **Prisma**       | Type-safe database ORM          |
+| **PostgreSQL**   | Production database             |
+| **Zod**          | Runtime validation              |
+| **Tailwind CSS** | Utility-first styling           |
 
 ## Architecture Decisions
 
@@ -21,18 +21,21 @@ This stack provides a minimal but complete full-stack foundation:
 **What**: Default to React Server Components. Only use Client Components when necessary.
 
 **Why**:
+
 - Better performance (less JavaScript shipped to client)
 - Direct database access in components
 - Improved SEO
 - Simpler data fetching
 
 **When to use `"use client"`**:
+
 - Event handlers (onClick, onChange, etc.)
 - Browser APIs (localStorage, window, etc.)
 - React hooks (useState, useEffect, etc.)
 - Third-party client libraries
 
 **Pattern**:
+
 ```typescript
 // Server Component (default) - NO "use client"
 export default async function Page() {
@@ -55,11 +58,13 @@ export function InteractiveButton() {
 **What**: The Prisma client is exported as `prisma` from `@/lib/prisma`.
 
 **Why**:
+
 - Explicit naming (you know it's Prisma)
 - Follows official Prisma documentation
 - Clear distinction from other database tools
 
 **Usage**:
+
 ```typescript
 import { prisma } from "@/lib/prisma";
 const users = await prisma.user.findMany();
@@ -72,23 +77,27 @@ const users = await prisma.user.findMany();
 **What**: Use Server Actions for mutations. Use API Routes only when necessary.
 
 **Why**:
+
 - Simpler mental model
 - No need to manage API endpoints
 - Automatic form handling
 - Progressive enhancement
 
 **When to use Server Actions**:
+
 - Form submissions
 - Data mutations (create, update, delete)
 - Any action triggered by user interaction
 
 **When to use API Routes**:
+
 - Webhooks from external services
 - Public API endpoints
 - Third-party integrations
 - Long-polling or streaming
 
 **Pattern**:
+
 ```typescript
 // Server Action (preferred)
 "use server";
@@ -110,12 +119,14 @@ export async function POST(request: Request) {
 **What**: All user input is validated with Zod schemas.
 
 **Why**:
+
 - Runtime type safety
 - Excellent TypeScript integration
 - Reusable validation logic
 - Clear error messages
 
 **Pattern**:
+
 ```typescript
 import { z } from "zod";
 
@@ -135,11 +146,13 @@ const data = userSchema.parse(Object.fromEntries(formData));
 **What**: Environment variables are validated at startup using Zod.
 
 **Why**:
+
 - Fail fast on misconfiguration
 - Type-safe env vars
 - Clear error messages
 
 **Usage**:
+
 ```typescript
 import { env } from "@/lib/env";
 // NOT process.env.DATABASE_URL
@@ -177,6 +190,7 @@ const url = env.DATABASE_URL;
 ```
 
 **Note**: The template provides a minimal starting point. As you build your application, you can add:
+
 - `app/actions/` for Server Actions
 - `app/[resource]/` directories for resource pages
 - `components/ui/` for shadcn/ui components
@@ -184,14 +198,14 @@ const url = env.DATABASE_URL;
 
 ## Key Files Reference
 
-| File | Purpose | When to Modify |
-|------|---------|----------------|
-| `lib/prisma.ts` | Prisma client singleton | Rarely |
-| `lib/env.ts` | Environment validation | Adding env vars |
-| `lib/validations.ts` | Zod schemas | Adding/changing validation |
-| `app/api/example/route.ts` | Example API route | Reference for new routes |
-| `app/api/health/route.ts` | Health check endpoint | Rarely |
-| `prisma/schema.prisma` | Database models | Schema changes |
+| File                       | Purpose                 | When to Modify             |
+| -------------------------- | ----------------------- | -------------------------- |
+| `lib/prisma.ts`            | Prisma client singleton | Rarely                     |
+| `lib/env.ts`               | Environment validation  | Adding env vars            |
+| `lib/validations.ts`       | Zod schemas             | Adding/changing validation |
+| `app/api/example/route.ts` | Example API route       | Reference for new routes   |
+| `app/api/health/route.ts`  | Health check endpoint   | Rarely                     |
+| `prisma/schema.prisma`     | Database models         | Schema changes             |
 
 ## Code Patterns
 
@@ -345,10 +359,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({ data });
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Invalid request" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
 ```
@@ -489,13 +500,13 @@ export default async function Page() {
 
 ```typescript
 // Time-based revalidation
-export const revalidate = 60;  // Revalidate every 60 seconds
+export const revalidate = 60; // Revalidate every 60 seconds
 
 // On-demand revalidation (in Server Actions)
 import { revalidatePath, revalidateTag } from "next/cache";
 
-revalidatePath("/users");        // Revalidate specific path
-revalidateTag("users");          // Revalidate by tag
+revalidatePath("/users"); // Revalidate specific path
+revalidateTag("users"); // Revalidate by tag
 ```
 
 ## Troubleshooting
@@ -505,6 +516,7 @@ revalidateTag("users");          // Revalidate by tag
 **Symptom**: Cannot connect to PostgreSQL
 
 **Solutions**:
+
 1. Verify PostgreSQL is running
 2. Check `DATABASE_URL` format
 3. Ensure database exists: `createdb mydb`
@@ -521,6 +533,7 @@ revalidateTag("users");          // Revalidate by tag
 **Symptom**: TypeScript errors with Prisma types
 
 **Solutions**:
+
 1. Run `npx prisma generate`
 2. Restart TypeScript server in editor
 
@@ -529,6 +542,7 @@ revalidateTag("users");          // Revalidate by tag
 **Symptom**: Server Action not working
 
 **Solutions**:
+
 1. Ensure `"use server"` directive is at top of file
 2. Check that action is async
 3. Verify form is using action attribute correctly
@@ -538,6 +552,7 @@ revalidateTag("users");          // Revalidate by tag
 **Symptom**: Server/client content mismatch
 
 **Solutions**:
+
 1. Don't use random values in Server Components
 2. Ensure dates are serialized consistently
 3. Check for browser-only APIs in Server Components
