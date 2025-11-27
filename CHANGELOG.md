@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Minimal Scaffolding Migration: saas_t3** (Phase 3.3)
+  - Removed example code (~400 lines) from saas_t3 template:
+    - Removed `server/api/routers/example.ts` (33 lines) - tRPC CRUD router
+    - Removed `server/api/routers/__tests__/example.test.ts` (220 lines) - Router tests
+    - Removed `components/example-component.tsx` (22 lines) - tRPC usage example
+    - Removed `components/__tests__/example-component.test.tsx` (117 lines) - Component tests
+    - Removed `tier-1-essential/tests/unit/example.test.tsx` (24 lines) - Example tests
+  - Updated `server/api/root.ts`: Removed example router, kept commented example
+  - Updated `app/page.tsx`: Minimal welcome page (no tRPC usage)
+  - Updated `app/__tests__/page.test.tsx`: Tests for minimal page
+  - Updated `server/api/__tests__/root.test.ts`: Removed example router references
+  - Updated `prisma/schema.prisma`: Removed User model, kept commented example
+  - Updated `tier-3-comprehensive/tests/e2e/home.spec.ts`: Tests for minimal page
+  - Updated `ARCHITECTURE.md`:
+    - Added "Building From Scratch" section with complete tRPC patterns
+    - Added "Type Safety Flow" diagram showing Prisma → tRPC → React chain
+    - Updated project structure to reflect minimal scaffolding
+  - Updated `CLAUDE.md.template`:
+    - Added "Building From Scratch" section
+    - Updated code patterns to use generic `posts` example instead of `example`
+  - Added `.gitkeep` to preserve empty `components/` and `routers/` directories
+
 - **Minimal Scaffolding Migration: ml_ai_fastapi** (Phase 3.2)
   - Removed example code (~430 lines) from ml_ai_fastapi template:
     - Removed `src/api/routes/example.py` (135 lines) - Full CRUD router

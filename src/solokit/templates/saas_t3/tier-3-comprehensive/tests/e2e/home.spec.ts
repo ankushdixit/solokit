@@ -6,14 +6,14 @@ test.describe("Home Page", () => {
     await page.goto("/");
 
     // Check for the main heading
-    await expect(page.getByRole("heading", { name: /create.*t3.*app/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /welcome to.*t3/i })).toBeVisible();
   });
 
-  test("should display tRPC query result", async ({ page }) => {
+  test("should display getting started message", async ({ page }) => {
     await page.goto("/");
 
-    // Wait for the tRPC query to load
-    await expect(page.getByText(/hello from trpc/i)).toBeVisible();
+    // Check for the getting started text
+    await expect(page.getByText(/your t3 stack application is ready/i)).toBeVisible();
   });
 
   test("should have no accessibility violations @a11y", async ({ page }) => {
@@ -29,11 +29,17 @@ test.describe("Home Page", () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test("should navigate between sections", async ({ page }) => {
+  test("should show guidance about architecture", async ({ page }) => {
     await page.goto("/");
 
-    // Check that both cards are visible using more reliable selectors
-    await expect(page.getByRole("heading", { name: /first steps/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /documentation/i })).toBeVisible();
+    // Check that guidance text is visible
+    await expect(page.getByText(/read architecture\.md/i)).toBeVisible();
+  });
+
+  test("should show guidance about PRD", async ({ page }) => {
+    await page.goto("/");
+
+    // Check that PRD guidance is visible
+    await expect(page.getByText(/create your prd/i)).toBeVisible();
   });
 });

@@ -110,6 +110,7 @@ const url = env.DATABASE_URL;
 .
 ├── app/                          # Next.js App Router
 │   ├── api/
+│   │   ├── health/              # Health check endpoint
 │   │   └── trpc/[trpc]/         # tRPC HTTP handler (DO NOT ADD REST ROUTES)
 │   ├── globals.css               # Global styles & Tailwind
 │   ├── layout.tsx                # Root layout with tRPC provider
@@ -117,8 +118,7 @@ const url = env.DATABASE_URL;
 │   ├── error.tsx                 # Error boundary
 │   └── loading.tsx               # Loading UI
 │
-├── components/                   # React components
-│   └── example-component.tsx     # Example tRPC usage
+├── components/                   # React components (add yours here)
 │
 ├── lib/                          # Client utilities
 │   ├── api.tsx                   # tRPC React provider and hooks
@@ -129,12 +129,11 @@ const url = env.DATABASE_URL;
 │   ├── api/
 │   │   ├── root.ts              # Root router (combines all routers)
 │   │   ├── trpc.ts              # tRPC initialization and context
-│   │   └── routers/
-│   │       └── example.ts       # Example router
+│   │   └── routers/             # Add your routers here
 │   └── db.ts                     # Prisma client singleton
 │
 ├── prisma/
-│   └── schema.prisma             # Database schema
+│   └── schema.prisma             # Database schema (add your models)
 │
 └── components.json               # shadcn/ui configuration
 ```
@@ -199,11 +198,9 @@ export const postsRouter = createTRPCRouter({
 ```typescript
 // server/api/root.ts
 import { createTRPCRouter } from "./trpc";
-import { exampleRouter } from "./routers/example";
 import { postsRouter } from "./routers/posts";
 
 export const appRouter = createTRPCRouter({
-  example: exampleRouter,
   posts: postsRouter, // Add new routers here
 });
 
@@ -382,6 +379,97 @@ model Post {
 1. SuperJSON handles Date, Map, Set, BigInt automatically
 2. For custom classes, transform to plain objects
 3. Check for undefined values in responses
+
+## Building From Scratch
+
+This is a minimal scaffolding project. You'll create files from scratch following the patterns documented above.
+
+### Adding a New Feature
+
+Follow these steps to add a complete feature:
+
+1. **Database Model**: Add model to `prisma/schema.prisma`
+
+   ```prisma
+   model Post {
+     id        Int      @id @default(autoincrement())
+     title     String
+     content   String?
+     published Boolean  @default(false)
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
+   }
+   ```
+
+2. **Generate Prisma Client**: Run `npx prisma generate`
+
+3. **Create Migration**: Run `npx prisma migrate dev --name add_posts`
+
+4. **tRPC Router**: Create `server/api/routers/posts.ts`
+
+   ```typescript
+   import { z } from "zod";
+   import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+
+   export const postsRouter = createTRPCRouter({
+     getAll: publicProcedure.query(async ({ ctx }) => {
+       return ctx.db.post.findMany({ orderBy: { createdAt: "desc" } });
+     }),
+
+     create: publicProcedure
+       .input(z.object({ title: z.string().min(1), content: z.string().optional() }))
+       .mutation(async ({ ctx, input }) => {
+         return ctx.db.post.create({ data: input });
+       }),
+   });
+   ```
+
+5. **Register Router**: Add to `server/api/root.ts`
+
+   ```typescript
+   import { postsRouter } from "./routers/posts";
+
+   export const appRouter = createTRPCRouter({
+     posts: postsRouter,
+   });
+   ```
+
+6. **Client Component**: Create `components/posts-list.tsx`
+
+   ```typescript
+   "use client";
+   import { api } from "@/lib/api";
+
+   export function PostsList() {
+     const { data, isLoading } = api.posts.getAll.useQuery();
+
+     if (isLoading) return <div>Loading...</div>;
+
+     return (
+       <ul>
+         {data?.map((post) => (
+           <li key={post.id}>{post.title}</li>
+         ))}
+       </ul>
+     );
+   }
+   ```
+
+7. **Page**: Create `app/posts/page.tsx`
+
+8. **Tests**: Create tests in `__tests__/` directories
+
+### Type Safety Flow
+
+The T3 Stack provides end-to-end type safety:
+
+```
+Prisma Schema → Prisma Client → tRPC Router → tRPC Client → React Component
+     ↓              ↓              ↓              ↓              ↓
+   model Post    db.post       postsRouter   api.posts     useQuery()
+```
+
+Changes to your Prisma schema automatically flow through to your React components with full TypeScript inference.
 
 ## Resources
 
