@@ -223,3 +223,23 @@ def tracking_template_files(tmp_path):
     (templates / "config.schema.json").write_text('{"type": "object"}')
 
     return templates
+
+
+@pytest.fixture
+def tracking_template_files_with_guides(tmp_path):
+    """Create mock tracking template files including guides."""
+    templates = tmp_path / "templates"
+    templates.mkdir()
+
+    (templates / "work_items.json").write_text('{"work_items": []}')
+    (templates / "learnings.json").write_text('{"learnings": []}')
+    (templates / "status_update.json").write_text('{"status": "idle"}')
+    (templates / "config.schema.json").write_text('{"type": "object"}')
+
+    # Create guides directory with guide files
+    guides = templates / "guides"
+    guides.mkdir()
+    (guides / "STACK_GUIDE.md").write_text("# Stack Guide\n\nTest content.")
+    (guides / "PRD_WRITING_GUIDE.md").write_text("# PRD Guide\n\nTest content.")
+
+    return templates

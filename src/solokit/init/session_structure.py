@@ -40,6 +40,7 @@ def create_session_directories(project_root: Path | None = None) -> list[Path]:
         session_dir / "briefings",
         session_dir / "history",
         session_dir / "specs",
+        session_dir / "guides",
     ]
 
     try:
@@ -250,6 +251,26 @@ def initialize_tracking_files(
                 operation="copy",
                 file_path=str(schema_dest),
                 details=f"Failed to copy config schema: {str(e)}",
+                cause=e,
+            )
+
+    # Copy guide templates to .session/guides/
+    guides_source = template_dir / "guides"
+    guides_dest = session_dir / "guides"
+
+    if guides_source.exists():
+        try:
+            for guide_file in guides_source.glob("*.md"):
+                dest_file = guides_dest / guide_file.name
+                shutil.copy(guide_file, dest_file)
+                created_files.append(dest_file)
+                logger.debug(f"Created guide: {guide_file.name}")
+            logger.info(f"Copied {len(list(guides_source.glob('*.md')))} guide files")
+        except Exception as e:
+            raise FileOperationError(
+                operation="copy",
+                file_path=str(guides_dest),
+                details=f"Failed to copy guide templates: {str(e)}",
                 cause=e,
             )
 

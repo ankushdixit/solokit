@@ -323,9 +323,11 @@ def run_template_based_init(
     output.info("=" * 70)
     output.info("")
     output.info("🚀 Next Steps:")
-    output.info("   1. Review README.md for getting started guide")
-    output.info("   2. Create your first work item: /work-new")
-    output.info("   3. Start working: /start")
+    output.info("   1. Read .session/guides/STACK_GUIDE.md to understand your stack")
+    output.info("   2. Read .session/guides/PRD_WRITING_GUIDE.md to write your PRD")
+    output.info("   3. Create your PRD at docs/PRD.md")
+    output.info("   4. Create work items from your PRD: /work-new")
+    output.info("   5. Start working: /start <work-item-id>")
     output.info("")
 
     return 0
