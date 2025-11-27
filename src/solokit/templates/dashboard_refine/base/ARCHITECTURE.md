@@ -32,16 +32,18 @@ This is a minimal scaffolding project. You'll create files from scratch followin
 
 ### Example: Adding a "Products" Resource
 
+These are files you will CREATE (not existing template files):
+
 ```
-lib/refine.tsx              # Add resource definition + data provider
-lib/validations.ts          # Create Zod schemas for Product
+lib/refine.tsx              # UPDATE: Add resource definition + data provider
+lib/validations.ts          # CREATE: Zod schemas for Product validation
 app/(dashboard)/products/
-├── page.tsx                # List products (useList/useTable)
-├── create/page.tsx         # Create form (useForm)
-├── edit/[id]/page.tsx      # Edit form (useForm)
-├── show/[id]/page.tsx      # Detail view (useShow)
-└── __tests__/              # Tests for each page
-components/layout/sidebar.tsx  # Add Products nav link
+├── page.tsx                # CREATE: List products (useList/useTable)
+├── create/page.tsx         # CREATE: Create form (useForm)
+├── edit/[id]/page.tsx      # CREATE: Edit form (useForm)
+├── show/[id]/page.tsx      # CREATE: Detail view (useShow)
+└── __tests__/              # CREATE: Tests for each page
+components/layout/sidebar.tsx  # UPDATE: Add Products nav link
 ```
 
 ## Architecture Decisions

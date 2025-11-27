@@ -21,23 +21,25 @@ This is a minimal scaffolding project. You'll create files from scratch followin
 ### Adding a New Feature
 
 1. **Database**: Add model to `prisma/schema.prisma`, run `npx prisma migrate dev`
-2. **Validation**: Add Zod schemas to `lib/validations.ts`
-3. **Server Action**: Create in `app/actions/[feature].ts` with `"use server"`
+2. **Validation**: Create `lib/validations.ts` with Zod schemas
+3. **Server Action**: Create `app/actions/[feature].ts` with `"use server"`
 4. **Page**: Create `app/[feature]/page.tsx` as Server Component
 5. **Components**: Create in `components/[feature]/` (use `"use client"` only when needed)
 6. **Tests**: Create alongside each file in `__tests__/` directories
 
 ### Example: Adding a "Products" Feature
 
+These are files you will CREATE (not existing template files):
+
 ```
-prisma/schema.prisma          # Add Product model
-lib/validations.ts            # Add productSchema to validations file
-app/actions/products.ts       # createProduct, updateProduct, deleteProduct
-app/products/page.tsx         # List products (Server Component)
-app/products/[id]/page.tsx    # Product detail (Server Component)
-app/products/new/page.tsx     # Create form
-components/products/          # Product-specific components
-app/products/__tests__/       # Tests for product pages
+prisma/schema.prisma          # ADD: Product model to existing file
+lib/validations.ts            # CREATE: Zod schemas for validation
+app/actions/products.ts       # CREATE: Server Actions (createProduct, etc.)
+app/products/page.tsx         # CREATE: List products (Server Component)
+app/products/[id]/page.tsx    # CREATE: Product detail page
+app/products/new/page.tsx     # CREATE: Create form page
+components/products/          # CREATE: Product-specific components
+app/products/__tests__/       # CREATE: Tests for product pages
 ```
 
 ## Architecture Decisions
