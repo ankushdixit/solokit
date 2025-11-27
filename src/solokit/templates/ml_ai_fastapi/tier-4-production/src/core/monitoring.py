@@ -43,18 +43,13 @@ database_connections = Gauge(
     registry=registry,
 )
 
-# Business metrics
-items_created_total = Counter(
-    "items_created_total",
-    "Total number of items created",
-    registry=registry,
-)
-
-items_deleted_total = Counter(
-    "items_deleted_total",
-    "Total number of items deleted",
-    registry=registry,
-)
+# Business metrics - add your own counters here
+# Example:
+# orders_created_total = Counter(
+#     "orders_created_total",
+#     "Total number of orders created",
+#     registry=registry,
+# )
 
 
 def get_metrics() -> Response:

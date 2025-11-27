@@ -15,6 +15,36 @@ This stack is optimized for building ML/AI backends and data-intensive APIs:
 | **Pydantic**   | Data validation and serialization     |
 | **Uvicorn**    | ASGI server                           |
 
+## Building From Scratch
+
+This is a minimal scaffolding project. You'll create files from scratch following the patterns below.
+
+### Adding a New Feature
+
+1. **Database Model**: Create in `src/models/[feature].py` using SQLModel
+2. **Migration**: Run `alembic revision --autogenerate -m "add [feature] table"` then `alembic upgrade head`
+3. **Service Layer**: Create in `src/services/[feature].py` for business logic
+4. **API Route**: Create in `src/api/routes/[feature].py` with FastAPI router
+5. **Register Router**: Add to `src/main.py`: `app.include_router(feature.router, prefix="/api/v1", tags=["feature"])`
+6. **Tests**: Create in `tests/unit/test_[feature].py`
+
+### Quick Start Example
+
+```bash
+# 1. Activate virtual environment
+source venv/bin/activate
+
+# 2. Create your first model (src/models/user.py)
+# 3. Generate migration
+alembic revision --autogenerate -m "add user table"
+
+# 4. Apply migration
+alembic upgrade head
+
+# 5. Create route and service, then run
+uvicorn src.main:app --reload
+```
+
 ## Architecture Decisions
 
 ### Decision 1: SQLModel for Database Layer
@@ -164,16 +194,13 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 │   │   ├── dependencies.py      # Dependency injection (get_db, etc.)
 │   │   └── routes/
 │   │       ├── __init__.py
-│   │       ├── example.py       # Example routes
 │   │       └── health.py        # Health check endpoint
 │   │
 │   ├── models/                   # SQLModel database models
-│   │   ├── __init__.py
-│   │   └── example.py           # Example model
+│   │   └── __init__.py
 │   │
 │   ├── services/                 # Business logic layer
-│   │   ├── __init__.py
-│   │   └── example.py           # Example service
+│   │   └── __init__.py
 │   │
 │   ├── core/                     # Core configuration
 │   │   ├── __init__.py
@@ -188,7 +215,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 └── .python-version               # Python version specification
 ```
 
-**Note**: The template provides example files. When building your application, you'll create additional models, routes, and services following the same patterns.
+This is minimal scaffolding - you'll create models, routes, and services following the patterns below.
 
 ## Key Files Reference
 

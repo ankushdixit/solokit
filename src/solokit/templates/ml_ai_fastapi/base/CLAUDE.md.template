@@ -106,6 +106,29 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 ---
 
+## Building From Scratch
+
+This project uses minimal scaffolding. You'll create files from scratch:
+
+1. **Read the PRD** at `docs/PRD.md`
+2. **Understand the story** requirements and acceptance criteria
+3. **Create necessary files** following ARCHITECTURE.md patterns
+4. **Write tests** alongside implementation
+5. **Run quality gates** before completing
+
+### Quick Pattern Reference
+
+#### Adding a New Feature
+
+1. **Database Model**: Create `src/models/[feature].py` with SQLModel class
+2. **Migration**: `alembic revision --autogenerate -m "description"` then `alembic upgrade head`
+3. **Service Layer**: Create `src/services/[feature].py` for business logic
+4. **API Route**: Create `src/api/routes/[feature].py` with FastAPI router
+5. **Register Router**: Add to `src/main.py`
+6. **Tests**: Create `tests/unit/test_[feature].py`
+
+---
+
 ## Solokit Usage Guide
 
 This project uses Solokit for Session-Driven Development. Follow these guidelines for consistent and effective usage.
