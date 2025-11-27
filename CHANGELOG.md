@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Minimal Scaffolding Migration: fullstack_nextjs** (Phase 3.1)
+  - Removed example code (~1,206 lines) from fullstack_nextjs template:
+    - Removed `app/api/example/` route and tests
+    - Removed `components/example-component.tsx` and tests
+    - Removed `lib/validations.ts` (example Zod schemas) and tests
+    - Removed `User` model from Prisma schema (kept commented example)
+  - Updated `page.tsx` to minimal welcome page (no example imports)
+  - Updated `ARCHITECTURE.md`:
+    - Added "Building From Scratch" section with step-by-step guide
+    - Removed references to example files in project structure
+  - Updated `CLAUDE.md.template`:
+    - Added "Building From Scratch" section
+    - Updated guidance to reference ARCHITECTURE.md instead of existing code
+  - Added health check test at `app/api/health/__tests__/route.test.ts`
+  - Updated E2E tests (`flow.spec.ts`) for minimal page
+  - Added `.gitkeep` to preserve empty `components/` directory
+
 ### Added
 - **Quality Gate Adjustments for Minimal Scaffolding** (Phase 2 of Minimal Scaffolding Migration)
   - New `scaffolding.py` module with minimal scaffolding detection functions:

@@ -9,12 +9,11 @@ test.describe("Home Page", () => {
     await expect(page.getByRole("heading", { name: /full-stack.*next\.js/i })).toBeVisible();
   });
 
-  test("should display example component", async ({ page }) => {
+  test("should display getting started message", async ({ page }) => {
     await page.goto("/");
 
-    // Wait for the example component to load
-    await expect(page.getByText(/client component example/i)).toBeVisible();
-    await expect(page.getByText(/count:/i)).toBeVisible();
+    // Check for the getting started message
+    await expect(page.getByText(/your project is ready/i)).toBeVisible();
   });
 
   test("should have no accessibility violations @a11y", async ({ page }) => {
@@ -33,25 +32,17 @@ test.describe("Home Page", () => {
   test("should navigate and display cards", async ({ page }) => {
     await page.goto("/");
 
-    // Check that both cards are visible using more reliable selectors
-    await expect(page.getByRole("heading", { name: /api routes/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /database/i })).toBeVisible();
+    // Check that both cards are visible
+    await expect(page.getByRole("heading", { name: /health check/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /get started/i })).toBeVisible();
   });
 
-  test("should have working increment button", async ({ page }) => {
+  test("should have link to health check", async ({ page }) => {
     await page.goto("/");
 
-    // Find and click the increment button
-    const button = page.getByRole("button", { name: /increment/i });
-    await expect(button).toBeVisible();
-
-    // Initial count should be 0
-    await expect(page.getByText(/count: 0/i)).toBeVisible();
-
-    // Click the button
-    await button.click();
-
-    // Count should now be 1
-    await expect(page.getByText(/count: 1/i)).toBeVisible();
+    // Find the health check link
+    const link = page.getByRole("link", { name: /health check/i });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", "/api/health");
   });
 });

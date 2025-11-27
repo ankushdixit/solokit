@@ -10,7 +10,7 @@
  *
  * Usage:
  * import { prisma } from "@/lib/prisma";
- * const users = await prisma.user.findMany();
+ * const items = await prisma.yourModel.findMany();
  */
 
 import { PrismaClient } from "@prisma/client";

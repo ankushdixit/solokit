@@ -15,6 +15,29 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 ---
 
+## Building From Scratch
+
+This project uses minimal scaffolding. You'll create files from scratch following the patterns in ARCHITECTURE.md:
+
+1. **Read the PRD** at `docs/PRD.md` (if it exists)
+2. **Understand the requirements** from the work item spec
+3. **Create necessary files** following ARCHITECTURE.md patterns
+4. **Write tests** alongside implementation
+5. **Run quality gates** before completing with `sk validate`
+
+### Quick Pattern Reference
+
+When adding a new feature:
+
+1. **Database**: Add model to `prisma/schema.prisma`, run `npx prisma migrate dev`
+2. **Server Action**: Create in `app/actions/[feature].ts` with `"use server"`
+3. **Page**: Create `app/[feature]/page.tsx` as Server Component
+4. **Components**: Create in `components/[feature]/` (use `"use client"` only when needed)
+5. **Validation**: Create Zod schemas in `lib/validations/[feature].ts`
+6. **Tests**: Create alongside each file in `__tests__/` directories
+
+---
+
 ## Stack Architecture Rules
 
 ### Critical Rules
@@ -415,10 +438,10 @@ sk work-graph --bottlenecks
    - Confirm understanding before making significant changes
    - When in doubt, ask rather than guess
 
-3. **Follow established patterns**
-   - Check existing code for patterns before writing new code
-   - Maintain consistency with the codebase style
-   - Reference ARCHITECTURE.md for stack-specific patterns
+3. **Follow documented patterns**
+   - Reference ARCHITECTURE.md for stack-specific patterns before writing new code
+   - Maintain consistency with the patterns documented there
+   - This is a minimal scaffolding project - you'll create files from scratch
 
 4. **Validate your work**
    - Run `sk validate` after making changes
@@ -431,7 +454,7 @@ sk work-graph --bottlenecks
 - You're unsure which of several approaches to take
 - The task might affect other parts of the codebase
 - You need to make architectural decisions
-- The user's request conflicts with existing patterns
+- The user's request conflicts with documented patterns in ARCHITECTURE.md
 
 ### Reference Documentation
 
