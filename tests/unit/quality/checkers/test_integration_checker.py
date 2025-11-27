@@ -142,6 +142,23 @@ class TestIntegrationCheckerRun:
         assert result.status == "skipped"
         assert result.info.get("reason") == "not integration test"
 
+    def test_run_returns_skipped_when_no_integration_test_files(
+        self, integration_config, integration_work_item
+    ):
+        """Test run() returns skipped when no integration test files exist."""
+        # Mock has_integration_test_files to return False
+        with patch(
+            "solokit.quality.checkers.integration.has_integration_test_files"
+        ) as mock_has_files:
+            mock_has_files.return_value = False
+
+            checker = IntegrationChecker(integration_work_item, integration_config)
+            result = checker.run()
+
+            assert result.passed is True
+            assert result.status == "skipped"
+            assert "no integration test files found" in result.info.get("reason", "")
+
     @patch("solokit.testing.integration_runner.IntegrationTestRunner")
     def test_run_passes_when_tests_pass(
         self, mock_runner_class, integration_config, integration_work_item

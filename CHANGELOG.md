@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Quality Gate Adjustments for Minimal Scaffolding** (Phase 2 of Minimal Scaffolding Migration)
+  - New `scaffolding.py` module with minimal scaffolding detection functions:
+    - `is_minimal_scaffolding()`: Detects if project has only health check code
+    - `has_integration_test_files()`: Checks for integration test files
+    - `has_e2e_test_files()`: Checks for E2E test files (Playwright/Cypress)
+  - Integration tests now skip gracefully when no integration test files exist
+  - Integration tests handle missing spec files by skipping instead of failing
+  - Added 23 new tests for scaffolding module
+  - Added test for new integration checker behavior
+  - CI/CD workflows already use `--if-present` for conditional E2E/integration tests
+  - Coverage threshold only enforced when coverage report exists
+  - Tier configs use glob patterns that gracefully handle empty directories
+
 - **PRD Writing Guide and Stack Selection Guide**
   - New `STACK_GUIDE.md`: Comprehensive guide for choosing between the 4 Solokit stacks
     - Quick decision tree for stack selection
