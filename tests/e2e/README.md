@@ -165,5 +165,5 @@ When adding new E2E tests:
 
 - [Test Infrastructure Progress](../../TEST_PROGRESS.md) - Complete test development journey
 - [GitHub Workflows](../../.github/workflows/tests.yml) - CI configuration
-- [Unit Tests](../unit/) - Fast, focused tests (3,452 tests)
+- [Unit Tests](../unit/) - Fast, focused tests (3,544 tests)
 - [Integration Tests](../integration/) - Workflow integration tests (178 tests)

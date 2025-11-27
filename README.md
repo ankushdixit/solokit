@@ -12,7 +12,7 @@
 
 ## What is Solokit?
 
-**Solokit is a complete development framework for solo developers building production software with AI assistants like Claude Code.** It combines production-ready project templates, automated quality gates, intelligent session management, and AI-powered knowledge capture into a cohesive workflow that enables you to build alone with the sophistication of a 10-person engineering team.
+**Solokit is a complete development framework for solo developers building production software with AI assistants like Claude Code.** It combines minimal scaffolding templates with comprehensive documentation, automated quality gates, intelligent session management, and AI-powered knowledge capture into a cohesive workflow that enables you to build alone with the sophistication of a 10-person engineering team.
 
 ### The Core Problem
 
@@ -25,8 +25,10 @@ Solo developers using AI assistants face critical challenges:
 
 ### The Solokit Solution
 
-**🚀 Production-Ready in <1 Minute**
-- 4 validated project templates (T3 Stack, FastAPI, Refine, Next.js)
+**🚀 Start Building in <1 Minute**
+- 4 minimal scaffolding templates (T3 Stack, FastAPI, Refine, Next.js)
+- Comprehensive ARCHITECTURE.md guides with patterns and examples
+- PRD-driven development workflow
 - 4 quality tiers (Essential → Production-Ready)
 - All dependencies version-pinned and compatibility-tested
 - CI/CD, Docker, environment templates included
@@ -75,11 +77,13 @@ sk init
 sk adopt
 ```
 
-Choose from **4 production-ready stacks** (with `sk init`):
+Choose from **4 minimal scaffolding stacks** (with `sk init`):
 - **SaaS T3 Stack** - Next.js + tRPC + Prisma (full-stack SaaS)
 - **ML/AI FastAPI** - FastAPI + Python ML libraries (model serving, data pipelines)
 - **Dashboard Refine** - Refine + shadcn/ui (admin panels, internal tools)
 - **Full-Stack Next.js** - Next.js + Prisma (general purpose web apps)
+
+Each stack includes comprehensive ARCHITECTURE.md documentation with patterns you'll implement from your PRD.
 
 Select your **quality tier**:
 - **Essential** (60-80% coverage) - Prototypes, MVPs
@@ -144,31 +148,33 @@ That's it! Claude Code handles the rest, providing context-aware assistance thro
 
 ## Key Features
 
-### 🎯 Production-Ready Templates
+### 🎯 Minimal Scaffolding Templates
 
-Initialize projects with battle-tested configurations:
+Initialize projects with battle-tested configurations and comprehensive documentation:
 
 **SaaS T3 Stack** (`saas_t3`)
 - Next.js 16.0.1, React 19.2.0, tRPC 11.7.1, Prisma 6.19.0
-- End-to-end type safety from database to UI
+- End-to-end type safety patterns documented in ARCHITECTURE.md
 - Perfect for: SaaS products, B2B apps, complex data models
 
 **ML/AI FastAPI** (`ml_ai_fastapi`)
-- FastAPI 0.115.6, Python 3.11+, SQLModel, Pydantic 2.12.4
-- Async request handling, automatic OpenAPI docs
+- FastAPI 0.121.3, Python 3.11+, SQLModel, Pydantic 2.12.4
+- Async patterns and service layer architecture documented
 - Perfect for: ML model serving, data pipelines, Python microservices
 
 **Dashboard Refine** (`dashboard_refine`)
 - Refine 5.0.5, Next.js 16.0.1, shadcn/ui
-- Out-of-the-box CRUD operations and admin UI
+- Data provider and Refine hook patterns documented
 - Perfect for: Admin panels, internal dashboards, data management
 
 **Full-Stack Next.js** (`fullstack_nextjs`)
 - Next.js 16.0.1, React 19.2.0, Prisma 6.19.0
-- General purpose with REST APIs
+- Server Components and Server Actions patterns documented
 - Perfect for: Marketing sites, content platforms, e-commerce
 
 **All templates include:**
+- Minimal scaffolding (health check endpoint + config only)
+- Comprehensive ARCHITECTURE.md with code patterns and examples
 - Exact version pinning (all tested for compatibility)
 - Framework-specific ESLint/Prettier configurations
 - Testing setup with framework utilities
@@ -179,15 +185,24 @@ Initialize projects with battle-tested configurations:
 - Environment variable templates
 - **Three-File Documentation Model** (see below)
 
-### 📚 Three-File Documentation Model
+### 📚 Documentation-First Development
 
-Every project initialized with `sk init` includes a comprehensive documentation structure designed for different audiences:
+Every project initialized with `sk init` includes comprehensive documentation for building from scratch:
+
+**Three-File Documentation Model:**
 
 | File | Purpose | Audience | Generated |
 |------|---------|----------|-----------|
 | **README.md** | Quick start guide | Human developers | Yes (project-specific) |
-| **ARCHITECTURE.md** | Technical documentation | Human developers | No (static template) |
-| **CLAUDE.md** | AI guidance | Claude Code | Yes (from template) |
+| **ARCHITECTURE.md** | Technical patterns & examples | Human developers + Claude | No (static template) |
+| **CLAUDE.md** | AI guidance & Solokit usage | Claude Code | Yes (from template) |
+
+**Development Guides** (in `.session/guides/`):
+
+| Guide | Purpose |
+|-------|---------|
+| **STACK_GUIDE.md** | Understand your chosen stack's architecture and patterns |
+| **PRD_WRITING_GUIDE.md** | Write effective PRDs for AI-driven development |
 
 **CLAUDE.md** is a key differentiator - it provides Claude Code with:
 - Stack-specific architecture rules and patterns
@@ -849,7 +864,7 @@ solokit/
 │   ├── project/              # Project initialization
 │   └── templates/            # Project templates & work item specs
 ├── docs/                     # Comprehensive documentation
-├── tests/                    # 3,710 tests (100% passing, 97% coverage)
+├── tests/                    # 3,802 tests (100% passing, 97% coverage)
 │   ├── unit/                 # Unit tests
 │   ├── integration/          # Integration tests
 │   └── e2e/                  # End-to-end tests
@@ -875,6 +890,8 @@ solokit/
 
 ### vs. Project Templates (Cookiecutter)
 - ✅ **Ongoing workflow** - Not just initial setup
+- ✅ **Minimal scaffolding** - Comprehensive docs, not example code
+- ✅ **PRD-driven** - Build from your requirements, not template assumptions
 - ✅ **Quality enforcement** - Automated validation throughout
 - ✅ **Session management** - Perfect context across all work
 - ✅ **4 quality tiers** - From MVP to enterprise
@@ -885,11 +902,12 @@ While Claude Code is excellent for code generation and exploration, Solokit adds
 - ✅ **Quality enforcement** - Automated gates ensure testing, linting, and security standards
 - ✅ **Learning capture** - Systematic knowledge accumulation across sessions
 - ✅ **Work item management** - Organize and track progress on multiple features/bugs
-- ✅ **Production templates** - Battle-tested project setups with validated dependencies
+- ✅ **Minimal scaffolding** - Battle-tested configurations with comprehensive docs
 - ✅ **Spec-first architecture** - Clear requirements before implementation
 
 **Solokit is the only tool that combines:**
-- Production-ready templates with validated dependencies
+- Minimal scaffolding templates with comprehensive documentation
+- PRD-driven development workflow
 - AI-native session management with perfect context
 - Automated quality enforcement throughout development
 - AI-powered knowledge capture and curation
@@ -899,7 +917,7 @@ While Claude Code is excellent for code generation and exploration, Solokit adds
 
 **Current Version:** v0.1.5 (Production-Ready)
 
-**Test Coverage:** 3,710 tests passing (100%), 97% code coverage
+**Test Coverage:** 3,802 tests passing (100%), 97% code coverage
 
 ### Completed Features
 
@@ -911,7 +929,7 @@ While Claude Code is excellent for code generation and exploration, Solokit adds
 | Learning Management | ✅ Complete |
 | Quality Gates | ✅ Complete |
 | Spec-First Architecture | ✅ Complete |
-| Production Templates (4 stacks) | ✅ Complete |
+| Minimal Scaffolding Templates (4 stacks) | ✅ Complete |
 | Quality Tiers (4 levels) | ✅ Complete |
 | Claude Code Integration | ✅ Complete |
 

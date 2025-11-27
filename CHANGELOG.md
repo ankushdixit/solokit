@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Minimal Scaffolding Migration: Phase 4 Documentation & Cleanup**
+  - Updated main README.md:
+    - Changed "production-ready templates" messaging to "minimal scaffolding templates"
+    - Added PRD-driven development workflow
+    - Updated template descriptions to emphasize documentation over example code
+    - Updated test counts to 3,802 tests
+    - Added Development Guides section for `.session/guides/`
+  - Updated template-registry.json:
+    - All template descriptions now say "Minimal scaffolding for..."
+    - Category descriptions updated to reflect minimal scaffolding approach
+  - Documentation consistency fixes across all 4 stacks:
+    - Added "These are files you will CREATE" clarifications to ARCHITECTURE.md examples
+    - Added "target structure you will build" notes to STACK_GUIDE.md file organization sections
+    - Fixed path inconsistencies in CLAUDE.md.template files
+    - Updated test counts in docs/project/ROADMAP.md and tests/e2e/README.md
+  - All 3,802 tests pass
+
 - **Minimal Scaffolding Migration: dashboard_refine** (Phase 3.4)
   - Removed example code (~977 lines) from dashboard_refine template:
     - Removed `app/(dashboard)/users/` directory (95 + 122 lines) - Example users list page and tests

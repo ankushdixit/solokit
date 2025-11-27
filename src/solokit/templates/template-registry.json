@@ -10,7 +10,7 @@
       "id": "saas_t3",
       "display_name": "SaaS Application (T3 Stack)",
       "category": "saas",
-      "description": "Full-featured SaaS with Next.js 16, React 19, tRPC, Prisma, and Tailwind",
+      "description": "Minimal scaffolding for SaaS apps with Next.js 16, React 19, tRPC, Prisma, and Tailwind. Build from your PRD using documented patterns.",
       "stack": {
         "frontend": "Next.js 16.0.1 + React 19.2.0",
         "language": "TypeScript 5.9.3",
@@ -52,7 +52,7 @@
       "id": "ml_ai_fastapi",
       "display_name": "ML/AI Tooling (FastAPI)",
       "category": "ml_ai",
-      "description": "Python ML/AI backend with FastAPI, SQLModel, and comprehensive testing",
+      "description": "Minimal scaffolding for Python ML/AI backends with FastAPI and SQLModel. Build from your PRD using documented patterns.",
       "stack": {
         "framework": "FastAPI 0.121.3",
         "language": "Python 3.11+",
@@ -93,7 +93,7 @@
       "id": "dashboard_refine",
       "display_name": "Internal Dashboard (Refine)",
       "category": "dashboard",
-      "description": "React admin dashboard with Refine framework and Next.js",
+      "description": "Minimal scaffolding for admin dashboards with Refine framework and Next.js. Build from your PRD using documented patterns.",
       "stack": {
         "framework": "Refine (latest) + Next.js 16.0.1",
         "language": "TypeScript 5.9.3",
@@ -135,7 +135,7 @@
       "id": "fullstack_nextjs",
       "display_name": "Full-Stack Product (Next.js)",
       "category": "fullstack",
-      "description": "General purpose full-stack with Next.js, Prisma, and Zod",
+      "description": "Minimal scaffolding for full-stack web apps with Next.js, Prisma, and Zod. Build from your PRD using documented patterns.",
       "stack": {
         "framework": "Next.js 16.0.1",
         "language": "TypeScript 5.9.3",
@@ -178,19 +178,19 @@
   "categories": {
     "saas": {
       "name": "SaaS Applications",
-      "description": "Full-featured web apps with auth, payments, multi-tenancy"
+      "description": "Minimal scaffolding for web apps with auth, payments, multi-tenancy patterns"
     },
     "ml_ai": {
       "name": "ML/AI Tooling",
-      "description": "Machine learning APIs, data pipelines, model serving"
+      "description": "Minimal scaffolding for ML APIs, data pipelines, model serving"
     },
     "dashboard": {
       "name": "Internal Dashboards",
-      "description": "Admin panels, analytics dashboards, internal tools"
+      "description": "Minimal scaffolding for admin panels, analytics dashboards, internal tools"
     },
     "fullstack": {
       "name": "Full-Stack Products",
-      "description": "General purpose web applications"
+      "description": "Minimal scaffolding for general purpose web applications"
     }
   },
   "quality_tiers": {

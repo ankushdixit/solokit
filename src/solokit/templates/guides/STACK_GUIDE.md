@@ -78,23 +78,26 @@ What are you building?
    - All environment variables validated with Zod at startup
    - Fail fast if configuration is missing
 
-**File Organization:**
+**File Organization (target structure you will build):**
+
+Note: The template provides minimal scaffolding. The structure below shows what your project will look like as you build features.
+
 ```
 server/
 ├── api/
-│   ├── trpc.ts       # tRPC initialization
-│   ├── root.ts       # Router composition
-│   └── routers/      # Feature routers
-└── db.ts             # Prisma client
+│   ├── trpc.ts       # tRPC initialization (provided)
+│   ├── root.ts       # Router composition (provided, add routers)
+│   └── routers/      # CREATE: Feature routers
+└── db.ts             # Prisma client (provided)
 
 lib/
-├── api.tsx           # tRPC React provider
-└── env.ts            # Environment validation
+├── api.tsx           # tRPC React provider (provided)
+└── env.ts            # Environment validation (provided)
 
-app/                  # Next.js pages
-components/           # React components
+app/                  # CREATE: Next.js pages
+components/           # CREATE: React components
 prisma/
-└── schema.prisma     # Database schema
+└── schema.prisma     # Database schema (provided, add models)
 ```
 
 **What This Stack Enforces:**
@@ -148,21 +151,24 @@ prisma/
    - Database models (SQLModel) separate from API schemas (Pydantic)
    - Clear input/output contracts
 
-**File Organization:**
+**File Organization (target structure you will build):**
+
+Note: The template provides minimal scaffolding. The structure below shows what your project will look like as you build features.
+
 ```
 src/
 ├── api/
-│   ├── dependencies.py   # get_db and other deps
-│   └── routes/           # API endpoints
-├── models/               # SQLModel database models
-├── services/             # Business logic
+│   ├── dependencies.py   # Database dependencies (provided)
+│   └── routes/           # CREATE: API endpoints
+├── models/               # CREATE: SQLModel database models
+├── services/             # CREATE: Business logic
 └── core/
-    ├── config.py         # Pydantic Settings
-    └── database.py       # Engine and session
+    ├── config.py         # Pydantic Settings (provided)
+    └── database.py       # Engine and session (provided)
 
 alembic/
-├── env.py
-└── versions/             # Migration files
+├── env.py                # Alembic config (provided)
+└── versions/             # CREATE: Migration files
 ```
 
 **What This Stack Enforces:**
@@ -212,25 +218,28 @@ alembic/
    - Shared layouts without URL prefix
    - Clear separation from public pages
 
-**File Organization:**
+**File Organization (target structure you will build):**
+
+Note: The template provides minimal scaffolding. The structure below shows what your project will look like as you build features.
+
 ```
 app/
-├── (dashboard)/          # Route group
-│   ├── layout.tsx        # Dashboard layout
-│   └── [resource]/       # Resource pages
-│       ├── page.tsx      # List view
-│       ├── create/       # Create view
-│       ├── edit/         # Edit view
-│       └── show/         # Detail view
+├── (dashboard)/          # Route group (provided)
+│   ├── layout.tsx        # Dashboard layout (provided)
+│   └── [resource]/       # CREATE: Resource pages
+│       ├── page.tsx      # CREATE: List view
+│       ├── create/       # CREATE: Create view
+│       ├── edit/         # CREATE: Edit view
+│       └── show/         # CREATE: Detail view
 
 components/
-├── layout/               # Header, sidebar
-├── forms/                # Form components
-└── ui/                   # shadcn/ui primitives
+├── layout/               # Header, sidebar (provided)
+├── forms/                # CREATE: Form components
+└── ui/                   # shadcn/ui primitives (provided)
 
 lib/
-├── refine.tsx            # Resources and data provider
-└── validations.ts        # Zod schemas
+├── refine.tsx            # Data provider (provided, configure it)
+└── validations.ts        # CREATE: Zod schemas
 ```
 
 **What This Stack Enforces:**
@@ -287,21 +296,24 @@ You must implement a data provider to connect to your backend. Refine supports:
    - Direct Prisma queries in server code
    - API routes only for webhooks and external APIs
 
-**File Organization:**
+**File Organization (target structure you will build):**
+
+Note: The template provides minimal scaffolding. The structure below shows what your project will look like as you build features.
+
 ```
 app/
-├── api/              # API routes (webhooks, external)
-├── actions/          # Server Actions
-└── [resource]/       # Resource pages
+├── api/              # API routes (health check provided)
+├── actions/          # CREATE: Server Actions
+└── [resource]/       # CREATE: Resource pages
 
 lib/
-├── prisma.ts         # Prisma singleton
-├── env.ts            # Environment validation
-└── validations.ts    # Zod schemas
+├── prisma.ts         # Prisma singleton (provided)
+├── env.ts            # Environment validation (provided)
+└── validations.ts    # CREATE: Zod schemas
 
-components/           # React components
+components/           # CREATE: React components
 prisma/
-└── schema.prisma     # Database schema
+└── schema.prisma     # Database schema (provided, add models)
 ```
 
 **What This Stack Enforces:**

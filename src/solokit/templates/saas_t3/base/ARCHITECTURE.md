@@ -33,13 +33,15 @@ This is a minimal scaffolding project. You'll create files from scratch followin
 
 ### Example: Adding a "Posts" Feature
 
+These are files you will CREATE (not existing template files):
+
 ```
-prisma/schema.prisma            # Add Post model
-server/api/routers/posts.ts     # tRPC router with getAll, create, etc.
-server/api/root.ts              # Register postsRouter
-components/posts/               # Post-specific components
-app/posts/page.tsx              # Posts list page
-app/posts/__tests__/            # Tests for posts pages
+prisma/schema.prisma            # ADD: Post model to existing file
+server/api/routers/posts.ts     # CREATE: tRPC router with getAll, create, etc.
+server/api/root.ts              # UPDATE: Register postsRouter
+components/posts/               # CREATE: Post-specific components
+app/posts/page.tsx              # CREATE: Posts list page
+app/posts/__tests__/            # CREATE: Tests for posts pages
 ```
 
 ### Type Safety Flow
