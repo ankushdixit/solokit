@@ -15,6 +15,35 @@ This stack is optimized for building admin dashboards and data-intensive CRUD ap
 | **React Hook Form** | Form state management           |
 | **Zod**             | Schema validation               |
 
+## Building From Scratch
+
+This is a minimal scaffolding project. You'll create files from scratch following the patterns below.
+
+### Adding a New Resource
+
+1. **Data Provider**: Configure your backend connection in `lib/refine.tsx`
+2. **Resource Config**: Add resource definition to `lib/refine.tsx`
+3. **List Page**: Create `app/(dashboard)/[resource]/page.tsx`
+4. **Create Page**: Create `app/(dashboard)/[resource]/create/page.tsx`
+5. **Edit Page**: Create `app/(dashboard)/[resource]/edit/[id]/page.tsx`
+6. **Show Page**: Create `app/(dashboard)/[resource]/show/[id]/page.tsx`
+7. **Navigation**: Add route to `components/layout/sidebar.tsx`
+8. **Tests**: Create `__tests__/` alongside each page
+
+### Example: Adding a "Products" Resource
+
+```
+lib/refine.tsx              # Add resource definition + data provider
+lib/validations.ts          # Create Zod schemas for Product
+app/(dashboard)/products/
+├── page.tsx                # List products (useList/useTable)
+├── create/page.tsx         # Create form (useForm)
+├── edit/[id]/page.tsx      # Edit form (useForm)
+├── show/[id]/page.tsx      # Detail view (useShow)
+└── __tests__/              # Tests for each page
+components/layout/sidebar.tsx  # Add Products nav link
+```
+
 ## Architecture Decisions
 
 ### Decision 1: Refine.dev for CRUD Operations
@@ -35,29 +64,34 @@ This stack is optimized for building admin dashboards and data-intensive CRUD ap
 
 **Implication**: Never write custom fetch/axios calls for CRUD operations. Always use Refine hooks.
 
-### Decision 2: Mock Data Provider for Development
+### Decision 2: Data Provider Required
 
-**What**: The template includes a mock data provider that simulates a backend.
+**What**: You must configure a data provider to connect to your backend.
 
 **Why**:
 
-- Quick start without backend setup
-- Explore all features immediately
-- Test UI independently
+- Refine needs a data provider to function
+- The placeholder provider throws helpful errors guiding you to configure it
 
-**CRITICAL WARNING**:
-The mock data provider is for **DEVELOPMENT ONLY**. You MUST replace it with a real data provider before production.
-
-**Migration Path**:
+**Configuration** (in `lib/refine.tsx`):
 
 ```typescript
-// Current (development - uses mock/simple data)
-// See lib/refine.tsx for current data provider configuration
-
-// Production (example with REST)
+// Option 1: REST API
 import dataProvider from "@refinedev/simple-rest";
-const API_URL = "https://api.example.com";
+export const refineDataProvider = dataProvider("https://api.example.com");
+
+// Option 2: GraphQL
+import dataProvider, { GraphQLClient } from "@refinedev/graphql";
+const client = new GraphQLClient("https://api.example.com/graphql");
+export const refineDataProvider = dataProvider(client);
+
+// Option 3: Supabase
+import { dataProvider } from "@refinedev/supabase";
+import { supabaseClient } from "./supabase";
+export const refineDataProvider = dataProvider(supabaseClient);
 ```
+
+See [Refine Data Provider Documentation](https://refine.dev/docs/data/data-provider/) for all options.
 
 ### Decision 3: shadcn/ui Component System
 
@@ -95,7 +129,7 @@ app/
 ├── (dashboard)/           # Dashboard route group
 │   ├── layout.tsx        # Dashboard layout (sidebar, header)
 │   ├── page.tsx          # Dashboard home
-│   └── users/            # Resource pages
+│   └── [resource]/       # Resource pages
 └── layout.tsx            # Root layout
 ```
 
@@ -111,16 +145,17 @@ app/
 
 **Pattern**:
 
-```
-resources: [
+```typescript
+// lib/refine.tsx
+export const refineResources = [
   {
     name: "users",
     list: "/users",
     create: "/users/create",
     edit: "/users/edit/:id",
     show: "/users/show/:id",
-  }
-]
+  },
+];
 ```
 
 ## Project Structure
@@ -130,12 +165,10 @@ resources: [
 ├── app/
 │   ├── (dashboard)/              # Dashboard route group
 │   │   ├── layout.tsx           # Dashboard layout with sidebar/header
-│   │   ├── page.tsx             # Dashboard home page
-│   │   └── users/
-│   │       └── page.tsx         # Example list page
+│   │   └── page.tsx             # Dashboard home page
 │   │
 │   ├── api/
-│   │   └── health/route.ts     # Health check endpoint
+│   │   └── health/route.ts      # Health check endpoint
 │   │
 │   ├── layout.tsx               # Root layout (Refine provider)
 │   ├── globals.css              # Global styles & theme variables
@@ -149,9 +182,6 @@ resources: [
 │   │   ├── header.tsx          # Top navigation
 │   │   └── sidebar.tsx         # Side navigation
 │   │
-│   ├── forms/                   # Form components
-│   │   └── user-form.tsx       # Example form with validation
-│   │
 │   └── ui/                      # shadcn/ui components
 │       ├── button.tsx
 │       ├── card.tsx
@@ -159,7 +189,6 @@ resources: [
 │
 ├── lib/
 │   ├── refine.tsx              # Refine configuration and data provider
-│   ├── validations.ts          # Zod schemas
 │   └── utils.ts                # Utility functions
 │
 ├── providers/
@@ -168,18 +197,17 @@ resources: [
 └── components.json             # shadcn/ui configuration
 ```
 
-**Note**: The template provides a basic users list page. To add full CRUD functionality, create additional pages following the patterns in Code Patterns section:
+**Note**: The template provides a minimal starting point. As you build, add:
 
-- `users/create/page.tsx` for create
-- `users/edit/[id]/page.tsx` for edit
-- `users/show/[id]/page.tsx` for detail view
+- `app/(dashboard)/[resource]/` for resource pages
+- `components/forms/` for form components
+- `lib/validations.ts` for Zod schemas
 
 ## Key Files Reference
 
 | File                            | Purpose                            | When to Modify                     |
 | ------------------------------- | ---------------------------------- | ---------------------------------- |
 | `lib/refine.tsx`                | Refine resources and data provider | Adding resources, changing backend |
-| `lib/validations.ts`            | Zod schemas for forms              | Adding/changing form validation    |
 | `providers/refine-provider.tsx` | Refine context provider            | Changing provider config           |
 | `app/(dashboard)/layout.tsx`    | Dashboard layout                   | Changing sidebar/header            |
 | `components/ui/*`               | UI primitives                      | Rarely (customize via CSS)         |
@@ -188,8 +216,6 @@ resources: [
 ## Code Patterns
 
 ### List Page with useList
-
-The template uses `useList` for simple data fetching:
 
 ```typescript
 // app/(dashboard)/users/page.tsx
@@ -279,10 +305,13 @@ const {
 
 import { useForm } from "@refinedev/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userSchema } from "@/lib/validations";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+});
 
 export default function UserCreate() {
   const {
@@ -305,19 +334,15 @@ export default function UserCreate() {
 
       <form onSubmit={handleSubmit(onFinish)} className="space-y-4">
         <div>
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" {...register("name")} />
-          {errors.name && (
-            <p className="text-red-500 text-sm">{errors.name.message}</p>
-          )}
+          <label htmlFor="name">Name</label>
+          <input id="name" {...register("name")} className="w-full border p-2" />
+          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
         </div>
 
         <div>
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register("email")} />
-          {errors.email && (
-            <p className="text-red-500 text-sm">{errors.email.message}</p>
-          )}
+          <label htmlFor="email">Email</label>
+          <input id="email" type="email" {...register("email")} className="w-full border p-2" />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
         </div>
 
         <Button type="submit" disabled={formLoading}>
@@ -376,10 +401,6 @@ export default function UserShow({ params }: { params: { id: string } }) {
 
 ```typescript
 // lib/refine.tsx
-import { Refine } from "@refinedev/core";
-import routerProvider from "@refinedev/nextjs-router";
-import { mockDataProvider } from "@/providers/mock-data-provider";
-
 export const refineResources = [
   {
     name: "users",
@@ -389,7 +410,7 @@ export const refineResources = [
     show: "/users/show/:id",
     meta: {
       label: "Users",
-      icon: "users",
+      canDelete: true,
     },
   },
   {
@@ -399,26 +420,9 @@ export const refineResources = [
     edit: "/products/edit/:id",
     meta: {
       label: "Products",
-      icon: "package",
     },
   },
 ];
-
-export function RefineProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <Refine
-      dataProvider={mockDataProvider}  // REPLACE IN PRODUCTION
-      routerProvider={routerProvider}
-      resources={refineResources}
-      options={{
-        syncWithLocation: true,
-        warnWhenUnsavedChanges: true,
-      }}
-    >
-      {children}
-    </Refine>
-  );
-}
 ```
 
 ### Validation Schemas
@@ -443,12 +447,11 @@ export type UserFormData = z.infer<typeof userSchema>;
 export type ProductFormData = z.infer<typeof productSchema>;
 ```
 
-## Data Provider Migration
+## Data Provider Options
 
 ### REST API
 
 ```typescript
-// Replace mock provider with REST
 import dataProvider from "@refinedev/simple-rest";
 
 const API_URL = "https://api.example.com";
@@ -473,6 +476,48 @@ import { dataProvider } from "@refinedev/supabase";
 import { supabaseClient } from "@/lib/supabase";
 
 <Refine dataProvider={dataProvider(supabaseClient)} />
+```
+
+### Custom Data Provider
+
+```typescript
+import type { DataProvider } from "@refinedev/core";
+
+const customDataProvider: DataProvider = {
+  getList: async ({ resource, pagination, filters, sorters }) => {
+    const response = await fetch(`/api/${resource}`);
+    const data = await response.json();
+    return { data, total: data.length };
+  },
+  getOne: async ({ resource, id }) => {
+    const response = await fetch(`/api/${resource}/${id}`);
+    const data = await response.json();
+    return { data };
+  },
+  create: async ({ resource, variables }) => {
+    const response = await fetch(`/api/${resource}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(variables),
+    });
+    const data = await response.json();
+    return { data };
+  },
+  update: async ({ resource, id, variables }) => {
+    const response = await fetch(`/api/${resource}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(variables),
+    });
+    const data = await response.json();
+    return { data };
+  },
+  deleteOne: async ({ resource, id }) => {
+    await fetch(`/api/${resource}/${id}`, { method: "DELETE" });
+    return { data: { id } };
+  },
+  getApiUrl: () => "/api",
+};
 ```
 
 ## Theming
@@ -509,15 +554,11 @@ import { supabaseClient } from "@/lib/supabase";
 
 ## Troubleshooting
 
-### Mock Data Not Showing
+### Data Provider Not Configured
 
-**Symptom**: Empty tables, no data
+**Symptom**: Error "Data provider not configured"
 
-**Solutions**:
-
-1. Check browser console for errors
-2. Verify mock data provider is properly configured
-3. Ensure resource name matches in useTable/useForm
+**Solution**: Configure a real data provider in `lib/refine.tsx`. See the Data Provider Options section above.
 
 ### Form Validation Not Working
 

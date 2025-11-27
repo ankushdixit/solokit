@@ -15,6 +15,29 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 ---
 
+## Building From Scratch
+
+This project uses minimal scaffolding. You'll create files from scratch following the patterns in ARCHITECTURE.md:
+
+1. **Read the PRD** at `docs/PRD.md` (if it exists)
+2. **Understand the requirements** from the work item spec
+3. **Create necessary files** following ARCHITECTURE.md patterns
+4. **Write tests** alongside implementation
+5. **Run quality gates** before completing with `sk validate`
+
+### Quick Pattern Reference
+
+When adding a new feature:
+
+1. **Database Model**: Create `src/models/[feature].py` with SQLModel class
+2. **Migration**: `alembic revision --autogenerate -m "description"` then `alembic upgrade head`
+3. **Service Layer**: Create `src/services/[feature].py` for business logic
+4. **API Route**: Create `src/api/routes/[feature].py` with FastAPI router
+5. **Register Router**: Add to `src/main.py`
+6. **Tests**: Create `tests/unit/test_[feature].py`
+
+---
+
 ## Stack Architecture Rules
 
 ### Critical Rules
@@ -103,29 +126,6 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 - Creating database sessions manually instead of using dependency injection
 - Separating schemas from models (keep them together in `src/models/`)
 - Not using `async def` for route handlers that do I/O
-
----
-
-## Building From Scratch
-
-This project uses minimal scaffolding. You'll create files from scratch:
-
-1. **Read the PRD** at `docs/PRD.md`
-2. **Understand the story** requirements and acceptance criteria
-3. **Create necessary files** following ARCHITECTURE.md patterns
-4. **Write tests** alongside implementation
-5. **Run quality gates** before completing
-
-### Quick Pattern Reference
-
-#### Adding a New Feature
-
-1. **Database Model**: Create `src/models/[feature].py` with SQLModel class
-2. **Migration**: `alembic revision --autogenerate -m "description"` then `alembic upgrade head`
-3. **Service Layer**: Create `src/services/[feature].py` for business logic
-4. **API Route**: Create `src/api/routes/[feature].py` with FastAPI router
-5. **Register Router**: Add to `src/main.py`
-6. **Tests**: Create `tests/unit/test_[feature].py`
 
 ---
 

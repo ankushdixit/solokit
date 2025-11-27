@@ -68,22 +68,22 @@ When adding a new feature:
 
 ### File Organization
 
-| New Code Type    | Location                          |
-| ---------------- | --------------------------------- |
-| Pages            | `src/app/`                        |
-| API routes       | `src/app/api/` (only when needed) |
-| Server Actions   | `src/app/actions/` or colocated   |
-| React components | `src/components/`                 |
-| Database schema  | `prisma/schema.prisma`            |
-| Utilities        | `src/lib/`                        |
-| Zod schemas      | `src/lib/validations/`            |
+| New Code Type    | Location                         |
+| ---------------- | -------------------------------- |
+| Pages            | `app/`                           |
+| API routes       | `app/api/` (only when needed)    |
+| Server Actions   | `app/actions/` or colocated      |
+| React components | `components/`                    |
+| Database schema  | `prisma/schema.prisma`           |
+| Utilities        | `lib/`                           |
+| Zod schemas      | `lib/validations.ts` (create it) |
 
 ### Code Patterns
 
 **Server Component with Data Fetching:**
 
 ```typescript
-// src/app/products/page.tsx (Server Component - no "use client")
+// app/products/page.tsx (Server Component - no "use client")
 import { prisma } from "@/lib/prisma";
 
 export default async function ProductsPage() {
@@ -102,11 +102,11 @@ export default async function ProductsPage() {
 **Server Action:**
 
 ```typescript
-// src/app/actions/products.ts
+// app/actions/products.ts
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { productSchema } from "@/lib/validations/product";
+import { productSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 
 export async function createProduct(formData: FormData) {

@@ -3,11 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, ShoppingCart, Package, Settings } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
 /**
  * Dashboard sidebar navigation
- * Provides links to main sections of the application
+ *
+ * Add navigation items as you build your resources.
+ * See ARCHITECTURE.md for patterns on adding resources.
+ *
+ * Example of adding a resource:
+ * {
+ *   label: "Users",
+ *   icon: Users,
+ *   href: "/users",
+ *   active: pathname === "/users",
+ * }
  */
 export function Sidebar() {
   const pathname = usePathname();
@@ -19,30 +29,10 @@ export function Sidebar() {
       href: "/",
       active: pathname === "/",
     },
-    {
-      label: "Users",
-      icon: Users,
-      href: "/users",
-      active: pathname === "/users",
-    },
-    {
-      label: "Orders",
-      icon: ShoppingCart,
-      href: "/orders",
-      active: pathname === "/orders",
-    },
-    {
-      label: "Products",
-      icon: Package,
-      href: "/products",
-      active: pathname === "/products",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/settings",
-      active: pathname === "/settings",
-    },
+    // Add your resource routes here
+    // Example:
+    // { label: "Users", icon: Users, href: "/users", active: pathname === "/users" },
+    // { label: "Products", icon: Package, href: "/products", active: pathname === "/products" },
   ];
 
   return (

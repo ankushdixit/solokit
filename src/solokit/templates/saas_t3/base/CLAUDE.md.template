@@ -64,21 +64,21 @@ This project uses minimal scaffolding. You'll create files from scratch:
 
 ### File Organization
 
-| New Code Type    | Location                  |
-| ---------------- | ------------------------- |
-| tRPC routers     | `src/server/api/routers/` |
-| React components | `src/components/`         |
-| Pages            | `src/app/`                |
-| Database schema  | `prisma/schema.prisma`    |
-| Server utilities | `src/server/`             |
-| Client utilities | `src/lib/`                |
+| New Code Type    | Location                 |
+| ---------------- | ------------------------ |
+| tRPC routers     | `server/api/routers/`    |
+| React components | `components/`            |
+| Pages            | `app/`                   |
+| Database schema  | `prisma/schema.prisma`   |
+| Server utilities | `server/`                |
+| Client utilities | `lib/`                   |
 
 ### Code Patterns
 
 **Creating a tRPC Router:**
 
 ```typescript
-// src/server/api/routers/posts.ts
+// server/api/routers/posts.ts
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
@@ -114,7 +114,7 @@ export function PostsList() {
 - Importing `db` in client components
 - Using `process.env` directly without env validation
 - Skipping Zod validation on tRPC inputs
-- Not adding new routers to the root router in `src/server/api/root.ts`
+- Not adding new routers to the root router in `server/api/root.ts`
 
 ---
 

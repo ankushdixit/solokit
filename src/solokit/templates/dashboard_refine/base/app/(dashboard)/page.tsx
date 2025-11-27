@@ -1,62 +1,53 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Users, ShoppingCart, TrendingUp } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
 /**
  * Dashboard home page
- * Displays key metrics and statistics
+ *
+ * This is a minimal starting point. Add your dashboard widgets
+ * and statistics as you build your application.
+ *
+ * See ARCHITECTURE.md for patterns on:
+ * - Adding resource pages
+ * - Using Refine hooks (useList, useTable)
+ * - Building dashboard widgets
  */
 export default function DashboardPage() {
-  const stats = [
-    {
-      title: "Total Users",
-      value: "2,543",
-      icon: Users,
-      trend: "+12.5%",
-    },
-    {
-      title: "Total Orders",
-      value: "1,234",
-      icon: ShoppingCart,
-      trend: "+8.2%",
-    },
-    {
-      title: "Revenue",
-      value: "$45,231",
-      icon: TrendingUp,
-      trend: "+23.1%",
-    },
-    {
-      title: "Products",
-      value: "456",
-      icon: BarChart3,
-      trend: "+4.3%",
-    },
-  ];
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your admin dashboard</p>
+        <h1 className="text-3xl font-bold">Welcome to Refine Dashboard</h1>
+        <p className="text-muted-foreground">
+          Your Refine.dev admin dashboard is ready. Start building!
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">{stat.trend}</span> from last month
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+            <CardTitle className="text-lg font-medium">Getting Started</CardTitle>
+            <LayoutDashboard className="ml-auto h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>Read ARCHITECTURE.md to understand the dashboard patterns.</p>
+            <p>Create your PRD at docs/PRD.md to define your features.</p>
+            <p>Configure your data provider in lib/refine.tsx.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+            <CardTitle className="text-lg font-medium">Next Steps</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>1. Set up your backend API connection</p>
+            <p>2. Define your resources in lib/refine.tsx</p>
+            <p>3. Create resource pages in app/(dashboard)/</p>
+            <p>4. Add navigation items to the sidebar</p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

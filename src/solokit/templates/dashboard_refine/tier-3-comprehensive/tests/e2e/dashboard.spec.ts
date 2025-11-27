@@ -7,42 +7,31 @@ import AxeBuilder from "@axe-core/playwright";
  */
 
 test.describe("Dashboard Page", () => {
-  test("should display dashboard with stats cards", async ({ page }) => {
+  test("should display welcome heading", async ({ page }) => {
     await page.goto("/");
 
-    // Check that dashboard title is visible
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-
-    // Check that stat cards are present
-    const cards = page.locator('[class*="grid"] > div');
-    await expect(cards).toHaveCount(4); // 4 stat cards
-
-    // Verify stat card content (use role to be more specific)
-    await expect(page.getByRole("heading", { name: "Total Users" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Total Orders" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Products" })).toBeVisible();
+    // Check that welcome heading is visible
+    await expect(
+      page.getByRole("heading", { name: "Welcome to Refine Dashboard" })
+    ).toBeVisible();
   });
 
-  test("should have working navigation in sidebar", async ({ page }) => {
-    // Set desktop viewport to ensure sidebar is visible (hidden on mobile)
-    await page.setViewportSize({ width: 1280, height: 720 });
+  test("should display getting started guidance", async ({ page }) => {
     await page.goto("/");
 
-    // Wait for page to fully load
-    await page.waitForLoadState("networkidle");
+    // Check that getting started card is visible
+    await expect(page.getByText("Getting Started")).toBeVisible();
+    await expect(
+      page.getByText("Read ARCHITECTURE.md to understand the dashboard patterns.")
+    ).toBeVisible();
+  });
 
-    // Wait for sidebar to be in DOM (use attached state, not visible)
-    await page.waitForSelector("aside", { state: "attached" });
+  test("should display next steps guidance", async ({ page }) => {
+    await page.goto("/");
 
-    // Use JavaScript to click the Users link directly, bypassing visibility checks
-    // This is necessary because Tailwind's 'hidden md:flex' may not be detected properly in test environment
-    await page.evaluate(() => {
-      const usersLink = document.querySelector('aside a[href="/users"]') as HTMLElement;
-      if (usersLink) usersLink.click();
-    });
-
-    await expect(page).toHaveURL("/users");
+    // Check that next steps card is visible
+    await expect(page.getByText("Next Steps")).toBeVisible();
+    await expect(page.getByText("1. Set up your backend API connection")).toBeVisible();
   });
 
   test("should have accessible search functionality", async ({ page }) => {
@@ -77,7 +66,9 @@ test.describe("Dashboard Page", () => {
     await page.goto("/");
 
     // Check that content is visible on mobile
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Welcome to Refine Dashboard" })
+    ).toBeVisible();
 
     // Sidebar should be hidden on mobile
     const sidebar = page.locator("aside");
