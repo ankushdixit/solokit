@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **PRD Writing Guide and Stack Selection Guide**
+  - New `STACK_GUIDE.md`: Comprehensive guide for choosing between the 4 Solokit stacks
+    - Quick decision tree for stack selection
+    - Detailed comparison matrix (type safety, API style, learning curve, etc.)
+    - Per-stack profiles with best-for/not-ideal-for guidance
+    - When-to-switch guidance
+  - New `PRD_WRITING_GUIDE.md`: Complete PRD writing guide for Claude-driven development
+    - Rewritten for AI-assisted workflow (Claude writes PRD and implements code)
+    - Vertical slices philosophy and INVEST principles
+    - Technical constraints section with stack selection
+    - Definition of Ready (DoR) checklist for Claude
+    - Mapping PRD stories to Solokit work items
+    - Claude-optimized PRD template
+  - Guides automatically copied to `.session/guides/` during `sk init`
+  - Updated post-init message to reference guides and recommend PRD workflow
+  - New fixture `tracking_template_files_with_guides` for testing
+  - Added 6 new tests for guide functionality (3,773 → 3,779 total tests)
+
 - **Format/Lint Auto-Fix Before Initial Commit**
   - New Step 19 in `sk init` workflow: runs format and lint auto-fix before initial commit
   - Fixes user-provided files (PRD.md, ROADMAP.md, etc.) that may have formatting issues
