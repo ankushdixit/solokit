@@ -15,6 +15,30 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 ---
 
+## Building From Scratch
+
+This project uses minimal scaffolding. You'll create files from scratch:
+
+1. **Read the PRD** at `docs/PRD.md`
+2. **Understand the story** requirements and acceptance criteria
+3. **Create necessary files** following ARCHITECTURE.md patterns
+4. **Write tests** alongside implementation
+5. **Run quality gates** before completing
+
+### Quick Pattern Reference
+
+**Adding a New Feature:**
+
+1. Database: Add model to `prisma/schema.prisma`
+2. Generate: Run `npx prisma generate && npx prisma migrate dev`
+3. Router: Create `server/api/routers/[feature].ts`
+4. Register: Add router to `server/api/root.ts`
+5. Component: Create `components/[feature]/`
+6. Page: Create `app/[feature]/page.tsx`
+7. Tests: Create tests in `__tests__/` directories
+
+---
+
 ## Stack Architecture Rules
 
 ### Critical Rules
@@ -54,19 +78,19 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 **Creating a tRPC Router:**
 
 ```typescript
-// src/server/api/routers/example.ts
+// src/server/api/routers/posts.ts
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
-export const exampleRouter = createTRPCRouter({
+export const postsRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.example.findMany();
+    return ctx.db.post.findMany();
   }),
 
   create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ title: z.string().min(1), content: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.example.create({ data: input });
+      return ctx.db.post.create({ data: input });
     }),
 });
 ```
@@ -77,9 +101,9 @@ export const exampleRouter = createTRPCRouter({
 "use client";
 import { api } from "@/lib/api";
 
-export function ExampleList() {
-  const { data, isLoading } = api.example.getAll.useQuery();
-  const createMutation = api.example.create.useMutation();
+export function PostsList() {
+  const { data, isLoading } = api.posts.getAll.useQuery();
+  const createMutation = api.posts.create.useMutation();
   // ...
 }
 ```

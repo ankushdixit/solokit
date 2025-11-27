@@ -11,33 +11,14 @@ jest.mock("superjson", () => ({
   parse: (str: string) => JSON.parse(str),
 }));
 
-// Mock the example router
-jest.mock("../routers/example", () => ({
-  exampleRouter: {
-    hello: jest.fn(),
-    create: jest.fn(),
-    getAll: jest.fn(),
-  },
-}));
-
 // Mock db
 jest.mock("@/server/db", () => ({
-  db: {
-    user: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
-  },
+  db: {},
 }));
 
 describe("App Router", () => {
   it("exports appRouter", () => {
     expect(appRouter).toBeDefined();
-  });
-
-  it("includes example router", () => {
-    expect(appRouter).toBeDefined();
-    // The router should have the example namespace
   });
 
   it("exports createCaller function", () => {
@@ -57,10 +38,7 @@ describe("App Router", () => {
     expect(appRouter).toBeDefined();
   });
 
-  it("has example namespace in router", () => {
-    // Verify the router structure includes the example router
-    // The procedures should be namespaced under 'example'
-    expect(appRouter).toBeDefined();
+  it("has proper router structure", () => {
     expect(appRouter._def).toBeDefined();
   });
 });
@@ -81,6 +59,5 @@ describe("Router Configuration", () => {
     const caller = createCaller(context);
 
     expect(caller).toBeDefined();
-    expect(caller.example).toBeDefined();
   });
 });
