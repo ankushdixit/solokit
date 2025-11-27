@@ -1,7 +1,9 @@
 """
 SQLModel models package
+
+Add your models here. Example:
+
+from src.models.user import User, UserCreate, UserRead, UserUpdate
+
+__all__ = ["User", "UserCreate", "UserRead", "UserUpdate"]
 """
-
-from src.models.example import Item, ItemCreate, ItemRead, ItemUpdate
-
-__all__ = ["Item", "ItemCreate", "ItemRead", "ItemUpdate"]

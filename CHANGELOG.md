@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Minimal Scaffolding Migration: ml_ai_fastapi** (Phase 3.2)
+  - Removed example code (~430 lines) from ml_ai_fastapi template:
+    - Removed `src/api/routes/example.py` (135 lines) - Full CRUD router
+    - Removed `src/models/example.py` (61 lines) - SQLModel Item model
+    - Removed `src/services/example.py` (115 lines) - Service layer example
+    - Removed `tests/unit/test_example.py` (117 lines) - Example service tests
+  - Updated `main.py.template`: Removed example router import and include
+  - Updated `models/__init__.py`: Removed Item exports, added documentation example
+  - Updated `core/database.py`: Removed Item import, added documentation example
+  - Updated `alembic/env.py`: Removed Item import, added documentation example
+  - Updated `tests/unit/test_api_routes.py`: Removed TestItemRoutes, kept TestHealthRoutes
+  - Updated `tests/integration/test_api.py`: Removed TestItemAPIIntegration, kept TestHealthEndpoints
+  - Updated `locustfile.py`: Removed Item API tests, kept health check tests only
+  - Updated `tier-4-production/src/core/monitoring.py`: Removed example-specific counters
+  - Updated `ARCHITECTURE.md`:
+    - Added "Building From Scratch" section with step-by-step guide
+    - Updated project structure to reflect minimal scaffolding
+  - Updated `CLAUDE.md.template`:
+    - Added "Building From Scratch" section
+    - Added "Quick Pattern Reference" for adding new features
+
 - **Minimal Scaffolding Migration: fullstack_nextjs** (Phase 3.1)
   - Removed example code (~1,206 lines) from fullstack_nextjs template:
     - Removed `app/api/example/` route and tests

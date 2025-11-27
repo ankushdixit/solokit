@@ -14,7 +14,7 @@ from sqlmodel import SQLModel
 from src.core.config import settings
 
 # Import your models here to ensure they're registered
-from src.models import Item  # noqa: F401
+# Example: from src.models import User  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
