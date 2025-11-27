@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2025-11-27
+
 ### Changed
 - **Minimal Scaffolding Migration: Phase 4 Documentation & Cleanup**
   - Updated main README.md:
@@ -1589,8 +1591,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.1.5** = Current release ✅ **Current**
-- v0.1.4 = Previous release (Test coverage improvements)
+- **v0.1.6** = Current release ✅ **Current** (Minimal scaffolding migration complete)
+- v0.1.5 = Previous release (GitHub setup integration, security fixes)
+- v0.1.4 = Earlier release (Test coverage improvements)
 - v0.1.3 = Earlier release (Documentation model improvements)
 - v0.1.1 = Earlier release (UX improvements & bug fixes)
 - v0.2.0+ = Future enhancements (planned)
