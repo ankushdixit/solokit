@@ -14,6 +14,32 @@ This stack provides a minimal but complete full-stack foundation:
 | **Zod**          | Runtime validation              |
 | **Tailwind CSS** | Utility-first styling           |
 
+## Building From Scratch
+
+This is a minimal scaffolding project. You'll create files from scratch following the patterns below.
+
+### Adding a New Feature
+
+1. **Database**: Add model to `prisma/schema.prisma`, run `npx prisma migrate dev`
+2. **Validation**: Create Zod schemas in `lib/validations/[feature].ts`
+3. **Server Action**: Create in `app/actions/[feature].ts` with `"use server"`
+4. **Page**: Create `app/[feature]/page.tsx` as Server Component
+5. **Components**: Create in `components/[feature]/` (use `"use client"` only when needed)
+6. **Tests**: Create alongside each file in `__tests__/` directories
+
+### Example: Adding a "Products" Feature
+
+```
+prisma/schema.prisma          # Add Product model
+lib/validations/product.ts    # Zod schemas for Product
+app/actions/products.ts       # createProduct, updateProduct, deleteProduct
+app/products/page.tsx         # List products (Server Component)
+app/products/[id]/page.tsx    # Product detail (Server Component)
+app/products/new/page.tsx     # Create form
+components/products/          # Product-specific components
+app/products/__tests__/       # Tests for product pages
+```
+
 ## Architecture Decisions
 
 ### Decision 1: Server Components First
@@ -165,7 +191,6 @@ const url = env.DATABASE_URL;
 .
 ├── app/                          # Next.js App Router
 │   ├── api/
-│   │   ├── example/route.ts     # Example API route
 │   │   └── health/route.ts      # Health check endpoint
 │   │
 │   ├── globals.css               # Global styles
@@ -174,13 +199,11 @@ const url = env.DATABASE_URL;
 │   ├── error.tsx                 # Error boundary
 │   └── loading.tsx               # Loading UI
 │
-├── components/
-│   └── example-component.tsx    # Example component
+├── components/                   # Your React components go here
 │
 ├── lib/
 │   ├── prisma.ts                # Prisma client singleton
 │   ├── env.ts                   # Environment validation
-│   ├── validations.ts           # Zod schemas
 │   └── utils.ts                 # Utility functions
 │
 ├── prisma/
@@ -198,14 +221,12 @@ const url = env.DATABASE_URL;
 
 ## Key Files Reference
 
-| File                       | Purpose                 | When to Modify             |
-| -------------------------- | ----------------------- | -------------------------- |
-| `lib/prisma.ts`            | Prisma client singleton | Rarely                     |
-| `lib/env.ts`               | Environment validation  | Adding env vars            |
-| `lib/validations.ts`       | Zod schemas             | Adding/changing validation |
-| `app/api/example/route.ts` | Example API route       | Reference for new routes   |
-| `app/api/health/route.ts`  | Health check endpoint   | Rarely                     |
-| `prisma/schema.prisma`     | Database models         | Schema changes             |
+| File                      | Purpose                 | When to Modify   |
+| ------------------------- | ----------------------- | ---------------- |
+| `lib/prisma.ts`           | Prisma client singleton | Rarely           |
+| `lib/env.ts`              | Environment validation  | Adding env vars  |
+| `app/api/health/route.ts` | Health check endpoint   | Rarely           |
+| `prisma/schema.prisma`    | Database models         | Schema changes   |
 
 ## Code Patterns
 

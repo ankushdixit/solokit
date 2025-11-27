@@ -1,43 +1,12 @@
 import Link from "next/link";
-import ExampleComponent from "@/components/example-component";
-import { prisma } from "@/lib/prisma";
 
 /**
- * Server Component with Data Fetching
+ * Home Page - Server Component
  *
- * This is a Next.js Server Component that fetches data directly from the database.
- * Server Components run on the server and can directly access databases, file systems, etc.
- *
- * Benefits:
- * - No client-side JavaScript for data fetching
- * - Direct database access (no API route needed)
- * - Automatic caching and revalidation
- * - Better performance and SEO
+ * This is a minimal starting point for your application.
+ * See ARCHITECTURE.md for patterns on adding features.
  */
-export default async function Home() {
-  // Server-side data fetching - this runs on the server only
-  // Gracefully handle database connection issues (e.g., during E2E tests)
-  let userCount = 0;
-  let latestUser = null;
-
-  try {
-    userCount = await prisma.user.count();
-    latestUser = await prisma.user.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (error) {
-    // Database not available - use fallback data
-    console.warn("Database not available, using fallback data:", error);
-    userCount = 2;
-    latestUser = {
-      id: 1,
-      name: "Demo User",
-      email: "demo@example.com",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  }
-
+export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
@@ -45,36 +14,25 @@ export default async function Home() {
           Full-Stack <span className="text-[hsl(280,100%,70%)]">Next.js</span>
         </h1>
 
-        {/* Server-side data display */}
-        <div className="rounded-xl bg-white/10 p-6">
-          <h3 className="mb-2 text-xl font-bold">Server-Side Data Fetching Example</h3>
-          <p className="text-sm text-white/70">
-            This data is fetched directly in the Server Component:
-          </p>
-          <div className="mt-4 space-y-2 text-lg">
-            <p>Total Users: {userCount}</p>
-            {latestUser && (
-              <p className="text-sm text-white/80">
-                Latest: {latestUser.name} ({latestUser.email})
-              </p>
-            )}
-          </div>
-        </div>
+        <p className="text-center text-xl text-white/80">
+          Your project is ready. Start building from your PRD.
+        </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
           <Link
-            href="/api/example"
+            href="/api/health"
             className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
           >
-            <h3 className="text-2xl font-bold">API Routes →</h3>
-            <div className="text-lg">Check out the example API route at /api/example</div>
+            <h3 className="text-2xl font-bold">Health Check →</h3>
+            <div className="text-lg">Verify the API is running at /api/health</div>
           </Link>
           <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4">
-            <h3 className="text-2xl font-bold">Database →</h3>
-            <div className="text-lg">Prisma ORM with PostgreSQL for type-safe database queries</div>
+            <h3 className="text-2xl font-bold">Get Started</h3>
+            <div className="text-lg">
+              Read <code className="text-[hsl(280,100%,70%)]">ARCHITECTURE.md</code> for patterns
+            </div>
           </div>
         </div>
-        <ExampleComponent />
       </div>
     </main>
   );
