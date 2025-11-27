@@ -155,7 +155,9 @@ class IntegrationChecker(QualityChecker):
         except SolokitFileNotFoundError as e:
             # Spec file not found - skip gracefully for minimal scaffolding
             logger.info(f"Spec file not found, skipping integration tests: {e}")
-            file_path = e.context.get("file_path", "unknown") if hasattr(e, "context") else "unknown"
+            file_path = (
+                e.context.get("file_path", "unknown") if hasattr(e, "context") else "unknown"
+            )
             return self._create_skipped_result(f"spec file not found: {file_path}")
 
         except (
