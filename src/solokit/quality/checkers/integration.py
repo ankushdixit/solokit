@@ -15,9 +15,11 @@ from typing import Any, cast
 from solokit.core.command_runner import CommandRunner
 from solokit.core.constants import DOCKER_COMMAND_TIMEOUT, QUALITY_CHECK_STANDARD_TIMEOUT
 from solokit.core.exceptions import CommandExecutionError
+from solokit.core.exceptions import FileNotFoundError as SolokitFileNotFoundError
 from solokit.core.logging_config import get_logger
 from solokit.core.types import WorkItemType
 from solokit.quality.checkers.base import CheckResult, QualityChecker
+from solokit.quality.scaffolding import has_integration_test_files
 from solokit.work_items import spec_parser
 
 logger = get_logger(__name__)
@@ -72,6 +74,11 @@ class IntegrationChecker(QualityChecker):
 
         if not self.is_enabled():
             return self._create_skipped_result("disabled")
+
+        # Skip if no integration test files exist (minimal scaffolding case)
+        if not has_integration_test_files():
+            logger.info("No integration test files found - skipping integration tests")
+            return self._create_skipped_result("no integration test files found")
 
         logger.info("Running integration test quality gates...")
 
@@ -144,6 +151,12 @@ class IntegrationChecker(QualityChecker):
                         warnings.append({"message": "API contract validation failed (optional)"})
                 else:
                     logger.info("API contracts validated")
+
+        except SolokitFileNotFoundError as e:
+            # Spec file not found - skip gracefully for minimal scaffolding
+            logger.info(f"Spec file not found, skipping integration tests: {e}")
+            file_path = e.context.get("file_path", "unknown") if hasattr(e, "context") else "unknown"
+            return self._create_skipped_result(f"spec file not found: {file_path}")
 
         except (
             EnvironmentSetupError,
