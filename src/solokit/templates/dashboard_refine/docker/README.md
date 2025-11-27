@@ -9,8 +9,8 @@
 The dashboard_refine stack is designed for building admin dashboards that connect to **existing external APIs**. Unlike saas_t3 and fullstack_nextjs which manage their own PostgreSQL database, dashboard_refine:
 
 - Uses Refine.dev's data provider abstraction to connect to any backend
-- Ships with a mock data provider for development/demo purposes
-- Expects you to replace the mock provider with your real API (REST, GraphQL, Supabase, etc.)
+- Ships with a placeholder data provider that guides you to configure your backend
+- Expects you to configure a real data provider (REST, GraphQL, Supabase, etc.)
 
 If your dashboard needs its own database, consider using the `fullstack_nextjs` or `saas_t3` stack instead.
 
@@ -50,7 +50,7 @@ docker-compose -f docker-compose.prod.yml up -d
 Since dashboard_refine connects to external APIs rather than a local database, integration tests:
 
 - Do NOT require PostgreSQL or any database setup
-- Can run against the mock data provider or your real API
+- Run against your configured data provider
 - Are simpler to set up compared to database-backed stacks
 
 To run integration tests:
@@ -64,5 +64,5 @@ npm run test:integration
 When ready to connect to your real API:
 
 1. Update `NEXT_PUBLIC_API_URL` in your `.env` file
-2. Replace the mock data provider in `lib/refine.tsx`
-3. See the base README.md for detailed migration instructions
+2. Configure your data provider in `lib/refine.tsx`
+3. See ARCHITECTURE.md for detailed setup instructions

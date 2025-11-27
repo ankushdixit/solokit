@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Minimal Scaffolding Migration: dashboard_refine** (Phase 3.4)
+  - Removed example code (~977 lines) from dashboard_refine template:
+    - Removed `app/(dashboard)/users/` directory (95 + 122 lines) - Example users list page and tests
+    - Removed `components/forms/user-form.tsx` and tests (76 + 206 lines) - Example form component
+    - Removed `lib/validations.ts` and tests (52 + 225 lines) - Example validation schemas
+    - Removed `tier-1-essential/tests/unit/example.test.tsx` (77 lines) - Example tests
+    - Removed `tier-3-comprehensive/tests/e2e/user-management.spec.ts` (124 lines) - User E2E tests
+    - Removed `tier-3-comprehensive/tests/integration/dashboard.test.ts` (28 lines) - Example integration test
+  - Updated `lib/refine.tsx`:
+    - Replaced mock data provider with placeholder that throws helpful errors
+    - Cleared example resources array
+    - Added comprehensive documentation for data provider setup
+  - Updated `components/layout/sidebar.tsx`: Simplified to Dashboard route only
+  - Updated `app/(dashboard)/page.tsx`: Minimal welcome page with guidance cards
+  - Updated `app/(dashboard)/__tests__/page.test.tsx`: Tests for minimal page
+  - Updated `lib/__tests__/refine.test.tsx`: Tests for placeholder data provider
+  - Updated `components/layout/__tests__/sidebar.test.tsx`: Tests for minimal sidebar
+  - Updated `tier-3-comprehensive/tests/e2e/dashboard.spec.ts`: Tests for minimal dashboard
+  - Updated `providers/__tests__/refine-provider.test.tsx`: Fixed mock to use empty resources array
+  - Created `tier-3-comprehensive/tests/integration/api.test.ts`: Placeholder integration test
+  - Updated `ARCHITECTURE.md`:
+    - Added "Building From Scratch" section with complete Refine patterns
+    - Updated "Decision 2" to explain data provider requirement
+    - Added comprehensive "Data Provider Options" section with REST, GraphQL, Supabase, Custom examples
+    - Updated project structure to reflect minimal scaffolding
+  - Updated `CLAUDE.md.template`:
+    - Added "Building From Scratch" section with quick pattern reference
+    - Updated file organization table with correct paths
+    - Updated data provider warning to reflect placeholder behavior
+  - Cleaned up empty directories (tier-1-essential/tests/unit/, tier-3-comprehensive/tests/integration/)
+
+- **Documentation Consistency Fixes** (All 4 stacks)
+  - saas_t3 ARCHITECTURE.md: Moved "Building From Scratch" section from end to after Overview
+  - ml_ai_fastapi CLAUDE.md.template: Reordered sections (Building From Scratch before Stack Architecture Rules)
+  - dashboard_refine CLAUDE.md.template: Reordered sections (Building From Scratch before Stack Architecture Rules)
+  - dashboard_refine docker/README.md: Fixed "mock data provider" → "placeholder data provider" terminology
+  - fullstack_nextjs CLAUDE.md.template: Removed incorrect `src/` prefix from file paths
+  - fullstack_nextjs ARCHITECTURE.md: Fixed `lib/validations/[feature].ts` → `lib/validations.ts`
+  - saas_t3 CLAUDE.md.template: Removed incorrect `src/` prefix from file paths
+
 - **Minimal Scaffolding Migration: saas_t3** (Phase 3.3)
   - Removed example code (~400 lines) from saas_t3 template:
     - Removed `server/api/routers/example.ts` (33 lines) - tRPC CRUD router

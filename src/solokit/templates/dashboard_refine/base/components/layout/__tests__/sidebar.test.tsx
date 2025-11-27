@@ -12,15 +12,10 @@ describe("Sidebar Component", () => {
     expect(container.querySelector("aside")).toBeInTheDocument();
   });
 
-  it("renders all navigation links", () => {
+  it("renders Dashboard navigation link", () => {
     render(<Sidebar />);
-
     // Dashboard appears twice (logo + nav), so use getAllByText
     expect(screen.getAllByText("Dashboard")).toHaveLength(2);
-    expect(screen.getByText("Users")).toBeInTheDocument();
-    expect(screen.getByText("Orders")).toBeInTheDocument();
-    expect(screen.getByText("Products")).toBeInTheDocument();
-    expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("has accessible navigation landmark", () => {
@@ -30,18 +25,12 @@ describe("Sidebar Component", () => {
 
   it("renders links with correct href attributes", () => {
     render(<Sidebar />);
-
-    const dashboardLink = screen.getAllByText("Dashboard")[0]?.closest("a");
-    const usersLink = screen.getByText("Users").closest("a");
-    const ordersLink = screen.getByText("Orders").closest("a");
-    const productsLink = screen.getByText("Products").closest("a");
-    const settingsLink = screen.getByText("Settings").closest("a");
-
-    expect(dashboardLink).toHaveAttribute("href", "/");
-    expect(usersLink).toHaveAttribute("href", "/users");
-    expect(ordersLink).toHaveAttribute("href", "/orders");
-    expect(productsLink).toHaveAttribute("href", "/products");
-    expect(settingsLink).toHaveAttribute("href", "/settings");
+    const dashboardLinks = screen.getAllByText("Dashboard");
+    // Both should link to root
+    dashboardLinks.forEach((link) => {
+      const anchor = link.closest("a");
+      expect(anchor).toHaveAttribute("href", "/");
+    });
   });
 
   it("marks dashboard as active on root path", () => {
@@ -53,46 +42,6 @@ describe("Sidebar Component", () => {
     // Get the second "Dashboard" link (the one in navigation, not the logo)
     const dashboardLink = screen.getAllByText("Dashboard")[1]?.closest("a");
     expect(dashboardLink).toHaveAttribute("aria-current", "page");
-  });
-
-  it("marks users as active on users path", () => {
-    const { usePathname } = require("next/navigation");
-    usePathname.mockReturnValue("/users");
-
-    render(<Sidebar />);
-
-    const usersLink = screen.getByText("Users").closest("a");
-    expect(usersLink).toHaveAttribute("aria-current", "page");
-  });
-
-  it("marks orders as active on orders path", () => {
-    const { usePathname } = require("next/navigation");
-    usePathname.mockReturnValue("/orders");
-
-    render(<Sidebar />);
-
-    const ordersLink = screen.getByText("Orders").closest("a");
-    expect(ordersLink).toHaveAttribute("aria-current", "page");
-  });
-
-  it("marks products as active on products path", () => {
-    const { usePathname } = require("next/navigation");
-    usePathname.mockReturnValue("/products");
-
-    render(<Sidebar />);
-
-    const productsLink = screen.getByText("Products").closest("a");
-    expect(productsLink).toHaveAttribute("aria-current", "page");
-  });
-
-  it("marks settings as active on settings path", () => {
-    const { usePathname } = require("next/navigation");
-    usePathname.mockReturnValue("/settings");
-
-    render(<Sidebar />);
-
-    const settingsLink = screen.getByText("Settings").closest("a");
-    expect(settingsLink).toHaveAttribute("aria-current", "page");
   });
 
   it("has hidden class for mobile viewports", () => {

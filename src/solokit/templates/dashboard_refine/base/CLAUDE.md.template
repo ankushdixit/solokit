@@ -15,6 +15,65 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 ---
 
+## Building From Scratch
+
+This project uses minimal scaffolding. You'll create files from scratch following the patterns in ARCHITECTURE.md:
+
+1. **Read the PRD** at `docs/PRD.md` (if it exists)
+2. **Understand the requirements** from the work item spec
+3. **Create necessary files** following ARCHITECTURE.md patterns
+4. **Write tests** alongside implementation
+5. **Run quality gates** before completing with `sk validate`
+
+### Quick Pattern Reference
+
+**Adding a New Resource:**
+
+1. Configure data provider in `lib/refine.tsx`
+2. Add resource definition to `lib/refine.tsx`
+3. Create list page at `app/(dashboard)/[resource]/page.tsx`
+4. Create forms at `app/(dashboard)/[resource]/create/page.tsx`
+5. Add validation schema to `lib/validations.ts`
+6. Add navigation link to `components/layout/sidebar.tsx`
+7. Add tests alongside each file
+
+**Data Provider Setup:**
+
+```typescript
+// lib/refine.tsx - Choose your backend:
+
+// REST API
+import dataProvider from "@refinedev/simple-rest";
+export const refineDataProvider = dataProvider("https://api.example.com");
+
+// Supabase
+import { dataProvider } from "@refinedev/supabase";
+export const refineDataProvider = dataProvider(supabaseClient);
+
+// GraphQL
+import dataProvider, { GraphQLClient } from "@refinedev/graphql";
+export const refineDataProvider = dataProvider(client);
+```
+
+**Resource Definition:**
+
+```typescript
+// lib/refine.tsx
+export const refineResources = [
+  {
+    name: "users",
+    list: "/users",
+    create: "/users/create",
+    edit: "/users/edit/:id",
+    show: "/users/show/:id",
+  },
+];
+```
+
+See ARCHITECTURE.md for complete code patterns and examples.
+
+---
+
 ## Stack Architecture Rules
 
 ### Critical Rules
@@ -28,12 +87,12 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 2. **Data Provider Pattern**
    - All API communication goes through the data provider
-   - Configure data provider in `src/providers/`
-   - **WARNING**: The mock data provider is for DEVELOPMENT ONLY
-   - Replace with real backend before production
+   - Configure data provider in `lib/refine.tsx`
+   - **IMPORTANT**: The template includes a placeholder data provider that throws helpful errors
+   - You MUST configure a real data provider before building features
 
 3. **UI Components**
-   - Use shadcn/ui components from `src/components/ui/`
+   - Use shadcn/ui components from `components/ui/`
    - Follow the existing theming system (CSS variables)
    - Use Tailwind CSS for styling
 
@@ -41,11 +100,12 @@ For detailed architecture patterns and code examples, see **ARCHITECTURE.md**.
 
 | New Code Type           | Location               |
 | ----------------------- | ---------------------- |
-| Resource pages          | `src/app/(dashboard)/` |
-| Shared components       | `src/components/`      |
-| UI primitives           | `src/components/ui/`   |
-| Data providers          | `src/providers/`       |
-| Refine resources config | `src/app/layout.tsx`   |
+| Resource pages          | `app/(dashboard)/`     |
+| Shared components       | `components/`          |
+| UI primitives           | `components/ui/`       |
+| Form components         | `components/forms/`    |
+| Refine config           | `lib/refine.tsx`       |
+| Validation schemas      | `lib/validations.ts`   |
 
 ### Code Patterns
 
@@ -88,7 +148,7 @@ export default function ProductCreate() {
 ### Common Mistakes to Avoid
 
 - Writing custom fetch/axios calls for CRUD operations
-- Forgetting to replace the mock data provider before production
+- Not configuring a real data provider before building features
 - Creating custom table components instead of using Refine's integration
 - Not defining resources in the Refine configuration
 - Bypassing the data provider for API calls
@@ -479,7 +539,7 @@ sk work-graph --bottlenecks
 #### dashboard_refine
 
 - DON'T write custom CRUD logic - use Refine hooks
-- DON'T deploy with the mock data provider
+- DON'T deploy without configuring a real data provider
 - DON'T bypass the data provider for API calls
 
 ---

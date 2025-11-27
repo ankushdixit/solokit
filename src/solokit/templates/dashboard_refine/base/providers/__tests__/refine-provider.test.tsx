@@ -36,7 +36,7 @@ jest.mock("@refinedev/core", () => ({
 jest.mock("@/lib/refine", () => ({
   refineDataProvider: { getList: jest.fn() },
   refineRouterProvider: {},
-  refineResources: [{ name: "users" }, { name: "orders" }, { name: "products" }],
+  refineResources: [],
   refineOptions: { syncWithLocation: true },
 }));
 
@@ -77,7 +77,7 @@ describe("RefineProvider Component", () => {
       </RefineProvider>
     );
     const props = JSON.parse(screen.getByTestId("refine-props").textContent || "{}");
-    expect(props.resourceCount).toBe(3);
+    expect(props.resourceCount).toBe(0);
   });
 
   it("passes options to Refine", () => {

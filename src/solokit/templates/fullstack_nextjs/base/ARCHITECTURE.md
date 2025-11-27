@@ -21,7 +21,7 @@ This is a minimal scaffolding project. You'll create files from scratch followin
 ### Adding a New Feature
 
 1. **Database**: Add model to `prisma/schema.prisma`, run `npx prisma migrate dev`
-2. **Validation**: Create Zod schemas in `lib/validations/[feature].ts`
+2. **Validation**: Add Zod schemas to `lib/validations.ts`
 3. **Server Action**: Create in `app/actions/[feature].ts` with `"use server"`
 4. **Page**: Create `app/[feature]/page.tsx` as Server Component
 5. **Components**: Create in `components/[feature]/` (use `"use client"` only when needed)
@@ -31,7 +31,7 @@ This is a minimal scaffolding project. You'll create files from scratch followin
 
 ```
 prisma/schema.prisma          # Add Product model
-lib/validations/product.ts    # Zod schemas for Product
+lib/validations.ts            # Add productSchema to validations file
 app/actions/products.ts       # createProduct, updateProduct, deleteProduct
 app/products/page.tsx         # List products (Server Component)
 app/products/[id]/page.tsx    # Product detail (Server Component)
