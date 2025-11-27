@@ -481,11 +481,26 @@ sk work-graph --bottlenecks
 - You need to make architectural decisions
 - The user's request conflicts with existing patterns
 
+### Writing PRDs
+
+When asked to create or write a PRD:
+
+1. **Always read `.session/guides/PRD_WRITING_GUIDE.md` first** - This guide is mandatory
+2. Follow the structure and best practices defined there
+3. Use vertical slices, not horizontal layers (see guide for details)
+4. Include all required sections: technical constraints, acceptance criteria, error cases
+5. Reference `.session/guides/STACK_GUIDE.md` for stack-specific considerations
+6. Save the PRD at `docs/PRD.md`
+
+**IMPORTANT**: Do NOT write PRDs from memory or general knowledge. The PRD_WRITING_GUIDE.md contains Solokit-specific patterns that ensure PRDs translate correctly into work items.
+
 ### Reference Documentation
 
 - **ARCHITECTURE.md** - For stack-specific patterns, conventions, and code examples
 - **README.md** - For project-specific configuration and getting started
 - **.session/specs/** - For work item requirements and acceptance criteria
+- **.session/guides/PRD_WRITING_GUIDE.md** - **MUST follow when writing PRDs**
+- **.session/guides/STACK_GUIDE.md** - For understanding stack choice and capabilities
 - **sk <command> --help** - For Solokit command options
 
 ---
@@ -619,16 +634,18 @@ git commit --no-verify
 
 ### Key Files
 
-| File                                | Purpose                                      |
-| ----------------------------------- | -------------------------------------------- |
-| `CLAUDE.md`                         | AI guidance (this file)                      |
-| `ARCHITECTURE.md`                   | Stack architecture guide (detailed patterns) |
-| `README.md`                         | Project quick start                          |
-| `.session/tracking/work_items.json` | Work item data (use `sk` commands)           |
-| `.session/tracking/learnings.json`  | Captured learnings (use `sk` commands)       |
-| `.session/specs/`                   | Work item specifications                     |
-| `.session/briefings/`               | Session briefings                            |
-| `.session/history/`                 | Session summaries                            |
+| File                                     | Purpose                                       |
+| ---------------------------------------- | --------------------------------------------- |
+| `CLAUDE.md`                              | AI guidance (this file)                       |
+| `ARCHITECTURE.md`                        | Stack architecture guide (detailed patterns)  |
+| `README.md`                              | Project quick start                           |
+| `.session/guides/PRD_WRITING_GUIDE.md`   | PRD authoring guide (MUST follow for PRDs)    |
+| `.session/guides/STACK_GUIDE.md`         | Stack selection and capabilities guide        |
+| `.session/tracking/work_items.json`      | Work item data (use `sk` commands)            |
+| `.session/tracking/learnings.json`       | Captured learnings (use `sk` commands)        |
+| `.session/specs/`                        | Work item specifications                      |
+| `.session/briefings/`                    | Session briefings                             |
+| `.session/history/`                      | Session summaries                             |
 
 ### Development Commands
 
