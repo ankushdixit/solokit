@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2025-11-28
+
+### Changed
+- **Improved /end Command Flow** (PR #184)
+  - Streamlined `/end` command with clear 5-step process: pre-flight checks, completion status, run `sk end`, create PR, show results
+  - `sk end` no longer attempts commits - Claude handles git commits, `sk end` just verifies and pushes
+  - Better error messages: Clear guidance when no commits found on branch
+  - Removed confusing two-option learning approach (commit tags vs temp file)
+
+- **Slash Command Format for User-Facing Suggestions** (PR #186)
+  - Updated all user-facing command suggestions to use slash command format (`/start`, `/end`, `/validate`) instead of CLI format (`sk start`, `sk end`)
+  - Updated 30 files including CLAUDE.md templates, Python CLI output, and guides
+  - Principle: User-facing suggestions use `/` slash format, execution examples use `sk` CLI format
+
+### Fixed
+- **CHANGELOG.md Not Being Copied During `sk init`** (PR #184)
+  - CHANGELOG.md template now properly copied to project root during initialization
+  - Won't overwrite existing CHANGELOG.md files
+
+- **Git Commit Double-Wrapped Error Messages** (PR #184)
+  - Fixed "Commit failed: Commit failed:" double-wrapped error messages
+
+- **CI Template Permissions and Smoke Test Endpoint** (PR #185)
+  - Added `pull-requests: read` permission to secrets-scan job in security.yml (required for gitleaks-action)
+  - Updated smoke-test in test.yml to test `/` instead of `/api/health` for Node.js templates
+  - Smoke tests no longer require database connectivity
+
+### Added
+- **PRD and STACK Guide References in Templates** (PR #183)
+  - Added "Writing PRDs" subsection under Claude Behavior Guidelines in all CLAUDE.md templates
+  - Updated "Reference Documentation" section with mandatory PRD guide reference
+  - Updated "Key Files" table to include PRD_WRITING_GUIDE.md and STACK_GUIDE.md
+
 ## [0.1.6] - 2025-11-27
 
 ### Changed
@@ -1591,8 +1624,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.1.6** = Current release ✅ **Current** (Minimal scaffolding migration complete)
-- v0.1.5 = Previous release (GitHub setup integration, security fixes)
+- **v0.1.7** = Current release ✅ **Current** (Improved /end command flow, slash command format)
+- v0.1.6 = Previous release (Minimal scaffolding migration complete)
+- v0.1.5 = Earlier release (GitHub setup integration, security fixes)
 - v0.1.4 = Earlier release (Test coverage improvements)
 - v0.1.3 = Earlier release (Documentation model improvements)
 - v0.1.1 = Earlier release (UX improvements & bug fixes)
