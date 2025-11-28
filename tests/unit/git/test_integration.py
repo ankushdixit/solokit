@@ -1048,7 +1048,7 @@ class TestCompleteWorkItem:
     """Tests for complete_work_item method."""
 
     def test_complete_work_item_commit_and_push(self, tmp_path):
-        """Test completing work item with commit and push."""
+        """Test completing work item with existing commits and push."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1069,16 +1069,24 @@ class TestCompleteWorkItem:
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits for git log
+        original_run = workflow.runner.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
         ):
             result = workflow.complete_work_item("feature_1", "feat: Complete feature", False, 1)
 
         # Assert
         assert result["success"] is True
-        assert result["commit"] == "abc1234"
+        assert "1 commit(s)" in result["commit"]
         assert result["pushed"] is True
 
         # Verify work item was updated
@@ -1114,9 +1122,15 @@ class TestCompleteWorkItem:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits for git log
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(
                 workflow,
@@ -1162,9 +1176,15 @@ class TestCompleteWorkItem:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits for git log
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(workflow, "merge_to_parent", return_value=None),
             patch.object(workflow, "push_main_to_remote", return_value=None),
@@ -1197,7 +1217,7 @@ class TestCompleteWorkItem:
         assert "no git tracking" in result["message"].lower()
 
     def test_complete_work_item_nothing_to_commit_with_existing_commits(self, tmp_path):
-        """Test completing work item when nothing to commit but existing commits exist."""
+        """Test completing work item with existing commits (no new commits needed)."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1218,25 +1238,22 @@ class TestCompleteWorkItem:
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
-        mock_git_log = Mock(returncode=0, stdout="abc1234\ndef5678\n")
+        # Mock runner.run to return 2 existing commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\ndef5678\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
 
         # Act
         with (
-            patch.object(
-                workflow,
-                "commit_changes",
-                side_effect=GitError(
-                    "Commit failed: nothing to commit", ErrorCode.GIT_COMMAND_FAILED
-                ),
-            ),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
-            patch("subprocess.run", return_value=mock_git_log),
         ):
             result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
 
         # Assert
         assert result["success"] is True
-        assert "Found 2 existing commit(s)" in result["commit"]
+        assert "2 commit(s)" in result["commit"]
 
         # Verify commits were added to work item
         with open(work_items_file) as f:
@@ -1244,8 +1261,8 @@ class TestCompleteWorkItem:
             assert "abc1234" in data["work_items"]["feature_1"]["git"]["commits"]
             assert "def5678" in data["work_items"]["feature_1"]["git"]["commits"]
 
-    def test_complete_work_item_commit_failure(self, tmp_path):
-        """Test completing work item when commit fails."""
+    def test_complete_work_item_no_commits_found(self, tmp_path):
+        """Test completing work item when no commits exist on branch."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1255,6 +1272,7 @@ class TestCompleteWorkItem:
                     "id": "feature_1",
                     "git": {
                         "branch": "session-001-feature_1",
+                        "parent_branch": "main",
                         "commits": [],
                     },
                 }
@@ -1263,17 +1281,19 @@ class TestCompleteWorkItem:
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return no commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
-        with patch.object(
-            workflow,
-            "commit_changes",
-            side_effect=GitError("fatal: error", ErrorCode.GIT_COMMAND_FAILED),
-        ):
+        with patch.object(workflow.runner, "run", side_effect=mock_run):
             result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
 
         # Assert
         assert result["success"] is False
-        assert "commit failed" in result["message"].lower()
+        assert "no commits found" in result["message"].lower()
 
 
 # ============================================================================
@@ -1382,8 +1402,8 @@ class TestErrorHandlingPaths:
 
         assert "Failed to load work items" in str(exc_info.value)
 
-    def test_complete_work_item_nothing_to_commit_no_existing_commits(self, tmp_path):
-        """Test complete_work_item with nothing to commit and no existing commits (line 495-497)."""
+    def test_complete_work_item_no_commits_on_branch(self, tmp_path):
+        """Test complete_work_item when no commits exist on the branch."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1404,26 +1424,22 @@ class TestErrorHandlingPaths:
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
-        mock_git_log = Mock(returncode=0, stdout="")  # No commits found
+        # Mock runner.run to return no commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
 
         # Act
-        with (
-            patch.object(
-                workflow,
-                "commit_changes",
-                side_effect=GitError("nothing to commit", ErrorCode.GIT_COMMAND_FAILED),
-            ),
-            patch("subprocess.run", return_value=mock_git_log),
-        ):
+        with patch.object(workflow.runner, "run", side_effect=mock_run):
             result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
 
         # Assert
         assert result["success"] is False
-        # The error message contains "nothing to commit" which is in the git error
-        assert "No commits found" in result["message"] or "nothing to commit" in result["message"]
+        assert "No commits found" in result["message"]
 
-    def test_complete_work_item_nothing_to_commit_git_log_fails(self, tmp_path):
-        """Test complete_work_item when git log fails after nothing to commit (line 495-497)."""
+    def test_complete_work_item_git_log_command_fails(self, tmp_path):
+        """Test complete_work_item when git log command fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1443,25 +1459,22 @@ class TestErrorHandlingPaths:
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
-        mock_git_log = Mock(returncode=1, stdout="", stderr="fatal: error")
+        # Mock runner.run to fail on git log
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=False, stdout="", stderr="fatal: error", returncode=1)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
 
         # Act
-        with (
-            patch.object(
-                workflow,
-                "commit_changes",
-                side_effect=GitError("nothing to commit", ErrorCode.GIT_COMMAND_FAILED),
-            ),
-            patch("subprocess.run", return_value=mock_git_log),
-        ):
+        with patch.object(workflow.runner, "run", side_effect=mock_run):
             result = workflow.complete_work_item("feature_1", "feat: Complete", False, 1)
 
         # Assert
         assert result["success"] is False
-        assert "Failed to retrieve commits" in result["message"]
+        assert "No commits found" in result["message"]
 
     def test_complete_work_item_push_failure(self, tmp_path):
-        """Test complete_work_item when push fails (line 508-510)."""
+        """Test complete_work_item when push fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1470,16 +1483,22 @@ class TestErrorHandlingPaths:
                 "feature_1": {
                     "id": "feature_1",
                     "status": "in_progress",
-                    "git": {"branch": "branch-1", "commits": []},
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
                 }
             }
         }
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(
                 workflow,
                 "push_branch",
@@ -1493,7 +1512,7 @@ class TestErrorHandlingPaths:
         assert result["pushed"] is False
 
     def test_complete_work_item_pr_mode_create_pr_failure(self, tmp_path):
-        """Test complete_work_item in PR mode when PR creation fails (line 526-527)."""
+        """Test complete_work_item in PR mode when PR creation fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1519,9 +1538,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(
                 workflow,
@@ -1539,7 +1564,7 @@ class TestErrorHandlingPaths:
             assert data["work_items"]["feature_1"]["git"]["status"] == "ready_for_pr"
 
     def test_complete_work_item_pr_mode_auto_create_pr_disabled(self, tmp_path):
-        """Test complete_work_item in PR mode with auto_create_pr disabled (line 533)."""
+        """Test complete_work_item in PR mode with auto_create_pr disabled."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1561,9 +1586,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
         ):
             result = workflow.complete_work_item("feature_1", "feat: Complete", True, 1)
@@ -1576,7 +1607,7 @@ class TestErrorHandlingPaths:
             assert data["work_items"]["feature_1"]["git"]["status"] == "ready_for_pr"
 
     def test_complete_work_item_local_mode_merge_failure(self, tmp_path):
-        """Test complete_work_item in local mode when merge fails (line 546-548)."""
+        """Test complete_work_item in local mode when merge fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1598,9 +1629,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(
                 workflow,
@@ -1618,7 +1655,7 @@ class TestErrorHandlingPaths:
             assert data["work_items"]["feature_1"]["git"]["status"] == "ready_to_merge"
 
     def test_complete_work_item_local_mode_push_main_failure(self, tmp_path):
-        """Test complete_work_item in local mode when pushing main fails (line 555-556)."""
+        """Test complete_work_item in local mode when pushing main fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1640,9 +1677,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(workflow, "merge_to_parent", return_value=None),
             patch.object(
@@ -1658,7 +1701,7 @@ class TestErrorHandlingPaths:
         assert "Failed to push main" in result["message"]
 
     def test_complete_work_item_local_mode_delete_remote_branch_failure(self, tmp_path):
-        """Test complete_work_item when deleting remote branch fails (line 563-566)."""
+        """Test complete_work_item when deleting remote branch fails."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1680,9 +1723,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(workflow, "merge_to_parent", return_value=None),
             patch.object(workflow, "push_main_to_remote", return_value=None),
@@ -1699,7 +1748,7 @@ class TestErrorHandlingPaths:
         assert "Failed to delete remote branch" in result["message"]
 
     def test_complete_work_item_local_mode_merge_failure_sets_ready_to_merge(self, tmp_path):
-        """Test complete_work_item sets status to ready_to_merge on merge failure (line 571-572)."""
+        """Test complete_work_item sets status to ready_to_merge on merge failure."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1721,9 +1770,15 @@ class TestErrorHandlingPaths:
 
         workflow = GitWorkflow(project_root=tmp_path)
 
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
+
         # Act
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch.object(
                 workflow,
@@ -1740,7 +1795,7 @@ class TestErrorHandlingPaths:
             assert "Manual merge required" in result["message"]
 
     def test_complete_work_item_save_failure_at_end(self, tmp_path):
-        """Test complete_work_item when saving work items fails at the end (line 587-588)."""
+        """Test complete_work_item when saving work items fails at the end."""
         # Arrange
         work_items_file = tmp_path / ".session" / "tracking" / "work_items.json"
         work_items_file.parent.mkdir(parents=True)
@@ -1749,12 +1804,18 @@ class TestErrorHandlingPaths:
                 "feature_1": {
                     "id": "feature_1",
                     "status": "in_progress",
-                    "git": {"branch": "branch-1", "commits": []},
+                    "git": {"branch": "branch-1", "parent_branch": "main", "commits": []},
                 }
             }
         }
         work_items_file.write_text(json.dumps(work_items_data))
         workflow = GitWorkflow(project_root=tmp_path)
+
+        # Mock runner.run to return commits
+        def mock_run(cmd, *args, **kwargs):
+            if cmd[0] == "git" and cmd[1] == "log":
+                return Mock(success=True, stdout="abc1234\n", stderr="", returncode=0)
+            return Mock(success=True, stdout="", stderr="", returncode=0)
 
         original_open = open
 
@@ -1768,7 +1829,7 @@ class TestErrorHandlingPaths:
 
         # Act & Assert
         with (
-            patch.object(workflow, "commit_changes", return_value="abc1234"),
+            patch.object(workflow.runner, "run", side_effect=mock_run),
             patch.object(workflow, "push_branch", return_value=None),
             patch("builtins.open", side_effect=mock_open),
         ):

@@ -274,5 +274,22 @@ def initialize_tracking_files(
                 cause=e,
             )
 
+    # Copy CHANGELOG.md to project root (if not already present)
+    changelog_source = template_dir / "CHANGELOG.md"
+    changelog_dest = project_root / "CHANGELOG.md"
+
+    if changelog_source.exists() and not changelog_dest.exists():
+        try:
+            shutil.copy(changelog_source, changelog_dest)
+            created_files.append(changelog_dest)
+            logger.info("Created CHANGELOG.md")
+        except Exception as e:
+            raise FileOperationError(
+                operation="copy",
+                file_path=str(changelog_dest),
+                details=f"Failed to copy CHANGELOG.md: {str(e)}",
+                cause=e,
+            )
+
     logger.info(f"Initialized {len(created_files)} tracking files")
     return created_files

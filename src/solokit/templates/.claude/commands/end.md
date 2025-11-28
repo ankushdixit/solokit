@@ -4,36 +4,67 @@ description: Complete the current development session with quality gates and sum
 
 # Session End
 
-Before completing the session, **capture learnings** from the work done:
+Complete the current development session by following these steps in order.
 
-## Step 1: Generate Learnings
+## Step 1: Pre-flight Checks
 
-Review the session work and create 2-5 key learnings. You have two ways to capture learnings:
+Before completing the session, ensure all work is properly prepared.
 
-### Option A: Commit Message LEARNING Tags (Recommended)
+### 1.1 Check CHANGELOG
 
-Include `LEARNING:` annotations in your commit messages. These will be automatically extracted during session completion:
+First, check if CHANGELOG.md was updated in this session:
 
 ```bash
-git commit -m "Implement calculator add function
-
-Added TypeScript add function with comprehensive tests.
-
-LEARNING: TypeScript number type handles both integers and decimals seamlessly
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-Co-Authored-By: Claude <noreply@anthropic.com>"
+git diff --name-only HEAD~10 | grep -q CHANGELOG.md && echo "CHANGELOG updated" || echo "CHANGELOG needs update"
 ```
 
-### Option B: Temporary Learnings File
+**If CHANGELOG needs update:**
+1. Review commits made this session with `git log --oneline HEAD~10..HEAD`
+2. Update CHANGELOG.md under the `## [Unreleased]` section with:
+   - Features added under `### Added`
+   - Bug fixes under `### Fixed`
+   - Changes under `### Changed`
+3. Stage the CHANGELOG: `git add CHANGELOG.md`
 
-Write learnings to `.session/temp_learnings.txt` (one learning per line):
+### 1.2 Check and Commit Uncommitted Changes
+
+Check for uncommitted changes:
+
+```bash
+git status --porcelain
+```
+
+**If there are uncommitted changes:**
+1. Review the changes
+2. Stage all changes: `git add -A`
+3. Create a commit with this format:
+
+```bash
+git commit -m "$(cat <<'EOF'
+<type>: <short description>
+
+<detailed description of changes>
+
+LEARNING: <one key insight from this work>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+Where `<type>` is one of: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+
+### 1.3 Generate Learnings
+
+Extract 2-5 key learnings from the session and write them to a file:
 
 ```bash
 cat > .session/temp_learnings.txt << 'EOF'
-[Learning 1]
-[Learning 2]
-[Learning 3]
+<learning 1 - technical insight or pattern discovered>
+<learning 2 - gotcha or edge case encountered>
+<learning 3 - best practice that worked well>
 EOF
 ```
 
@@ -43,22 +74,19 @@ EOF
 - Best practices or patterns that worked well
 - Architecture decisions and their rationale
 - Performance or security considerations
-- Things to remember for future work
 
 ## Step 2: Ask About Work Item Completion
 
-Before completing the session, ask the user about the work item completion status using `AskUserQuestion`:
+Ask the user about the work item completion status using `AskUserQuestion`:
 
 **Question: Work Item Completion Status**
-- Question: "Is this work item complete?"
+- Question: "Is this work item complete? [Include work item title]"
 - Header: "Completion"
 - Multi-select: false
 - Options:
-  - Label: "Yes - Mark as completed", Description: "Work item is done. Will not auto-resume in next session."
-  - Label: "No - Keep as in-progress", Description: "Work is ongoing. Will auto-resume when you run /start in the next session."
+  - Label: "Yes - Mark as completed", Description: "Work item is done. A PR will be created for review."
+  - Label: "No - Keep as in-progress", Description: "Work is ongoing. Will auto-resume when you run /start."
   - Label: "Cancel", Description: "Don't end session. Continue working."
-
-**Important**: Display the work item title in the question text so the user knows which item they're completing.
 
 ## Step 3: Complete Session
 
@@ -69,48 +97,78 @@ Based on the user's selection:
 sk end --complete --learnings-file .session/temp_learnings.txt
 ```
 
-**Quality gate behavior:** Enforced/blocking - all gates must pass to end session.
-
 **If "No - Keep as in-progress" selected:**
 ```bash
 sk end --incomplete --learnings-file .session/temp_learnings.txt
 ```
 
-**Quality gate behavior:** Non-blocking - gates run and show warnings but don't prevent session end. This is extremely useful when running out of Claude context with failing quality gates, allowing you to checkpoint your work-in-progress.
-
 **If "Cancel" selected:**
 - Show message: "Session end cancelled. You can continue working."
 - Exit without calling command
 
-**Quality gates checked (behavior depends on --complete vs --incomplete):**
-- All tests pass (enforced in --complete, warned in --incomplete)
-- Linting passes (enforced in --complete, warned in --incomplete)
-- Git changes are committed (enforced in --complete, warned in --incomplete)
-- Coverage threshold met (enforced in --complete, warned in --incomplete)
-- Work item status is updated
-- Learnings are captured
+## Step 4: Create Pull Request (if complete)
 
-The script automatically updates project context files (stack.txt and tree.txt) after validation.
+**Only if the work item was marked as completed** and the session completed successfully:
 
-## Step 4: Show Results
+Check if a PR already exists for this branch:
+```bash
+gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
+```
 
-Show the user:
-- Session summary with work accomplished
-- **Commit details** (full messages + file change statistics) - Enhancement #11
-- Quality gate results (pass/fail for each check)
-- Learnings captured
-- Work item completion status (completed or in-progress)
-- Suggested next steps
+**If no PR exists**, create one:
+```bash
+gh pr create --title "<work_item_type>: <work_item_title>" --body "$(cat <<'EOF'
+## Summary
 
-**For --complete mode:** If any quality gates fail, display the specific errors and guide the user on what needs to be fixed before the session can be completed. Do not proceed with session completion until all quality gates pass.
+<Brief description of changes>
 
-**For --incomplete mode:** If any quality gates fail, display warnings but allow the session to complete. Inform the user that these issues can be addressed in the next session when they resume the work item.
+## Work Item
+- **ID**: <work_item_id>
+- **Type**: <work_item_type>
+- **Session**: <session_number>
 
-## Enhanced Session Summaries (Enhancement #11)
+## Changes
+<List of key changes from commits>
 
-Session summaries now include comprehensive commit details:
-- **Full commit messages** (multi-line messages preserved)
-- **File change statistics** from `git diff --stat` (files changed, insertions, deletions)
-- Each commit listed with short SHA and message
+## Testing
+- [ ] Tests pass locally
+- [ ] Manual testing completed
 
-This enriched session summary serves as the **single source of truth** for "Previous Work" sections in future session briefings when resuming in-progress work items.
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+## Step 5: Show Results
+
+Display the session completion summary to the user:
+
+1. **Quality Gate Results**
+   - Tests: PASSED/FAILED
+   - Linting: PASSED/FAILED
+   - Security: PASSED/FAILED
+   - Documentation: PASSED/FAILED
+
+2. **Session Summary**
+   - Work item status (completed or in-progress)
+   - Commits made this session
+   - Files changed
+
+3. **Learnings Captured**
+   - List the learnings that were saved
+
+4. **PR Status** (if applicable)
+   - PR URL if created
+   - "PR ready for review at: <url>"
+
+5. **Next Steps**
+   - For completed work: "PR created. Review and merge when ready."
+   - For in-progress work: "Run /start to resume this work item."
+
+---
+
+## Quality Gate Behavior
+
+**--complete mode:** All gates must pass. If any fail, the session cannot be completed. Fix issues and retry.
+
+**--incomplete mode:** Gates run and show warnings but don't block. Useful when running out of context or needing to checkpoint work-in-progress.

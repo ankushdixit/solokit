@@ -445,3 +445,110 @@ class TestInitializeTrackingFiles:
                     initialize_tracking_files("tier-1-essential", 80, tmp_path)
 
                 assert "Failed to copy guide templates" in exc.value.details
+
+    def test_copies_changelog_to_project_root(self, tmp_path, tracking_template_files):
+        """Test that CHANGELOG.md is copied to project root."""
+        import shutil
+
+        import solokit.init.session_structure as session_structure_module
+
+        (tmp_path / ".session" / "tracking").mkdir(parents=True)
+
+        # Set up fake module structure
+        fake_solokit_dir = tmp_path / "fake_solokit"
+        fake_init_dir = fake_solokit_dir / "init"
+        fake_init_dir.mkdir(parents=True)
+
+        fake_templates = fake_solokit_dir / "templates"
+        fake_templates.mkdir()
+
+        for item in tracking_template_files.iterdir():
+            if item.is_file():
+                shutil.copy(item, fake_templates / item.name)
+
+        # Add CHANGELOG.md to fake templates
+        changelog_content = "# Changelog\n\n## [Unreleased]\n"
+        (fake_templates / "CHANGELOG.md").write_text(changelog_content)
+
+        fake_file = str(fake_init_dir / "session_structure.py")
+
+        with patch.object(session_structure_module, "__file__", fake_file):
+            files = initialize_tracking_files("tier-2-standard", 80, tmp_path)
+
+            # Verify CHANGELOG.md was copied to project root
+            assert (tmp_path / "CHANGELOG.md").exists()
+            assert (tmp_path / "CHANGELOG.md").read_text() == changelog_content
+            assert tmp_path / "CHANGELOG.md" in files
+
+    def test_does_not_overwrite_existing_changelog(self, tmp_path, tracking_template_files):
+        """Test that existing CHANGELOG.md is not overwritten."""
+        import shutil
+
+        import solokit.init.session_structure as session_structure_module
+
+        (tmp_path / ".session" / "tracking").mkdir(parents=True)
+
+        # Create existing CHANGELOG.md
+        existing_content = "# Existing Changelog\n\nMy custom content\n"
+        (tmp_path / "CHANGELOG.md").write_text(existing_content)
+
+        # Set up fake module structure
+        fake_solokit_dir = tmp_path / "fake_solokit"
+        fake_init_dir = fake_solokit_dir / "init"
+        fake_init_dir.mkdir(parents=True)
+
+        fake_templates = fake_solokit_dir / "templates"
+        fake_templates.mkdir()
+
+        for item in tracking_template_files.iterdir():
+            if item.is_file():
+                shutil.copy(item, fake_templates / item.name)
+
+        # Add CHANGELOG.md to fake templates
+        (fake_templates / "CHANGELOG.md").write_text("# Template Changelog\n")
+
+        fake_file = str(fake_init_dir / "session_structure.py")
+
+        with patch.object(session_structure_module, "__file__", fake_file):
+            initialize_tracking_files("tier-2-standard", 80, tmp_path)
+
+            # Verify existing CHANGELOG.md was NOT overwritten
+            assert (tmp_path / "CHANGELOG.md").read_text() == existing_content
+
+    def test_changelog_copy_error_handling(self, tmp_path, tracking_template_files):
+        """Test error handling when copying CHANGELOG.md fails."""
+        import shutil
+
+        import solokit.init.session_structure as session_structure_module
+
+        (tmp_path / ".session" / "tracking").mkdir(parents=True)
+
+        # Set up fake module structure
+        fake_solokit_dir = tmp_path / "fake_solokit"
+        fake_init_dir = fake_solokit_dir / "init"
+        fake_init_dir.mkdir(parents=True)
+
+        fake_templates = fake_solokit_dir / "templates"
+        fake_templates.mkdir()
+
+        for item in tracking_template_files.iterdir():
+            if item.is_file():
+                shutil.copy(item, fake_templates / item.name)
+
+        # Add CHANGELOG.md to fake templates
+        (fake_templates / "CHANGELOG.md").write_text("# Changelog\n")
+
+        fake_file = str(fake_init_dir / "session_structure.py")
+
+        # Create a scenario where CHANGELOG copy fails
+        def mock_copy_side_effect(src, dst):
+            if "CHANGELOG.md" in str(dst):
+                raise PermissionError("Cannot copy CHANGELOG")
+            return shutil.copy2(src, dst)
+
+        with patch.object(session_structure_module, "__file__", fake_file):
+            with patch("shutil.copy", side_effect=mock_copy_side_effect):
+                with pytest.raises(FileOperationError) as exc:
+                    initialize_tracking_files("tier-1-essential", 80, tmp_path)
+
+                assert "Failed to copy CHANGELOG.md" in exc.value.details

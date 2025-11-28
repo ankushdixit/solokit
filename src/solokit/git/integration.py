@@ -417,22 +417,26 @@ class GitWorkflow:
                 }
 
     def complete_work_item(
-        self, work_item_id: str, commit_message: str, merge: bool = False, session_num: int = 1
+        self, work_item_id: str, commit_message: str = "", merge: bool = False, session_num: int = 1
     ) -> dict:
-        """Complete work on a work item (commit, push, optionally merge or create PR).
+        """Complete work on a work item (verify commits, push, optionally merge or create PR).
+
+        Note: This function no longer creates commits. Claude should commit all changes
+        before calling this function. This function verifies commits exist and proceeds
+        with push/PR creation.
 
         Behavior depends on git_workflow.mode config:
-        - "pr": Commit, push, create pull request (no local merge)
-        - "local": Commit, push, merge locally, push main, delete remote branch
+        - "pr": Push, create pull request (no local merge)
+        - "local": Push, merge locally, push main, delete remote branch
 
         Args:
             work_item_id: ID of the work item
-            commit_message: Commit message
+            commit_message: Deprecated - no longer used (kept for backward compatibility)
             merge: Whether to merge/create PR
             session_num: Session number
 
         Returns:
-            Dictionary with success, commit, pushed, and message
+            Dictionary with success, commit (count), pushed, and message
 
         Raises:
             FileOperationError: If work items file cannot be read/written
@@ -459,47 +463,36 @@ class GitWorkflow:
 
         branch_name = work_item["git"]["branch"]
         workflow_mode = self.config.mode
+        parent_branch = work_item["git"].get("parent_branch", "main")
 
-        # Step 1: Commit changes (if there are any)
-        try:
-            commit_sha = self.commit_changes(commit_message)
-            # Update work item commits with the new commit
-            if commit_sha not in work_item["git"]["commits"]:
-                work_item["git"]["commits"].append(commit_sha)
-        except GitError as e:
-            # If commit fails because there's nothing to commit, extract existing commits
-            if "nothing to commit" in str(e).lower():
-                # No new changes to commit - extract existing commits from git log
-                result = self.runner.run(
-                    [
-                        "git",
-                        "log",
-                        "--format=%h",
-                        branch_name,
-                        f"^{work_item['git'].get('parent_branch', 'main')}",
-                    ],
-                    timeout=GIT_STANDARD_TIMEOUT,
-                )
+        # Step 1: Extract existing commits from the branch
+        # Note: We no longer attempt to create commits - Claude should have already committed
+        # This function just verifies commits exist and proceeds with push/PR
+        result = self.runner.run(
+            [
+                "git",
+                "log",
+                "--format=%h",
+                f"{parent_branch}..{branch_name}",
+            ],
+            timeout=GIT_STANDARD_TIMEOUT,
+        )
 
-                if result.success and result.stdout.strip():
-                    existing_commits = result.stdout.strip().split("\n")
-                    # Update commits array with any new commits not already tracked
-                    for commit in reversed(existing_commits):  # Oldest to newest
-                        if commit not in work_item["git"]["commits"]:
-                            work_item["git"]["commits"].append(commit)
+        if result.success and result.stdout.strip():
+            existing_commits = result.stdout.strip().split("\n")
+            # Update commits array with any new commits not already tracked
+            for commit in reversed(existing_commits):  # Oldest to newest
+                if commit not in work_item["git"]["commits"]:
+                    work_item["git"]["commits"].append(commit)
 
-                    # If we found commits, treat this as success
-                    if existing_commits:
-                        commit_sha = f"Found {len(existing_commits)} existing commit(s)"
-                    else:
-                        return {"success": False, "message": "No commits found for this work item"}
-                else:
-                    return {
-                        "success": False,
-                        "message": f"Failed to retrieve commits: {str(e)}",
-                    }
-            else:
-                return {"success": False, "message": f"Commit failed: {str(e)}"}
+            commit_sha = f"{len(existing_commits)} commit(s)"
+            logger.info(f"Found {len(existing_commits)} commits on branch {branch_name}")
+        else:
+            # No commits found - this is an error state
+            return {
+                "success": False,
+                "message": f"No commits found on branch '{branch_name}'. Please commit your changes before ending the session.",
+            }
 
         # Step 2: Push to remote (if enabled)
         push_success = True
@@ -536,8 +529,6 @@ class GitWorkflow:
 
             else:
                 # Local Mode: Merge locally, push main, delete remote branch
-                parent_branch = work_item["git"].get("parent_branch", "main")
-
                 # Merge locally
                 try:
                     self.merge_to_parent(branch_name, parent_branch)
