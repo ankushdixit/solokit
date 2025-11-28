@@ -30,7 +30,7 @@ class TestErrorFormatter:
 
         assert "🔍" in formatted  # Not found symbol
         assert "my_feature" in formatted
-        assert "sk work-list" in formatted  # Remediation
+        assert "/work-list" in formatted  # Remediation
 
     def test_format_solokit_error_verbose(self):
         """Test verbose formatting includes context and error code"""

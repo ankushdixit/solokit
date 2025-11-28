@@ -326,7 +326,7 @@ class WorkItemNotFoundError(NotFoundError):
             message=f"Work item '{work_item_id}' not found",
             code=ErrorCode.WORK_ITEM_NOT_FOUND,
             context={"work_item_id": work_item_id},
-            remediation="Use 'sk work-list' to see available work items",
+            remediation="Use '/work-list' to see available work items",
         )
 
 
@@ -373,7 +373,7 @@ class SessionNotFoundError(NotFoundError):
         super().__init__(
             message="No active session found",
             code=ErrorCode.SESSION_NOT_FOUND,
-            remediation="Start a session with 'sk start' or 'sk start <work_item_id>'",
+            remediation="Start a session with '/start' or '/start <work_item_id>'",
         )
 
 
@@ -774,7 +774,7 @@ class SessionAlreadyActiveError(AlreadyExistsError):
             message=f"Session already active for '{current_work_item_id}'",
             code=ErrorCode.SESSION_ALREADY_ACTIVE,
             context={"current_work_item_id": current_work_item_id},
-            remediation="Complete current session with 'sk end' before starting a new one",
+            remediation="Complete current session with '/end' before starting a new one",
         )
 
 
@@ -791,7 +791,7 @@ class WorkItemAlreadyExistsError(AlreadyExistsError):
             message=f"Work item '{work_item_id}' already exists",
             code=ErrorCode.WORK_ITEM_ALREADY_EXISTS,
             context={"work_item_id": work_item_id},
-            remediation=f"Use 'sk work-show {work_item_id}' to view existing work item",
+            remediation=f"Use '/work-show {work_item_id}' to view existing work item",
         )
 
 

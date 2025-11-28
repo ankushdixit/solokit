@@ -23,7 +23,7 @@ This project uses minimal scaffolding. You'll create files from scratch followin
 2. **Understand the requirements** from the work item spec
 3. **Create necessary files** following ARCHITECTURE.md patterns
 4. **Write tests** alongside implementation
-5. **Run quality gates** before completing with `sk validate`
+5. **Run quality gates** before completing with `/validate`
 
 ### Quick Pattern Reference
 
@@ -136,7 +136,9 @@ This project uses Solokit for Session-Driven Development. Follow these guideline
 
 ### Understanding Solokit Commands
 
-All Solokit commands are available via the `sk` CLI. **Always use `--help` to discover options** before using a command:
+Solokit commands are available as **slash commands** in Claude Code (e.g., `/start`, `/end`, `/work-new`) or via the `sk` CLI in terminal. **Slash commands are preferred** as they provide interactive prompts.
+
+For CLI usage with specific arguments, use `--help` to discover options:
 
 ```bash
 sk <command> --help
@@ -244,7 +246,7 @@ sk work-delete <work_item_id>
 
 3. **Include acceptance criteria**
    - Every spec must have clear, testable acceptance criteria
-   - These will be used during `sk validate` and `sk end`
+   - These will be used during `/validate` and `/end`
 
 4. **Link related work items**
    - Reference dependencies in the spec
@@ -286,12 +288,11 @@ sk work-delete <work_item_id>
 
 #### Starting a Session
 
-```bash
-# Start working on a specific work item
-sk start <work_item_id>
+Use `/start` to begin a session:
 
-# Or start and get recommendations
-sk start
+```bash
+/start                    # Interactive - select from available work items
+/start <work_item_id>     # Start specific work item
 ```
 
 The start command:
@@ -302,8 +303,10 @@ The start command:
 
 #### Checking Session Status
 
+Use `/status` to check current session:
+
 ```bash
-sk status
+/status
 ```
 
 Shows:
@@ -315,8 +318,10 @@ Shows:
 
 #### Validating Without Ending
 
+Use `/validate` to check quality gates:
+
 ```bash
-sk validate
+/validate
 ```
 
 Runs quality gates without ending the session:
@@ -330,8 +335,10 @@ Use this frequently during development to catch issues early.
 
 #### Ending a Session
 
+Use `/end` to complete a session:
+
 ```bash
-sk end
+/end
 ```
 
 The end command:
@@ -358,12 +365,12 @@ Capture learnings when you:
 #### How to Capture Learnings
 
 **Method 1: During Session End (Preferred)**
-When running `sk end`, you'll be prompted to capture learnings. This is the preferred method as it links learnings to the session context.
+When running `/end`, you'll be prompted to capture learnings. This is the preferred method as it links learnings to the session context.
 
 **Method 2: Explicit Command**
 
 ```bash
-sk learn
+/learn
 ```
 
 This will prompt for:
@@ -382,20 +389,15 @@ This will prompt for:
 #### Searching Learnings
 
 ```bash
-sk learn-search "authentication"
+/learn-search "authentication"
 ```
 
 #### Viewing Learnings
 
 ```bash
-# Show all learnings
-sk learn-show
-
-# Filter by category
-sk learn-show --category debugging
-
-# Filter by tag
-sk learn-show --tag authentication
+/learn-show                           # Show all learnings
+/learn-show --category debugging      # Filter by category
+/learn-show --tag authentication      # Filter by tag
 ```
 
 **IMPORTANT**:
@@ -409,17 +411,10 @@ sk learn-show --tag authentication
 Visualize work item dependencies:
 
 ```bash
-# Generate dependency graph
-sk work-graph
-
-# Focus on specific work item
-sk work-graph --focus feat_001
-
-# Show critical path
-sk work-graph --critical-path
-
-# Show bottlenecks
-sk work-graph --bottlenecks
+/work-graph                       # Generate dependency graph
+/work-graph --focus feat_001      # Focus on specific work item
+/work-graph --critical-path       # Show critical path
+/work-graph --bottlenecks         # Show bottlenecks
 ```
 
 ---
@@ -444,7 +439,7 @@ sk work-graph --bottlenecks
    - This is a minimal scaffolding project - you'll create files from scratch
 
 4. **Validate your work**
-   - Run `sk validate` after making changes
+   - Run `/validate` after making changes
    - Ensure tests pass before considering work complete
    - Check that linting and type checking pass
 
@@ -476,7 +471,7 @@ When asked to create or write a PRD:
 - **.session/specs/** - For work item requirements and acceptance criteria
 - **.session/guides/PRD_WRITING_GUIDE.md** - **MUST follow when writing PRDs**
 - **.session/guides/STACK_GUIDE.md** - For understanding stack choice and capabilities
-- **sk <command> --help** - For Solokit command options
+- **Slash commands** (`/start`, `/end`, `/work-new`, etc.) - For Solokit operations
 
 ---
 
@@ -501,7 +496,7 @@ When asked to create or write a PRD:
 4. **Don't put learnings in wrong places**
    - NEVER add learnings to commit messages
    - NEVER create random learning files outside the system
-   - ALWAYS use `sk learn` or capture during `sk end`
+   - ALWAYS use `/learn` or capture during `/end`
 
 5. **Don't ignore the architecture**
    - NEVER violate stack-specific rules (see Stack Architecture Rules above)
@@ -509,12 +504,12 @@ When asked to create or write a PRD:
    - NEVER skip validation steps
 
 6. **Don't guess command options**
-   - NEVER assume you know all options for an `sk` command
-   - ALWAYS run `sk <command> --help` first if unsure
+   - NEVER assume you know all options for a command
+   - ALWAYS run `sk <command> --help` in terminal if unsure about CLI options
    - NEVER pass invalid arguments to commands
 
 7. **Don't abandon sessions**
-   - NEVER leave a session without running `sk end`
+   - NEVER leave a session without running `/end`
    - NEVER start a new session without ending the current one
    - ALWAYS complete the session workflow properly
 
@@ -559,7 +554,7 @@ All code changes must pass these quality gates before completion:
 
 ```bash
 # Run all quality validations
-sk validate
+/validate
 
 # Manual checks for {template_id}:
 npm test                 # Run tests
@@ -588,24 +583,24 @@ git commit --no-verify
 
 ## Quick Reference
 
-### Solokit Commands
+### Solokit Commands (Slash Commands)
 
-| Command                   | Description                    |
-| ------------------------- | ------------------------------ |
-| `sk work-list`            | List all work items            |
-| `sk work-show <id>`       | Show work item details         |
-| `sk work-new --help`      | Create new work item           |
-| `sk work-update <id>`     | Update work item               |
-| `sk work-delete <id>`     | Delete work item               |
-| `sk work-graph`           | Visualize dependencies         |
-| `sk work-next`            | Get next recommended work item |
-| `sk start [id]`           | Start a session                |
-| `sk status`               | Check session status           |
-| `sk validate`             | Validate quality gates         |
-| `sk end`                  | End session                    |
-| `sk learn`                | Capture a learning             |
-| `sk learn-show`           | View learnings                 |
-| `sk learn-search <query>` | Search learnings               |
+| Command                     | Description                    |
+| --------------------------- | ------------------------------ |
+| `/work-list`                | List all work items            |
+| `/work-show <id>`           | Show work item details         |
+| `/work-new`                 | Create new work item           |
+| `/work-update <id>`         | Update work item               |
+| `/work-delete <id>`         | Delete work item               |
+| `/work-graph`               | Visualize dependencies         |
+| `/work-next`                | Get next recommended work item |
+| `/start [id]`               | Start a session                |
+| `/status`                   | Check session status           |
+| `/validate`                 | Validate quality gates         |
+| `/end`                      | End session                    |
+| `/learn`                    | Capture a learning             |
+| `/learn-show`               | View learnings                 |
+| `/learn-search <query>`     | Search learnings               |
 
 ### Key Files
 

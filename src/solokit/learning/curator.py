@@ -376,7 +376,7 @@ Examples:
   sk learn-search "performance"
 
 💡 Search looks in content, tags, and context fields
-💡 Use sk learn-show to see all learnings organized by category
+💡 Use /learn-show to see all learnings organized by category
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

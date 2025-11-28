@@ -157,8 +157,8 @@ sorted by priority (critical > high > medium > low).
 
 Output format: work_item_id | type | title | priority
 
-💡 View all work items: sk work-list
-💡 Start a work item: sk start <work_item_id>
+💡 View all work items: /work-list
+💡 Start a work item: /start <work_item_id>
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

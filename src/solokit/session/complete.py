@@ -899,7 +899,7 @@ def check_uncommitted_changes() -> bool:
         output.info("   Co-Authored-By: Claude <noreply@anthropic.com>'")
         output.info("")
         output.info("4. Then run:")
-        output.info("   sk end")
+        output.info("   /end")
         output.info("")
         output.info("=" * 60)
 
@@ -915,7 +915,7 @@ def check_uncommitted_changes() -> bool:
         else:
             logger.info("Non-interactive mode: aborting on uncommitted changes")
             output.info("\nNon-interactive mode: exiting")
-            output.info("Please commit your changes and run 'sk end' again.")
+            output.info("Please commit your changes and run '/end' again.")
             return False
 
     except Exception as e:
@@ -989,23 +989,25 @@ def main() -> int:
         if total_items == 0:
             output.error("No active work item to complete")
             output.info("\nNo work items found. Create one first:")
-            output.info("  1. sk work-new --type feature --title '...' --priority high")
-            output.info("  2. Or use /work-new in Claude Code for interactive creation\n")
-            output.info("💡 Use 'sk work-list' to see all work items")
+            output.info("  1. Use /work-new to create a work item interactively")
+            output.info(
+                "  2. Or use CLI: sk work-new --type feature --title '...' --priority high\n"
+            )
+            output.info("💡 Use '/work-list' to see all work items")
         else:
             output.error("No active work item to complete")
             output.info(f"\nYou have {total_items} work items available.\n")
             output.info("To start a work item:")
-            output.info("  1. View work items: sk work-list")
-            output.info("  2. Start a work item: sk start <work_item_id>")
-            output.info("  3. Or use /start in Claude Code to choose interactively\n")
-            output.info("💡 Use 'sk work-next' to see recommended work items")
+            output.info("  1. View work items: /work-list")
+            output.info("  2. Start a work item: /start <work_item_id>")
+            output.info("  3. Or use /start to choose interactively\n")
+            output.info("💡 Use '/work-next' to see recommended work items")
         return 1
 
     if work_item_id not in work_items_data["work_items"]:
         logger.error(f"Work item not found: {work_item_id}")
         output.error(f"Work item not found: {work_item_id}")
-        output.info("\n💡 Use 'sk work-list' to see all work items")
+        output.info("\n💡 Use '/work-list' to see all work items")
         return 1
 
     work_item = work_items_data["work_items"][work_item_id]

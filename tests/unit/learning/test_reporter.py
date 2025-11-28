@@ -610,7 +610,7 @@ class TestShowLearningsFiltering:
 
         captured = capsys.readouterr()
         assert "To see all learnings:" in captured.out
-        assert "sk learn-show" in captured.out
+        assert "/learn-show" in captured.out
 
 
 class TestGenerateReportEdgeCases:

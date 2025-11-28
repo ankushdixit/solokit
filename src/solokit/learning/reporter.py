@@ -91,7 +91,7 @@ class LearningReporter:
         # Display results
         if not matches:
             output.info(f"\n⚠️ No learnings found matching '{query}'\n")
-            output.info("Try different keywords or use 'sk learn-show' to browse all learnings.")
+            output.info("Try different keywords or use '/learn-show' to browse all learnings.")
             output.info("")
             return
 
@@ -165,9 +165,9 @@ class LearningReporter:
         if not filtered:
             output.info("\n⚠️ No learnings found matching your filters\n")
             output.info("To see all learnings:")
-            output.info("  1. Remove filters: sk learn-show")
-            output.info("  2. Search for keywords: sk learn-search <query>")
-            output.info("  3. Capture a new learning: sk learn or /learn in Claude Code\n")
+            output.info("  1. Remove filters: /learn-show")
+            output.info("  2. Search for keywords: /learn-search <query>")
+            output.info("  3. Capture a new learning: /learn\n")
             output.info("💡 Learnings are captured automatically during /end sessions")
             return
 

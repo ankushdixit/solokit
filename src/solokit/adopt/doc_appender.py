@@ -123,7 +123,9 @@ This project uses Solokit for Session-Driven Development. Follow these guideline
 
 ### Understanding Solokit Commands
 
-All Solokit commands are available via the `sk` CLI. **Always use `--help` to discover options**:
+Solokit commands are available as **slash commands** in Claude Code (e.g., `/start`, `/end`, `/work-new`) or via the `sk` CLI in terminal. **Slash commands are preferred** as they provide interactive prompts.
+
+For CLI usage with specific arguments, use `--help` to discover options:
 
 ```bash
 sk <command> --help
@@ -204,12 +206,11 @@ sk work-update feat_001 --set-urgent
 
 #### Starting a Session
 
-```bash
-# Start working on a specific work item
-sk start <work_item_id>
+Use `/start` to begin a session:
 
-# Or start and get recommendations
-sk start
+```bash
+/start                    # Interactive - select from available work items
+/start <work_item_id>     # Start specific work item
 ```
 
 The start command:
@@ -219,24 +220,30 @@ The start command:
 
 #### Checking Status
 
+Use `/status` to check current session:
+
 ```bash
-sk status
+/status
 ```
 
 Shows current work item, session duration, and quality gate status.
 
 #### Validating Quality
 
+Use `/validate` to check quality gates:
+
 ```bash
-sk validate
+/validate
 ```
 
 Runs quality gates without ending the session. Use frequently during development.
 
 #### Ending a Session
 
+Use `/end` to complete a session:
+
 ```bash
-sk end
+/end
 ```
 
 The end command:
@@ -260,37 +267,27 @@ Capture learnings when you:
 #### How to Capture Learnings
 
 **Method 1: During Session End (Preferred)**
-When running `sk end`, you'll be prompted to capture learnings.
+When running `/end`, you'll be prompted to capture learnings.
 
 **Method 2: Explicit Command**
 ```bash
-sk learn
+/learn
 ```
 
 #### Searching and Viewing Learnings
 
 ```bash
-# Search learnings
-sk learn-search "authentication"
-
-# Show all learnings
-sk learn-show
-
-# Filter by category
-sk learn-show --category debugging
+/learn-search "authentication"          # Search learnings
+/learn-show                             # Show all learnings
+/learn-show --category debugging        # Filter by category
 ```
 
 ### Dependency Graph
 
 ```bash
-# Generate dependency graph
-sk work-graph
-
-# Focus on specific work item
-sk work-graph --focus feat_001
-
-# Show critical path
-sk work-graph --critical-path
+/work-graph                       # Generate dependency graph
+/work-graph --focus feat_001      # Focus on specific work item
+/work-graph --critical-path       # Show critical path
 ```
 
 ---
@@ -302,7 +299,7 @@ sk work-graph --critical-path
 1. **Complete all tasks fully** - Don't rush through multiple items
 2. **Don't make assumptions** - Ask clarifying questions when ambiguous
 3. **Follow established patterns** - Check existing code before writing new code
-4. **Validate your work** - Run `sk validate` after making changes
+4. **Validate your work** - Run `/validate` after making changes
 
 ### Ask Clarifying Questions When
 
@@ -316,7 +313,7 @@ sk work-graph --critical-path
 - **ARCHITECTURE.md** - For architecture patterns and conventions
 - **README.md** - For project-specific configuration
 - **.session/specs/** - For work item requirements
-- **sk <command> --help** - For command options
+- **Slash commands** (`/start`, `/end`, `/work-new`, etc.) - For Solokit operations
 
 ---
 
@@ -337,10 +334,10 @@ sk work-graph --critical-path
 
 4. **Don't put learnings in wrong places**
    - NEVER add learnings to commit messages
-   - ALWAYS use `sk learn` or capture during `sk end`
+   - ALWAYS use `/learn` or capture during `/end`
 
 5. **Don't abandon sessions**
-   - NEVER leave a session without running `sk end`
+   - NEVER leave a session without running `/end`
    - ALWAYS complete the session workflow properly
 
 6. **Don't skip quality gates**
@@ -351,24 +348,24 @@ sk work-graph --critical-path
 
 ## Quick Reference
 
-### Solokit Commands
+### Solokit Commands (Slash Commands)
 
 | Command | Description |
 |---------|-------------|
-| `sk work-list` | List all work items |
-| `sk work-show <id>` | Show work item details |
-| `sk work-new --help` | Create new work item |
-| `sk work-update <id>` | Update work item |
-| `sk work-delete <id>` | Delete work item |
-| `sk work-graph` | Visualize dependencies |
-| `sk work-next` | Get next recommended work item |
-| `sk start [id]` | Start a session |
-| `sk status` | Check session status |
-| `sk validate` | Validate quality gates |
-| `sk end` | End session |
-| `sk learn` | Capture a learning |
-| `sk learn-show` | View learnings |
-| `sk learn-search <query>` | Search learnings |
+| `/work-list` | List all work items |
+| `/work-show <id>` | Show work item details |
+| `/work-new` | Create new work item |
+| `/work-update <id>` | Update work item |
+| `/work-delete <id>` | Delete work item |
+| `/work-graph` | Visualize dependencies |
+| `/work-next` | Get next recommended work item |
+| `/start [id]` | Start a session |
+| `/status` | Check session status |
+| `/validate` | Validate quality gates |
+| `/end` | End session |
+| `/learn` | Capture a learning |
+| `/learn-show` | View learnings |
+| `/learn-search <query>` | Search learnings |
 
 ### Key Files
 
