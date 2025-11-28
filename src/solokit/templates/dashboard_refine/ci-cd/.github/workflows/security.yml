@@ -53,6 +53,9 @@ jobs:
 
   secrets-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     # Skip on initial commit (push with no parent to compare against)
     # For PRs, github.event.before is the merge base, not zeros
     if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
