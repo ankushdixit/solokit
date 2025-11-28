@@ -118,8 +118,8 @@ Examples:
   sk work-show feat_001
   sk work-show bug_fix_phase_1_error_messaging_an
 
-💡 List all work items: sk work-list
-💡 View work item dependencies: sk work-graph --focus <work_id>
+💡 List all work items: /work-list
+💡 View work item dependencies: /work-graph --focus <work_id>
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -144,8 +144,8 @@ Valid priorities: critical, high, medium, low
 The --urgent flag marks an item for immediate attention. Only ONE item can be urgent at a time.
 When you mark a new item as urgent, you'll be prompted to clear the existing urgent flag.
 
-💡 View existing work items: sk work-list
-💡 For interactive creation in Claude Code, use /work-new
+💡 View existing work items: /work-list
+💡 For interactive creation, use /work-new
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -191,8 +191,8 @@ Valid priorities: critical, high, medium, low
 The --set-urgent flag marks an item as urgent (only one item can be urgent at a time).
 The --clear-urgent flag removes the urgent status from a work item.
 
-💡 View current work item status: sk work-show <work_id>
-💡 For interactive updates in Claude Code, use /work-update
+💡 View current work item status: /work-show <work_id>
+💡 For interactive updates, use /work-update
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

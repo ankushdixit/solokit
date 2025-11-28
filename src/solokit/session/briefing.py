@@ -175,10 +175,10 @@ def main():
                     remediation=(
                         "All work items may be blocked by dependencies or already completed.\n\n"
                         "To proceed:\n"
-                        "  1. Check work item status: sk work-list\n"
-                        "  2. View dependencies: sk work-graph\n"
-                        "  3. Find next available: sk work-next\n\n"
-                        "💡 Use 'sk work-list --status not_started' to see pending items"
+                        "  1. Check work item status: /work-list\n"
+                        "  2. View dependencies: /work-graph\n"
+                        "  3. Find next available: /work-next\n\n"
+                        "💡 Use '/work-list --status not_started' to see pending items"
                     ),
                 )
 

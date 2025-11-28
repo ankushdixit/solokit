@@ -105,9 +105,9 @@ def get_session_status() -> int:
                 context={"status_file": str(status_file)},
                 remediation=(
                     "No work items found. Create one first:\n"
-                    "  1. sk work-new --type feature --title '...' --priority high\n"
-                    "  2. Or use /work-new in Claude Code for interactive creation\n\n"
-                    "💡 Use 'sk work-list' to see all work items"
+                    "  1. Use /work-new for interactive creation\n"
+                    "  2. Or CLI: sk work-new --type feature --title '...' --priority high\n\n"
+                    "💡 Use '/work-list' to see all work items"
                 ),
             )
         else:
@@ -117,10 +117,10 @@ def get_session_status() -> int:
                 remediation=(
                     f"You have {total_items} work items available.\n\n"
                     "To get started:\n"
-                    "  1. View work items: sk work-list\n"
-                    "  2. Start a work item: sk start <work_item_id>\n"
-                    "  3. Or use /start in Claude Code to choose interactively\n\n"
-                    "💡 Use 'sk work-next' to see recommended work items"
+                    "  1. View work items: /work-list\n"
+                    "  2. Start a work item: /start <work_item_id>\n"
+                    "  3. Or use /start to choose interactively\n\n"
+                    "💡 Use '/work-next' to see recommended work items"
                 ),
             )
 

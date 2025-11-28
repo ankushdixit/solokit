@@ -226,7 +226,7 @@ By default, prompts to confirm spec file deletion.
 Use --keep-spec to preserve the spec file.
 Use --delete-spec to skip confirmation and delete both.
 
-💡 View all work items: sk work-list
+💡 View all work items: /work-list
 💡 Restore accidentally deleted items from git: git checkout HEAD -- .session/
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,

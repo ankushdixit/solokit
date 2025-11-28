@@ -91,8 +91,8 @@ def main() -> int:
         print(
             f"  {binary} -m solokit.work_items.get_metadata feat_001 --with-deps\n", file=sys.stderr
         )
-        print("💡 List all work items: sk work-list", file=sys.stderr)
-        print("💡 Use 'sk work-show <work_id>' for full details including spec\n", file=sys.stderr)
+        print("💡 List all work items: /work-list", file=sys.stderr)
+        print("💡 Use '/work-show <work_id>' for full details including spec\n", file=sys.stderr)
         sys.exit(1)
 
     work_item_id = sys.argv[1]

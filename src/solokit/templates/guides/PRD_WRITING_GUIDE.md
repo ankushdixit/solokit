@@ -33,10 +33,10 @@ This guide is designed for a workflow where **Claude writes both the PRD and imp
 4. User reviews and approves the PRD
 5. Claude creates Solokit work items from the PRD
 6. For each work item:
-   a. User runs: sk start <work-item-id>
+   a. User runs: /start <work-item-id>
    b. Claude implements the feature
    c. Claude writes tests
-   d. User runs: sk end
+   d. User runs: /end
 7. Repeat until product is complete
 ```
 
@@ -63,7 +63,7 @@ When implementing from a PRD, Claude will:
 - Write tests that verify the acceptance criteria
 - Follow patterns documented in ARCHITECTURE.md
 - Ask for clarification when requirements are ambiguous
-- Use Solokit's session workflow (`sk start`, `sk end`)
+- Use Solokit's session workflow (`/start`, `/end`)
 
 ---
 
@@ -448,7 +448,7 @@ Solokit's quality gates verify:
 | E2E Tests | All pass (if they exist) |
 | Security | No vulnerabilities detected |
 
-Stories aren't complete until `sk end` passes all gates.
+Stories aren't complete until `/end` passes all gates.
 
 ---
 
@@ -511,7 +511,7 @@ sk start feat_user_profile_view
 sk end
 
 # If gates pass, work item marked complete
-# If gates fail, fix issues and run sk end again
+# If gates fail, fix issues and run /end again
 ```
 
 ---
@@ -838,9 +838,9 @@ Before finalizing your PRD, verify:
 After completing your PRD:
 
 1. **Save PRD** at `docs/PRD.md`
-2. **Create work items** using `sk work-new` for each story
+2. **Create work items** using `/work-new` for each story
 3. **Set dependencies** between work items
-4. **Start first session** with `sk start <work-item-id>`
+4. **Start first session** with `/start <work-item-id>`
 5. **Implement** following ARCHITECTURE.md patterns
-6. **Complete session** with `sk end`
+6. **Complete session** with `/end`
 7. **Repeat** until MVP is complete

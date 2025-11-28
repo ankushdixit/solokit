@@ -41,7 +41,7 @@ class ErrorFormatter:
             >>> error = WorkItemNotFoundError("my_feature")
             >>> print(ErrorFormatter.format_error(error))
             🔍 Work item 'my_feature' not found
-            💡 Use 'sk work-list' to see available work items
+            💡 Use '/work-list' to see available work items
         """
         if isinstance(error, SolokitError):
             return ErrorFormatter._format_solokit_error(error, verbose)

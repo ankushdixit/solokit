@@ -616,7 +616,7 @@ class TestMainValidationErrorScenarios:
 
             # Verify error details
             assert "No work items found" in exc_info.value.message
-            assert "sk work-new" in exc_info.value.remediation
+            assert "/work-new" in exc_info.value.remediation
 
     @patch("solokit.session.briefing.load_work_items")
     @patch("solokit.session.briefing.load_learnings")
@@ -644,4 +644,4 @@ class TestMainValidationErrorScenarios:
             # Verify error details
             assert "No available work items" in exc_info.value.message
             assert "2 total exist" in exc_info.value.message
-            assert "sk work-list" in exc_info.value.remediation
+            assert "/work-list" in exc_info.value.remediation

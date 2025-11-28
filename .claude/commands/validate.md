@@ -25,4 +25,4 @@ The validation checks:
 - **Git Status**: Working directory is clean or has expected changes
 - **Acceptance Criteria**: Work item requirements are met
 
-Display the validation results to the user with a clear pass/fail status for each check. If linting or formatting fail, suggest using `sk validate --fix` to automatically fix the issues. This command allows checking quality during development without ending the session.
+Display the validation results to the user with a clear pass/fail status for each check. If linting or formatting fail, suggest using `/validate --fix` to automatically fix the issues. This command allows checking quality during development without ending the session.

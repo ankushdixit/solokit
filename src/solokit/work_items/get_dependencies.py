@@ -155,8 +155,8 @@ Examples:
 Returns work items that can be used as dependencies (excluding completed by default).
 Uses smart filtering when --title is provided to show most relevant dependencies.
 
-💡 View all work items: sk work-list
-💡 Create work item with dependencies: sk work-new -t feature -T "..." -p high -d feat_001,bug_002
+💡 View all work items: /work-list
+💡 Create work item with dependencies: /work-new (or CLI: sk work-new -t feature -T "..." -p high -d feat_001,bug_002)
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

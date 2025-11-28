@@ -283,9 +283,9 @@ class TestAppendToClaudeMd:
         content = (temp_project / "CLAUDE.md").read_text()
 
         assert "Session Workflow" in content
-        assert "sk start" in content
-        assert "sk end" in content
-        assert "sk validate" in content
+        assert "/start" in content
+        assert "/end" in content
+        assert "/validate" in content
 
     def test_claude_md_includes_learning_guidance(self, temp_project):
         """Test that CLAUDE.md includes learning capture guidance."""
@@ -294,8 +294,8 @@ class TestAppendToClaudeMd:
         content = (temp_project / "CLAUDE.md").read_text()
 
         assert "Learning Capture" in content
-        assert "sk learn" in content
-        assert "sk learn-search" in content
+        assert "/learn" in content
+        assert "/learn-search" in content
 
     def test_claude_md_includes_behavior_guidelines(self, temp_project):
         """Test that CLAUDE.md includes Claude behavior guidelines."""

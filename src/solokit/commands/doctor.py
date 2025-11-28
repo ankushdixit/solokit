@@ -239,7 +239,7 @@ def check_work_items_valid() -> DiagnosticCheck:
             name="Work Items",
             passed=False,
             message=f"work_items.json has invalid JSON: {str(e)}",
-            suggestion="Run 'sk work-list' to regenerate work_items.json",
+            suggestion="Run '/work-list' to regenerate work_items.json",
         )
     except Exception as e:
         return DiagnosticCheck(

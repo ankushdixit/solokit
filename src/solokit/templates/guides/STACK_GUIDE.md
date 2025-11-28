@@ -417,5 +417,5 @@ After choosing your stack:
 
 1. **Write your PRD** using `.session/guides/PRD_WRITING_GUIDE.md`
 2. **Review patterns** in your project's `ARCHITECTURE.md`
-3. **Create work items** with `sk work-new`
-4. **Start building** with `sk start <work-item-id>`
+3. **Create work items** with `/work-new`
+4. **Start building** with `/start <work-item-id>`

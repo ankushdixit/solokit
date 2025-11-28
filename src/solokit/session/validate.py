@@ -213,7 +213,7 @@ class SessionValidator:
                 message="No current work item is set in session",
                 code=ErrorCode.MISSING_REQUIRED_FIELD,
                 context={"status_file": str(status_file)},
-                remediation="Start a work item with 'sk start <work_item_id>'",
+                remediation="Start a work item with '/start <work_item_id>'",
             )
 
         # Load work items

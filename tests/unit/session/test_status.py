@@ -75,7 +75,7 @@ class TestGetSessionStatusNoStatusFile:
             with pytest.raises(SessionNotFoundError) as exc_info:
                 get_session_status()
 
-            assert "sk start" in exc_info.value.remediation
+            assert "/start" in exc_info.value.remediation
 
 
 class TestGetSessionStatusNoWorkItem:
@@ -149,7 +149,7 @@ class TestGetSessionStatusNoWorkItem:
 
             assert "No active work item in this session" in str(exc_info.value)
             # Updated to match new context-aware message when work items exist
-            assert "sk start" in exc_info.value.remediation
+            assert "/start" in exc_info.value.remediation
             assert "work items available" in exc_info.value.remediation.lower()
 
 
