@@ -440,11 +440,15 @@ def extract_learnings_from_session(learnings_file: Path | None = None) -> list[s
 def complete_git_workflow(
     work_item_id: str, commit_message: str, session_num: int
 ) -> dict[str, Any]:
-    """Complete git workflow (commit, push, optionally merge or create PR).
+    """Complete git workflow (verify commits, push, optionally merge or create PR).
+
+    Note: As of the /end command improvements, commits should be created by Claude
+    before calling this function. The commit_message parameter is deprecated and
+    no longer used - it's kept for backward compatibility.
 
     Args:
         work_item_id: Work item identifier
-        commit_message: Git commit message
+        commit_message: Deprecated - no longer used (kept for backward compatibility)
         session_num: Current session number
 
     Returns:
@@ -1181,10 +1185,12 @@ def main() -> int:
     with open(".session/tracking/work_items.json", "w") as f:
         json.dump(work_items_data, f, indent=2)
 
-    # Generate commit message
+    # Generate commit message (deprecated - commits should be made by Claude before /end)
+    # Kept for backward compatibility with complete_git_workflow signature
     commit_message = generate_commit_message(status, work_item)
 
-    # Complete git workflow (commit, push, optionally merge or create PR)
+    # Complete git workflow (verify commits, push, optionally merge or create PR)
+    # Note: This no longer creates commits - it verifies existing commits and pushes
     output.info("\nCompleting git workflow...")
     git_result = complete_git_workflow(work_item_id, commit_message, session_num)
 
