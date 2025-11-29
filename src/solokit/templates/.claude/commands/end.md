@@ -15,7 +15,7 @@ Before completing the session, ensure all work is properly prepared.
 First, check if CHANGELOG.md was updated in this session:
 
 ```bash
-git diff --name-only HEAD~10 | grep -q CHANGELOG.md && echo "CHANGELOG updated" || echo "CHANGELOG needs update"
+git diff --name-only main...HEAD | grep -q CHANGELOG.md && echo "CHANGELOG updated" || echo "CHANGELOG needs update"
 ```
 
 **If CHANGELOG needs update:**
