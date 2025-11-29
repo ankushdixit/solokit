@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **CHANGELOG Update Check False Positives in /end Command**
+  - Changed check from `HEAD~10` (last 10 commits) to `main...HEAD` (commits since branch creation)
+  - Previous logic gave false positives when a prior session had updated CHANGELOG
+  - Now correctly detects whether CHANGELOG was updated in the current session/branch
+
 ## [0.1.7] - 2025-11-28
 
 ### Changed
