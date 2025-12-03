@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-03
+
 ### Fixed
 - **Tailwind CSS v4 Migration for All Templates** (fullstack_nextjs, saas_t3, dashboard_refine)
   - Migrated from Tailwind v3 `@tailwind` directives to v4 `@import "tailwindcss"` syntax
@@ -1638,13 +1640,13 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.1.7** = Current release ✅ **Current** (Improved /end command flow, slash command format)
-- v0.1.6 = Previous release (Minimal scaffolding migration complete)
+- **v0.2.0** = Current release ✅ **Current** (Tailwind CSS v4 migration, CHANGELOG check fixes)
+- v0.1.7 = Previous release (Improved /end command flow, slash command format)
+- v0.1.6 = Earlier release (Minimal scaffolding migration complete)
 - v0.1.5 = Earlier release (GitHub setup integration, security fixes)
 - v0.1.4 = Earlier release (Test coverage improvements)
 - v0.1.3 = Earlier release (Documentation model improvements)
 - v0.1.1 = Earlier release (UX improvements & bug fixes)
-- v0.2.0+ = Future enhancements (planned)
 - v1.0.0 = Stable API release (planned)
 
 ## Links

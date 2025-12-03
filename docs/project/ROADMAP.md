@@ -1,6 +1,6 @@
 # Solokit Roadmap
 
-**Current Release:** v0.1.7
+**Current Release:** v0.2.0
 **Status:** Production-ready, feature-complete framework
 
 ---
