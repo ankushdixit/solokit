@@ -592,6 +592,113 @@ const customDataProvider: DataProvider = {
 2. Ensure proper typing for data responses
 3. Use generics with hooks: `useTable<User>()`
 
+## Tailwind CSS v4 Configuration
+
+This template uses **Tailwind CSS v4** with CSS-first configuration. The comprehensive shadcn/ui theming system is implemented via `@theme` blocks in CSS.
+
+### Configuration Files
+
+| File | Purpose |
+| ---- | ------- |
+| `app/globals.css` | Main CSS with `@import "tailwindcss"`, `@theme` block, and shadcn/ui color tokens |
+| `tailwind.config.ts` | Minimal config (only needed for plugins) |
+| `postcss.config.mjs` | PostCSS configuration with `@tailwindcss/postcss` |
+
+### Color System
+
+The template includes a complete shadcn/ui color system defined in `globals.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens - generates utilities like bg-primary, text-muted-foreground */
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+  --color-primary: hsl(222.2 47.4% 11.2%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(210 40% 96.1%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  /* ... more tokens */
+}
+```
+
+### Available Color Utilities
+
+The theme generates these utility classes:
+
+| Utility | Usage |
+| ------- | ----- |
+| `bg-background`, `text-foreground` | Base colors |
+| `bg-primary`, `text-primary-foreground` | Primary actions |
+| `bg-secondary`, `text-secondary-foreground` | Secondary actions |
+| `bg-destructive`, `text-destructive-foreground` | Destructive actions |
+| `bg-muted`, `text-muted-foreground` | Muted/disabled states |
+| `bg-accent`, `text-accent-foreground` | Accent/highlight |
+| `bg-card`, `text-card-foreground` | Card components |
+| `bg-popover`, `text-popover-foreground` | Popover/dropdown |
+| `border-border`, `bg-input`, `ring-ring` | Form elements |
+
+### Dark Mode
+
+Dark mode is implemented via the `.dark` class on the `<html>` or `<body>` element:
+
+```css
+.dark {
+  --color-background: hsl(222.2 84% 4.9%);
+  --color-foreground: hsl(210 40% 98%);
+  /* ... dark mode overrides */
+}
+```
+
+To toggle dark mode programmatically:
+
+```typescript
+document.documentElement.classList.toggle('dark');
+```
+
+### Adding Custom Colors
+
+Add new colors to the `@theme` block:
+
+```css
+@theme {
+  /* Existing colors... */
+
+  /* Custom additions */
+  --color-success: hsl(142.1 76.2% 36.3%);
+  --color-success-foreground: hsl(355.7 100% 97.3%);
+  --color-warning: hsl(47.9 95.8% 53.1%);
+  --color-warning-foreground: hsl(26 83.3% 14.1%);
+}
+```
+
+### Border Radius
+
+Custom radius tokens are defined in `@theme`:
+
+```css
+@theme {
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+```
+
+Use via utilities: `rounded-lg`, `rounded-md`, `rounded-sm`.
+
+### Key Differences from Tailwind v3
+
+| v3 Pattern | v4 Pattern |
+| ---------- | ---------- |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| `tailwind.config.ts` theme.extend.colors | `@theme { --color-*: value }` in CSS |
+| `hsl(var(--primary))` in config | `--color-primary: hsl(...)` directly in CSS |
+| `content: [...]` in config | Automatic content detection |
+| `darkMode: "class"` in config | `.dark { }` CSS overrides |
+
 ## Resources
 
 - [Refine.dev Documentation](https://refine.dev/docs/)
@@ -600,3 +707,5 @@ const customDataProvider: DataProvider = {
 - [shadcn/ui Components](https://ui.shadcn.com/)
 - [React Hook Form](https://react-hook-form.com/)
 - [Zod Documentation](https://zod.dev/)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Tailwind CSS v4 Upgrade Guide](https://tailwindcss.com/docs/upgrade-guide)

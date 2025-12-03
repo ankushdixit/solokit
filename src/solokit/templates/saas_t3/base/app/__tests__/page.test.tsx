@@ -23,10 +23,11 @@ describe("Home Page", () => {
     expect(screen.getByText(/Create your PRD/i)).toBeInTheDocument();
   });
 
-  it("has gradient background styling", () => {
+  it("has theme-based background styling", () => {
     const { container } = render(<Home />);
     const main = container.querySelector("main");
-    expect(main).toHaveClass("bg-gradient-to-b");
+    expect(main).toHaveClass("bg-background");
+    expect(main).toHaveClass("text-foreground");
   });
 
   it("has centered layout", () => {

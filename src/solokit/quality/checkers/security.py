@@ -165,16 +165,24 @@ class SecurityChecker(QualityChecker):
                     logger.debug("No src/ directory found, skipping Bandit")
                     return None
 
+                # Build bandit command
+                bandit_cmd = [
+                    "bandit",
+                    "-r",
+                    str(src_dir),
+                    "-f",
+                    "json",
+                    "-o",
+                    bandit_report_path,
+                ]
+
+                # Use pyproject.toml config if it exists
+                pyproject_path = self.project_root / "pyproject.toml"
+                if pyproject_path.exists():
+                    bandit_cmd.extend(["-c", str(pyproject_path)])
+
                 self.runner.run(
-                    [
-                        "bandit",
-                        "-r",
-                        str(src_dir),
-                        "-f",
-                        "json",
-                        "-o",
-                        bandit_report_path,
-                    ],
+                    bandit_cmd,
                     timeout=QUALITY_CHECK_LONG_TIMEOUT,
                 )
 

@@ -580,6 +580,78 @@ revalidateTag("users"); // Revalidate by tag
 2. Ensure dates are serialized consistently
 3. Check for browser-only APIs in Server Components
 
+## Tailwind CSS v4 Configuration
+
+This template uses **Tailwind CSS v4** with CSS-first configuration. Theme customization is done in CSS rather than JavaScript.
+
+### Configuration Files
+
+| File | Purpose |
+| ---- | ------- |
+| `app/globals.css` | Main CSS file with `@import "tailwindcss"` and `@theme` block |
+| `tailwind.config.ts` | Minimal config (only needed for plugins) |
+| `postcss.config.mjs` | PostCSS configuration with `@tailwindcss/postcss` |
+
+### Adding Custom Colors
+
+In Tailwind v4, colors are defined in CSS using the `@theme` directive with `--color-*` namespace:
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom colors - generates bg-*, text-*, border-* utilities */
+  --color-brand: #3b82f6;
+  --color-brand-dark: #1d4ed8;
+  --color-surface: #f8fafc;
+}
+```
+
+This generates utilities like `bg-brand`, `text-brand-dark`, `border-surface`, etc.
+
+### Dark Mode
+
+Dark mode is implemented via CSS media query:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0a0a;
+    --color-foreground: #ededed;
+  }
+}
+```
+
+### Custom Utilities
+
+Use the `@utility` directive for custom utilities:
+
+```css
+@utility text-balance {
+  text-wrap: balance;
+}
+```
+
+### Adding shadcn/ui Components
+
+To add shadcn/ui components:
+
+1. Run `npx shadcn@latest init`
+2. Extend the `@theme` block in `globals.css` with additional color tokens
+3. Update `components.json` as needed
+
+**Note**: shadcn/ui's default color system uses tokens like `--color-primary`, `--color-secondary`, etc. Add these to your `@theme` block.
+
+### Key Differences from Tailwind v3
+
+| v3 Pattern | v4 Pattern |
+| ---------- | ---------- |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| `tailwind.config.ts` theme.extend.colors | `@theme { --color-*: value }` in CSS |
+| `content: [...]` in config | Automatic content detection |
+| `@layer utilities` | `@utility name { ... }` |
+
 ## Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -587,4 +659,5 @@ revalidateTag("users"); // Revalidate by tag
 - [Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Zod Documentation](https://zod.dev/)
-- [Tailwind CSS](https://tailwindcss.com/docs)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Tailwind CSS v4 Upgrade Guide](https://tailwindcss.com/docs/upgrade-guide)

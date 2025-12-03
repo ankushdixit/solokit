@@ -79,9 +79,9 @@ describe("Error Component", () => {
     expect(button).toHaveClass("transition");
   });
 
-  it("uses T3 Stack color scheme", () => {
+  it("uses theme-based color scheme", () => {
     const { container } = render(<ErrorPage error={mockError} reset={mockReset} />);
-    const card = container.querySelector(".bg-white\\/10");
-    expect(card).toBeInTheDocument();
+    const wrapper = container.querySelector(".bg-background");
+    expect(wrapper).toBeInTheDocument();
   });
 });
