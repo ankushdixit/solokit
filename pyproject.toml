@@ -159,3 +159,9 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "questionary.*"
 ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "src/solokit/templates"]
+# B608: Skip hardcoded_sql_expressions - triggers false positives on markdown
+# template strings in doc_appender.py. This project doesn't use raw SQL.
+skips = ["B608"]

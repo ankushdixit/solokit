@@ -1,37 +1,38 @@
 /*
  * Full-Stack Next.js Global Styles
  *
- * This template uses minimal CSS variables for basic theming.
+ * This template uses Tailwind CSS v4 with CSS-first configuration.
+ * Theme customization is done via @theme blocks below.
+ *
  * If you want to add shadcn/ui components, you'll need to:
  * 1. Run: npx shadcn@latest init
- * 2. Replace this file with the generated globals.css
+ * 2. Extend the @theme block with additional color tokens
  * 3. Update components.json as needed
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Color tokens using --color-* namespace for Tailwind v4 */
+  --color-background: #ffffff;
+  --color-foreground: #171717;
 }
 
+/* Dark mode using prefers-color-scheme */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-background: #0a0a0a;
+    --color-foreground: #ededed;
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-foreground);
+  background: var(--color-background);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Custom utilities use @utility directive in Tailwind v4 */
+@utility text-balance {
+  text-wrap: balance;
 }

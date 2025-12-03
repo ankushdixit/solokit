@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Tailwind CSS v4 Migration for All Templates** (fullstack_nextjs, saas_t3, dashboard_refine)
+  - Migrated from Tailwind v3 `@tailwind` directives to v4 `@import "tailwindcss"` syntax
+  - Moved theme configuration from JavaScript `tailwind.config.ts` to CSS `@theme` blocks
+  - Updated components to use theme tokens (`bg-background`, `text-foreground`) instead of hardcoded colors
+  - Fixed accessibility violation: Changed `text-blue-500` to `text-blue-700` for WCAG AA contrast compliance
+  - Updated all test files to match new theme-based styling expectations
+  - Added comprehensive Tailwind v4 documentation to ARCHITECTURE.md files
+
 - **CHANGELOG Update Check False Positives in /end Command**
   - Changed check from `HEAD~10` (last 10 commits) to `main...HEAD` (commits since branch creation)
   - Previous logic gave false positives when a prior session had updated CHANGELOG

@@ -420,6 +420,76 @@ model Post {
 2. For custom classes, transform to plain objects
 3. Check for undefined values in responses
 
+## Tailwind CSS v4 Configuration
+
+This template uses **Tailwind CSS v4** with CSS-first configuration. Theme customization is done in CSS rather than JavaScript.
+
+### Configuration Files
+
+| File | Purpose |
+| ---- | ------- |
+| `app/globals.css` | Main CSS file with `@import "tailwindcss"` and `@theme` block |
+| `tailwind.config.ts` | Minimal config (only needed for plugins) |
+| `postcss.config.mjs` | PostCSS configuration with `@tailwindcss/postcss` |
+
+### Adding Custom Colors
+
+In Tailwind v4, colors are defined in CSS using the `@theme` directive with `--color-*` namespace:
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom colors - generates bg-*, text-*, border-* utilities */
+  --color-brand: #3b82f6;
+  --color-brand-dark: #1d4ed8;
+  --color-surface: #f8fafc;
+}
+```
+
+This generates utilities like `bg-brand`, `text-brand-dark`, `border-surface`, etc.
+
+### Dark Mode
+
+Dark mode is implemented via CSS media query:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0a0a;
+    --color-foreground: #ededed;
+  }
+}
+```
+
+### Custom Utilities
+
+Use the `@utility` directive for custom utilities:
+
+```css
+@utility text-balance {
+  text-wrap: balance;
+}
+```
+
+### Adding shadcn/ui Components
+
+To add shadcn/ui components:
+
+1. Run `npx shadcn@latest init`
+2. Extend the `@theme` block in `globals.css` with additional color tokens
+3. Update `components.json` as needed
+
+### Key Differences from Tailwind v3
+
+| v3 Pattern | v4 Pattern |
+| ---------- | ---------- |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| `tailwind.config.ts` theme.extend.colors | `@theme { --color-*: value }` in CSS |
+| `content: [...]` in config | Automatic content detection |
+| `@layer utilities` | `@utility name { ... }` |
+
 ## Resources
 
 - [T3 Stack Documentation](https://create.t3.gg/)
@@ -428,3 +498,5 @@ model Post {
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [TanStack Query](https://tanstack.com/query/latest)
 - [Zod Documentation](https://zod.dev/)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Tailwind CSS v4 Upgrade Guide](https://tailwindcss.com/docs/upgrade-guide)

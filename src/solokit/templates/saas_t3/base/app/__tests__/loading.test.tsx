@@ -53,15 +53,15 @@ describe("Loading Component", () => {
     expect(spacedDiv).toBeInTheDocument();
   });
 
-  it("uses T3 Stack color scheme for spinner", () => {
+  it("uses theme-based color scheme for spinner", () => {
     const { container } = render(<Loading />);
-    const spinner = container.querySelector(".border-white\\/30");
+    const spinner = container.querySelector(".border-foreground\\/30");
     expect(spinner).toBeInTheDocument();
   });
 
-  it("spinner has transparent top border", () => {
+  it("spinner has themed top border", () => {
     const { container } = render(<Loading />);
-    const spinner = container.querySelector(".border-t-white");
+    const spinner = container.querySelector(".border-t-foreground");
     expect(spinner).toBeInTheDocument();
   });
 });
