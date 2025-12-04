@@ -59,7 +59,7 @@ def mock_template_registry():
                 "display_name": "SaaS T3",
                 "description": "Production SaaS with T3 Stack",
                 "stack": {
-                    "frontend": "Next.js 16.0.1",
+                    "frontend": "Next.js 16.0.7",
                     "backend": "tRPC 11.0.0",
                     "database": "PostgreSQL 16.2",
                 },
@@ -113,7 +113,7 @@ def mock_stack_versions():
             "saas_t3": {
                 "installation": {
                     "commands": {
-                        "base": "npm install next@16.0.1 react@19.0.0",
+                        "base": "npm install next@16.0.7 react@19.2.1",
                         "tier1": "npm install -D vitest@3.0.5",
                         "tier2": "npm install -D typescript@5.7.2",
                         "tier3": "npm install -D @playwright/test@1.49.1",

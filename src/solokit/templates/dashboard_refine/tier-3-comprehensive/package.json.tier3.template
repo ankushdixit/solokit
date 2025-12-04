@@ -33,9 +33,9 @@
     "audit": "npm audit --audit-level=moderate"
   },
   "dependencies": {
-    "next": "16.0.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "next": "16.0.7",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
     "@refinedev/cli": "2.16.50",
     "@refinedev/core": "5.0.5",
     "@refinedev/nextjs-router": "7.0.4",
@@ -58,7 +58,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.0.1",
+    "eslint-config-next": "16.0.7",
     "@typescript-eslint/parser": "8.46.3",
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "globals": "16.5.0",

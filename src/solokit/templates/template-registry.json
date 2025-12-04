@@ -12,7 +12,7 @@
       "category": "saas",
       "description": "Minimal scaffolding for SaaS apps with Next.js 16, React 19, tRPC, Prisma, and Tailwind. Build from your PRD using documented patterns.",
       "stack": {
-        "frontend": "Next.js 16.0.1 + React 19.2.0",
+        "frontend": "Next.js 16.0.7 + React 19.2.1",
         "language": "TypeScript 5.9.3",
         "api": "tRPC 11.7.1",
         "database": "PostgreSQL with Prisma 6.19.0",
@@ -95,9 +95,9 @@
       "category": "dashboard",
       "description": "Minimal scaffolding for admin dashboards with Refine framework and Next.js. Build from your PRD using documented patterns.",
       "stack": {
-        "framework": "Refine (latest) + Next.js 16.0.1",
+        "framework": "Refine (latest) + Next.js 16.0.7",
         "language": "TypeScript 5.9.3",
-        "ui": "React 19.2.0 + shadcn/ui components",
+        "ui": "React 19.2.1 + shadcn/ui components",
         "forms": "React Hook Form 7.66.0 + Zod 4.1.12",
         "styling": "Tailwind CSS 4.1.17"
       },
@@ -137,9 +137,9 @@
       "category": "fullstack",
       "description": "Minimal scaffolding for full-stack web apps with Next.js, Prisma, and Zod. Build from your PRD using documented patterns.",
       "stack": {
-        "framework": "Next.js 16.0.1",
+        "framework": "Next.js 16.0.7",
         "language": "TypeScript 5.9.3",
-        "frontend": "React 19.2.0",
+        "frontend": "React 19.2.1",
         "database": "Prisma 6.19.0",
         "validation": "Zod 4.1.12",
         "styling": "Tailwind CSS 4.1.17"

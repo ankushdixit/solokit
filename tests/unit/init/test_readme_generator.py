@@ -53,7 +53,7 @@ class TestGenerateReadme:
                 readme_path = generate_readme("saas_t3", "tier-1-essential", 60, [], tmp_path)
 
                 content = readme_path.read_text()
-                assert "Next.js 16.0.1" in content
+                assert "Next.js 16.0.7" in content
                 assert "tRPC 11.0.0" in content
                 assert "PostgreSQL 16.2" in content
 

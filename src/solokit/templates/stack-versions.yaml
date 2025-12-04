@@ -25,9 +25,9 @@ stacks:
     install_time_minutes: 25
 
     base_framework:
-      next: "16.0.1"
-      react: "19.2.0"
-      react-dom: "19.2.0"
+      next: "16.0.7"
+      react: "19.2.1"
+      react-dom: "19.2.1"
       typescript: "5.9.3"
       "@types/node": "20.19.24"
       "@types/react": "19.2.2"
@@ -49,7 +49,7 @@ stacks:
 
     tier1_essential:
       eslint: "9.39.1"
-      eslint-config-next: "16.0.1"
+      eslint-config-next: "16.0.7"
       "@typescript-eslint/parser": "8.46.3"
       "@typescript-eslint/eslint-plugin": "8.46.3"
       prettier: "3.6.2"
@@ -78,7 +78,7 @@ stacks:
     tier4_production:
       # IMPORTANT: patch-package must be installed FIRST
       patch-package: "8.0.1"
-      "@next/bundle-analyzer": "16.0.1"
+      "@next/bundle-analyzer": "16.0.7"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
       "@sentry/nextjs": "10.27.0"
@@ -90,16 +90,16 @@ stacks:
         - "(yes \"n\" | npx create-next-app@latest <project-name> --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\")"
 
       commands:
-        base: "npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 @trpc/server@11.7.1 @trpc/client@11.7.1 @trpc/react-query@11.7.1 @trpc/next@11.7.1 @tanstack/react-query@5.90.7 prisma@6.19.0 @prisma/client@6.19.0 zod@4.1.12 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
+        base: "npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 @trpc/server@11.7.1 @trpc/client@11.7.1 @trpc/react-query@11.7.1 @trpc/next@11.7.1 @tanstack/react-query@5.90.7 prisma@6.19.0 @prisma/client@6.19.0 zod@4.1.12 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
 
-        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
+        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
 
         tier2: "npm install --save-dev husky@9.1.7 lint-staged@16.2.6"
 
         tier3: "npm install --save-dev jscpd@4.0.5 ts-prune@0.10.3 type-coverage@2.29.7 @stryker-mutator/core@9.3.0 @stryker-mutator/jest-runner@9.3.0 @playwright/test@1.56.1 playwright@1.56.1 @axe-core/playwright@4.11.0 eslint-plugin-jest-dom@5.5.0 eslint-plugin-testing-library@7.13.3"
 
         # CRITICAL: patch-package MUST be installed before Sentry
-        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
+        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.7 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
         tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
       test_command: "npm run build"
@@ -265,9 +265,9 @@ stacks:
     install_time_minutes: 20
 
     base_framework:
-      next: "16.0.1"
-      react: "19.2.0"
-      react-dom: "19.2.0"
+      next: "16.0.7"
+      react: "19.2.1"
+      react-dom: "19.2.1"
       typescript: "5.9.3"
       "@types/node": "20.19.24"
       "@types/react": "19.2.2"
@@ -296,7 +296,7 @@ stacks:
 
     tier1_essential:
       eslint: "9.39.1"
-      eslint-config-next: "16.0.1"
+      eslint-config-next: "16.0.7"
       "@typescript-eslint/parser": "8.46.3"
       "@typescript-eslint/eslint-plugin": "8.46.3"
       prettier: "3.6.2"
@@ -324,7 +324,7 @@ stacks:
 
     tier4_production:
       patch-package: "8.0.1"
-      "@next/bundle-analyzer": "16.0.1"
+      "@next/bundle-analyzer": "16.0.7"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
       "@sentry/nextjs": "10.27.0"
@@ -336,16 +336,16 @@ stacks:
 
       commands:
         # Incremental installation matching tier structure
-        base: "npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 @refinedev/cli@2.16.50 @refinedev/core@5.0.5 @refinedev/nextjs-router@7.0.4 @refinedev/react-table@6.0.1 @refinedev/react-hook-form@5.0.2 recharts@3.3.0 react-hook-form@7.66.0 zod@4.1.12 @hookform/resolvers@5.2.2 lucide-react@0.553.0 class-variance-authority@0.7.1 clsx@2.1.1 tailwind-merge@3.3.1 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
+        base: "npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 @refinedev/cli@2.16.50 @refinedev/core@5.0.5 @refinedev/nextjs-router@7.0.4 @refinedev/react-table@6.0.1 @refinedev/react-hook-form@5.0.2 recharts@3.3.0 react-hook-form@7.66.0 zod@4.1.12 @hookform/resolvers@5.2.2 lucide-react@0.553.0 class-variance-authority@0.7.1 clsx@2.1.1 tailwind-merge@3.3.1 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
 
-        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
+        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
 
         tier2: "npm install --save-dev husky@9.1.7 lint-staged@16.2.6"
 
         tier3: "npm install --save-dev jscpd@4.0.5 ts-prune@0.10.3 type-coverage@2.29.7 @stryker-mutator/core@9.3.0 @stryker-mutator/jest-runner@9.3.0 @playwright/test@1.56.1 playwright@1.56.1 @axe-core/playwright@4.11.0 eslint-plugin-jest-dom@5.5.0 eslint-plugin-testing-library@7.13.3"
 
         # CRITICAL: patch-package MUST be installed before Sentry
-        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
+        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.7 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
 
         tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
@@ -382,9 +382,9 @@ stacks:
     install_time_minutes: 10
 
     base_framework:
-      next: "16.0.1"
-      react: "19.2.0"
-      react-dom: "19.2.0"
+      next: "16.0.7"
+      react: "19.2.1"
+      react-dom: "19.2.1"
       typescript: "5.9.3"
       "@types/node": "20.19.24"
       "@types/react": "19.2.2"
@@ -401,7 +401,7 @@ stacks:
 
     tier1_essential:
       eslint: "9.39.1"
-      eslint-config-next: "16.0.1"
+      eslint-config-next: "16.0.7"
       prettier: "3.6.2"
       jest: "30.2.0"
       "@types/jest": "30.0.0"
@@ -427,7 +427,7 @@ stacks:
 
     tier4_production:
       patch-package: "8.0.1"
-      "@next/bundle-analyzer": "16.0.1"
+      "@next/bundle-analyzer": "16.0.7"
       "@lhci/cli": "0.15.1"
       dotenv-cli: "11.0.0"
       "@sentry/nextjs": "10.27.0"
@@ -439,16 +439,16 @@ stacks:
 
       commands:
         # Incremental installation matching tier structure
-        base: "npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 prisma@6.19.0 @prisma/client@6.19.0 zod@4.1.12 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
+        base: "npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 prisma@6.19.0 @prisma/client@6.19.0 zod@4.1.12 tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17"
 
-        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
+        tier1: "npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 prettier@3.6.2 jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1"
 
         tier2: "npm install --save-dev husky@9.1.7 lint-staged@16.2.6"
 
         tier3: "npm install --save-dev jscpd@4.0.5 ts-prune@0.10.3 type-coverage@2.29.7 @stryker-mutator/core@9.3.0 @stryker-mutator/jest-runner@9.3.0 @playwright/test@1.56.1 playwright@1.56.1 @axe-core/playwright@4.11.0 eslint-plugin-jest-dom@5.5.0 eslint-plugin-testing-library@7.13.3"
 
         # CRITICAL: patch-package MUST be installed before Sentry
-        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.1 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
+        tier4_dev: "npm install --save-dev patch-package@8.0.1 @next/bundle-analyzer@16.0.7 @lhci/cli@0.15.1 dotenv-cli@11.0.0"
 
         tier4_prod: "npm install @sentry/nextjs@10.27.0 @vercel/analytics@1.5.0"
 
@@ -485,9 +485,9 @@ version_convergence:
     - "Single source of truth for Next.js ecosystem versions"
 
   shared_versions:
-    next: "16.0.1"
-    react: "19.2.0"
-    react-dom: "19.2.0"
+    next: "16.0.7"
+    react: "19.2.1"
+    react-dom: "19.2.1"
     tailwindcss: "4.1.17"
     jest: "30.2.0"
     zod: "4.1.12"
@@ -580,7 +580,7 @@ time_estimates:
 usage_instructions:
   reading_versions:
     - "Access versions via: stacks.<stack_name>.<tier>.<package>"
-    - "Example: stacks.saas_t3.base_framework.next → '16.0.1'"
+    - "Example: stacks.saas_t3.base_framework.next → '16.0.7'"
     - "Example: stacks.ml_ai_fastapi.tier1_essential.pytest → '8.3.4'"
 
   installation_commands:
