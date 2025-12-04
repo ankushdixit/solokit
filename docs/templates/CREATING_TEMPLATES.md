@@ -101,8 +101,8 @@ stacks:
     package_manager: "npm"  # or "pip"
 
     base_framework:
-      next: "16.0.1"
-      react: "19.2.0"
+      next: "16.0.7"
+      react: "19.2.1"
 
     tier1_essential:
       jest: "30.0.3"
@@ -122,7 +122,7 @@ stacks:
 
     installation:
       commands:
-        base: "npm install next@16.0.1 react@19.2.0 react-dom@19.2.0"
+        base: "npm install next@16.0.7 react@19.2.1 react-dom@19.2.1"
         tier1: "npm install --save-dev jest@30.0.3 eslint@9.39.1"
         tier2: "npm install --save-dev prettier@3.6.2 husky@9.1.7"
         tier3: "npm install --save-dev playwright@1.56.1 @lhci/cli@0.15.1"

@@ -153,7 +153,7 @@ That's it! Claude Code handles the rest, providing context-aware assistance thro
 Initialize projects with battle-tested configurations and comprehensive documentation:
 
 **SaaS T3 Stack** (`saas_t3`)
-- Next.js 16.0.1, React 19.2.0, tRPC 11.7.1, Prisma 6.19.0
+- Next.js 16.0.7, React 19.2.1, tRPC 11.7.1, Prisma 6.19.0
 - End-to-end type safety patterns documented in ARCHITECTURE.md
 - Perfect for: SaaS products, B2B apps, complex data models
 
@@ -163,12 +163,12 @@ Initialize projects with battle-tested configurations and comprehensive document
 - Perfect for: ML model serving, data pipelines, Python microservices
 
 **Dashboard Refine** (`dashboard_refine`)
-- Refine 5.0.5, Next.js 16.0.1, shadcn/ui
+- Refine 5.0.5, Next.js 16.0.7, shadcn/ui
 - Data provider and Refine hook patterns documented
 - Perfect for: Admin panels, internal dashboards, data management
 
 **Full-Stack Next.js** (`fullstack_nextjs`)
-- Next.js 16.0.1, React 19.2.0, Prisma 6.19.0
+- Next.js 16.0.7, React 19.2.1, Prisma 6.19.0
 - Server Components and Server Actions patterns documented
 - Perfect for: Marketing sites, content platforms, e-commerce
 

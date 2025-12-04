@@ -44,7 +44,7 @@ What are you building?
 ### 1. SaaS T3 Stack (`saas_t3`)
 
 **Technology Versions:**
-- Next.js 16.0.1 + React 19.2.0
+- Next.js 16.0.7 + React 19.2.1
 - tRPC 11.7.1
 - Prisma 6.19.0
 - TypeScript 5.9.3
@@ -182,8 +182,8 @@ alembic/
 ### 3. Dashboard Refine (`dashboard_refine`)
 
 **Technology Versions:**
-- Refine (latest) + Next.js 16.0.1
-- React 19.2.0 + shadcn/ui
+- Refine (latest) + Next.js 16.0.7
+- React 19.2.1 + shadcn/ui
 - React Hook Form 7.66.0 + Zod 4.1.12
 - TypeScript 5.9.3
 - Tailwind CSS 4.1.17
@@ -260,8 +260,8 @@ You must implement a data provider to connect to your backend. Refine supports:
 ### 4. Full-Stack Next.js (`fullstack_nextjs`)
 
 **Technology Versions:**
-- Next.js 16.0.1
-- React 19.2.0
+- Next.js 16.0.7
+- React 19.2.1
 - Prisma 6.19.0
 - Zod 4.1.12
 - TypeScript 5.9.3

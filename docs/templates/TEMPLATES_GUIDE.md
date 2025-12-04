@@ -313,8 +313,8 @@ sk init --template=saas_t3 --tier=tier-3-comprehensive
 All templates use the latest stable versions:
 
 **JavaScript/TypeScript:**
-- Next.js 16.0.1
-- React 19.2.0
+- Next.js 16.0.7
+- React 19.2.1
 - TypeScript 5.9.3
 - Tailwind CSS 4.1.17
 

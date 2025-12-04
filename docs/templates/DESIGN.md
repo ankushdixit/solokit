@@ -454,14 +454,14 @@ All installation steps are executed via deterministic Python scripts located in 
 
 **Tier 1: Base + Essential**:
 ```bash
-npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 \
+npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 \
   @trpc/server@11.7.1 @trpc/client@11.7.1 @trpc/react-query@11.7.1 @trpc/next@11.7.1 \
   @tanstack/react-query@5.90.7 \
   prisma@6.19.0 @prisma/client@6.19.0 \
   zod@4.1.12 \
   tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17 postcss@8.4.49 autoprefixer@10.4.20
 
-npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 \
+npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 \
   @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 \
   prettier@3.6.2 \
   jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 \
@@ -548,14 +548,14 @@ pip install --upgrade setuptools starlette
 
 **Tier 1: Base + Essential**:
 ```bash
-npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 \
+npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 \
   @refinedev/cli@latest @refinedev/core@latest @refinedev/nextjs-router@latest \
   @refinedev/react-table@latest @refinedev/react-hook-form@latest \
   recharts@latest react-hook-form@latest zod@4.1.12 @hookform/resolvers@latest \
   lucide-react@latest class-variance-authority@latest clsx@latest tailwind-merge@latest \
   tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17
 
-npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 \
+npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 \
   @typescript-eslint/parser@8.46.3 @typescript-eslint/eslint-plugin@8.46.3 \
   prettier@3.6.2 \
   jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 \
@@ -595,11 +595,11 @@ npm install @sentry/nextjs@latest @vercel/analytics@latest
 
 **Tier 1: Base + Essential**:
 ```bash
-npm install next@16.0.1 react@19.2.0 react-dom@19.2.0 \
+npm install next@16.0.7 react@19.2.1 react-dom@19.2.1 \
   prisma@6.19.0 @prisma/client@6.19.0 zod@4.1.12 \
   tailwindcss@4.1.17 @tailwindcss/postcss@4.1.17
 
-npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.1 \
+npm install --save-dev eslint@9.39.1 eslint-config-next@16.0.7 \
   prettier@3.6.2 \
   jest@30.2.0 @types/jest@30.0.0 ts-jest@29.4.5 jest-environment-jsdom@30.2.0 \
   @testing-library/react@16.3.0 @testing-library/jest-dom@6.9.1
@@ -913,7 +913,7 @@ src/solokit/templates/
       "description": "Full-featured SaaS with Next.js 16, React 19, tRPC, Prisma, and Tailwind",
       "category": "saas",
       "stack": {
-        "frontend": "Next.js 16.0.1 + React 19.2.0",
+        "frontend": "Next.js 16.0.7 + React 19.2.1",
         "language": "TypeScript 5.7.3",
         "api": "tRPC 11.7.1",
         "database": "PostgreSQL 16+ with Prisma 6.1.0",
@@ -1180,12 +1180,12 @@ All four stacks have been validated through fresh installation testing. Exact ve
 
 | Stack | Status | Build | Key Versions |
 |-------|--------|-------|--------------|
-| SaaS T3 | ✅ VALIDATED | PASSING | Next 16.0.1, React 19.2.0, tRPC 11.7.1, Zod 4.1.12, Jest 30 |
+| SaaS T3 | ✅ VALIDATED | PASSING | Next 16.0.7, React 19.2.1, tRPC 11.7.1, Zod 4.1.12, Jest 30 |
 | ML/AI FastAPI | ✅ VALIDATED | PASSING | FastAPI 0.115.6, Pydantic 2.12.4, Python 3.11+ required |
-| Dashboard Refine | ✅ VALIDATED | PASSING | Next 16.0.1, React 19.2.0, Refine 5.0.5, Zod 4.1.12, Jest 30 |
-| Full-Stack Next.js | ✅ VALIDATED | PASSING | Next 16.0.1, React 19.2.0, Prisma 6.19.0, Zod 4.1.12, Jest 30 |
+| Dashboard Refine | ✅ VALIDATED | PASSING | Next 16.0.7, React 19.2.1, Refine 5.0.5, Zod 4.1.12, Jest 30 |
+| Full-Stack Next.js | ✅ VALIDATED | PASSING | Next 16.0.7, React 19.2.1, Prisma 6.19.0, Zod 4.1.12, Jest 30 |
 
-**🎉 VERSION CONVERGENCE**: All three Next.js-based stacks use identical versions for shared dependencies (Next.js 16.0.1, React 19.2.0, Zod 4.1.12, Jest 30, Tailwind 4.1.17).
+**🎉 VERSION CONVERGENCE**: All three Next.js-based stacks use identical versions for shared dependencies (Next.js 16.0.7, React 19.2.1, Zod 4.1.12, Jest 30, Tailwind 4.1.17).
 
 ### 10.3 Key Validation Findings
 
@@ -1197,8 +1197,8 @@ All four stacks have been validated through fresh installation testing. Exact ve
 **Version Updates from Initial Design**:
 - **Zod**: Upgraded to v4.1.12 (backward compatible, zero breaking changes)
 - **Jest**: Upgraded to v30.2.0 (seamless upgrade)
-- **React**: 19.2.0 (latest stable)
-- **Next.js**: 16.0.1 (latest stable, fully compatible with tRPC 11.7.1)
+- **React**: 19.2.1 (latest stable, CVE-2025-55182 fix)
+- **Next.js**: 16.0.7 (latest stable, CVE-2025-66478 fix)
 
 All validated versions and installation commands are stored in `src/solokit/templates/stack-versions.yaml`.
 
@@ -1359,7 +1359,7 @@ A SaaS Application built with the T3 stack.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.0.1 + React 19.2.0
+- **Framework**: Next.js 16.0.7 + React 19.2.1
 - **API Layer**: tRPC 11.7.1
 - **Database**: Prisma 6.19.0
 - **Styling**: Tailwind CSS 4.1.17
@@ -1507,8 +1507,8 @@ The `.session/` directory is created with the following structure:
 - TypeScript 5.7.3
 
 ## Frameworks
-- Next.js 16.0.1
-- React 19.2.0
+- Next.js 16.0.7
+- React 19.2.1
 
 ## Key Libraries
 - tRPC 11.7.1
@@ -1604,8 +1604,8 @@ Coverage Target: 80%
 Additional Options: GitHub Actions CI/CD, Environment Templates
 
 Stack:
-- Next.js: 16.0.1
-- React: 19.2.0
+- Next.js: 16.0.7
+- React: 19.2.1
 - TypeScript: 5.7.3
 - tRPC: 11.7.1
 - Prisma: 6.19.0
@@ -1651,8 +1651,8 @@ stacks:
   saas_t3:
     name: "Next.js T3 Stack"
     base_framework:
-      next: "16.0.1"
-      react: "19.2.0"
+      next: "16.0.7"
+      react: "19.2.1"
       # ... all versions
     tier1_essential:
       # ... tier-specific versions
