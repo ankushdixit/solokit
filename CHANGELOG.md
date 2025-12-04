@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-04
+
+### Security
+- **Critical CVE Patches for Next.js and React Templates** (PR #191)
+  - Updated Next.js from 16.0.1 to 16.0.7 to address CVE-2025-66478 (CVSS 10.0)
+  - Updated React from 19.2.0 to 19.2.1 to address CVE-2025-55182
+  - Updated react-dom from 19.2.0 to 19.2.1
+  - Updated eslint-config-next from 16.0.1 to 16.0.7
+  - Updated @next/bundle-analyzer from 16.0.1 to 16.0.7
+  - Affects all Next.js templates: fullstack_nextjs, saas_t3, dashboard_refine (all tiers)
+  - Reference: https://nextjs.org/blog/CVE-2025-66478
+
 ## [0.2.0] - 2025-12-03
 
 ### Fixed
@@ -1640,8 +1652,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.2.0** = Current release ✅ **Current** (Tailwind CSS v4 migration, CHANGELOG check fixes)
-- v0.1.7 = Previous release (Improved /end command flow, slash command format)
+- **v0.2.1** = Current release ✅ **Current** (Critical CVE patches for Next.js/React templates)
+- v0.2.0 = Previous release (Tailwind CSS v4 migration, CHANGELOG check fixes)
+- v0.1.7 = Earlier release (Improved /end command flow, slash command format)
 - v0.1.6 = Earlier release (Minimal scaffolding migration complete)
 - v0.1.5 = Earlier release (GitHub setup integration, security fixes)
 - v0.1.4 = Earlier release (Test coverage improvements)
