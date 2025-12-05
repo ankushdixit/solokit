@@ -148,7 +148,15 @@ def initialize_tracking_files(
         "quality_gates": {
             "tier": tier,
             "coverage_threshold": coverage_target,
-            "test_execution": {"enabled": True, "required": True},
+            "test_execution": {
+                "enabled": True,
+                "required": True,
+                "commands": {
+                    "python": "pytest --cov=src --cov-report=json",
+                    "javascript": "npm test -- --coverage",
+                    "typescript": "npm test -- --coverage",
+                },
+            },
             "linting": {
                 "enabled": True,
                 "required": True,

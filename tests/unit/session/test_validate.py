@@ -45,7 +45,15 @@ def temp_session_dir(tmp_path):
     # Create minimal config.json
     config = {
         "quality_gates": {
-            "test_execution": {"enabled": True, "required": True},
+            "test_execution": {
+                "enabled": True,
+                "required": True,
+                "commands": {
+                    "python": "pytest --cov=src --cov-report=json",
+                    "javascript": "npm test -- --coverage",
+                    "typescript": "npm test -- --coverage",
+                },
+            },
             "linting": {"enabled": True, "required": False},
             "formatting": {"enabled": True, "required": False},
         }

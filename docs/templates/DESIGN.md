@@ -1553,7 +1553,15 @@ Generated: 2025-11-07 18:45:00
   "quality_gates": {
     "tier": "standard",
     "coverage_threshold": 80,
-    "test_execution": { "enabled": true, "required": true },
+    "test_execution": {
+      "enabled": true,
+      "required": true,
+      "commands": {
+        "python": "pytest --cov=src --cov-report=json",
+        "javascript": "npm test -- --coverage",
+        "typescript": "npm test -- --coverage"
+      }
+    },
     "linting": { "enabled": true, "required": true },
     "formatting": { "enabled": true, "required": true },
     "security": { "enabled": true, "required": true }
