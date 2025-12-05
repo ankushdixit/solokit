@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-12-05
+
+### Fixed
+- **Missing test_execution.commands in Generated Config** (PR #193)
+  - Added `commands` configuration to `test_execution` in session_structure.py
+  - Previously, `sk validate` would show `✗ tests: None` because no test command was configured
+  - Now includes default commands for Python (`pytest`), JavaScript, and TypeScript (`npm test`)
+  - Affects all projects initialized with `sk init` or `sk adopt`
+
+- **Validation Message Showing "None" Instead of Error**
+  - Fixed display bug where validation used `dict.get()` incorrectly
+  - Now properly shows "Tests fail" message instead of "None"
+
+### Changed
+- Updated config.schema.json with `commands` property for test_execution
+- Updated test fixtures and documentation with complete configuration examples
+
 ## [0.2.1] - 2025-12-04
 
 ### Security
@@ -1652,8 +1669,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.2.1** = Current release ✅ **Current** (Critical CVE patches for Next.js/React templates)
-- v0.2.0 = Previous release (Tailwind CSS v4 migration, CHANGELOG check fixes)
+- **v0.2.2** = Current release ✅ **Current** (Fix missing test_execution.commands config)
+- v0.2.1 = Previous release (Critical CVE patches for Next.js/React templates)
+- v0.2.0 = Earlier release (Tailwind CSS v4 migration, CHANGELOG check fixes)
 - v0.1.7 = Earlier release (Improved /end command flow, slash command format)
 - v0.1.6 = Earlier release (Minimal scaffolding migration complete)
 - v0.1.5 = Earlier release (GitHub setup integration, security fixes)
