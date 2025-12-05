@@ -301,7 +301,15 @@ class TestSolokitConfigValidation:
         # Arrange
         config = {
             "quality_gates": {
-                "test_execution": {"enabled": True, "required": True},
+                "test_execution": {
+                    "enabled": True,
+                    "required": True,
+                    "commands": {
+                        "python": "pytest --cov=src --cov-report=json",
+                        "javascript": "npm test -- --coverage",
+                        "typescript": "npm test -- --coverage",
+                    },
+                },
                 "linting": {"enabled": True, "required": False, "timeout": 60},
                 "security": {"required": True, "severity": "high", "timeout": 120},
             },
@@ -396,7 +404,15 @@ class TestSolokitConfigValidation:
         """Test that Solokit config schema allows additional custom properties."""
         # Arrange
         config = {
-            "quality_gates": {"test_execution": {"enabled": True, "required": True}},
+            "quality_gates": {
+                "test_execution": {
+                    "enabled": True,
+                    "required": True,
+                    "commands": {
+                        "python": "pytest --cov=src --cov-report=json",
+                    },
+                }
+            },
             "custom_section": {"custom_field": "value"},  # Additional property
         }
         config_path = tmp_path / "config.json"

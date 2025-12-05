@@ -13,7 +13,15 @@
           "type": "object",
           "properties": {
             "enabled": { "type": "boolean" },
-            "required": { "type": "boolean" }
+            "required": { "type": "boolean" },
+            "commands": {
+              "type": "object",
+              "properties": {
+                "python": { "type": "string" },
+                "javascript": { "type": "string" },
+                "typescript": { "type": "string" }
+              }
+            }
           }
         },
         "linting": {

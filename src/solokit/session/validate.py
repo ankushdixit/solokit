@@ -117,9 +117,8 @@ class SessionValidator:
             if test_config.required:
                 gates["tests"] = {
                     "passed": test_passed,
-                    "message": test_results.get(
-                        "reason", "Tests pass" if test_passed else "Tests fail"
-                    ),
+                    "message": test_results.get("reason")
+                    or ("Tests pass" if test_passed else "Tests fail"),
                 }
             else:
                 # If not required, always mark as passed but include status info
