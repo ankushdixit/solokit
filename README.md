@@ -6,6 +6,8 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/ankushdixit/solokit)
 
+https://github.com/user-attachments/assets/b7a5bbaf-6a64-420e-874c-2d12313fd516
+
 **Build production software alone with team-level sophistication.**
 
 > Structured Solo Development with AI and Quality Automation for Claude Code
