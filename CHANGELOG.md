@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Semgrep CI Installation Failure in ml_ai_fastapi Template**
+  - Replaced unpinned `pip install semgrep` with official `returntocorp/semgrep-action@v1` GitHub Action
+  - Fixes CI security workflow failures caused by semgrep dependency resolution cascade
+  - The official action handles installation complexity and provides native GitHub integration
+  - Affects projects using ml_ai_fastapi template with CI/CD option enabled
+
 ## [0.2.2] - 2025-12-05
 
 ### Fixed

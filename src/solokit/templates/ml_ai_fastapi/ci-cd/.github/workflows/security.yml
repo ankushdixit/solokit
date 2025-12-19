@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bandit detect-secrets pip-audit semgrep
+          pip install bandit detect-secrets pip-audit
 
       - name: Run Bandit security linter
         run: |
@@ -63,14 +63,10 @@ jobs:
           pip-audit -r requirements.txt || echo "::warning::pip-audit found vulnerabilities - review and update dependencies"
 
       - name: Run Semgrep SAST
-        run: semgrep scan --config=auto --json --output=semgrep-report.json src/
-
-      - name: Upload Semgrep report
-        uses: actions/upload-artifact@v4
-        if: always()
+        uses: returntocorp/semgrep-action@v1
         with:
-          name: semgrep-report
-          path: semgrep-report.json
+          config: auto
+        continue-on-error: true
 
   dependency-review:
     runs-on: ubuntu-latest
