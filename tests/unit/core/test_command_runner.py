@@ -419,3 +419,38 @@ class TestConvenienceFunction:
         assert result.success is True
         call_kwargs = mock_run.call_args[1]
         assert call_kwargs["timeout"] == 5
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_resolves_command_path_with_shutil(self, mock_which, mock_run):
+        """Test that command path is resolved using shutil.which."""
+        mock_which.return_value = "/usr/bin/echo"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["/usr/bin/echo", "test"]
+        )
+
+        runner = CommandRunner()
+        result = runner.run(["echo", "test"])
+
+        assert result.success is True
+        mock_which.assert_called_with("echo")
+        
+        # Verify subprocess called with resolved path
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "/usr/bin/echo"
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_command_not_found_handling(self, mock_which, mock_run):
+        """Test graceful handling when command executable is not found."""
+        mock_which.return_value = None
+        # Simulate FileNotFoundError from subprocess if executable missing
+        mock_run.side_effect = FileNotFoundError(2, "No such file or directory")
+
+        runner = CommandRunner()
+        result = runner.run(["nonexistent-cmd"])
+
+        assert result.success is False
+        assert result.returncode == 127
+        assert "Command not found" in result.stderr
+

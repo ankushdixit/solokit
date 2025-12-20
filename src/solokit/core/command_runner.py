@@ -6,7 +6,9 @@ with standardized timeout handling, error handling, logging, and retry logic.
 
 import json
 import logging
+import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -105,6 +107,18 @@ class CommandRunner:
 
         while attempt < max_attempts:
             try:
+                # Resolve executable path (fixes Windows .cmd/.bat issue)
+                executable = command[0]
+                resolved_path = shutil.which(executable)
+
+                if resolved_path:
+                    command[0] = resolved_path
+                elif sys.platform == "win32":
+                    # On Windows, if shutil.which fails, it's likely the command won't work
+                    # with subprocess.run(shell=False). We'll proceed to let subprocess
+                    # raise the error naturally, but we could also fail early here.
+                    pass
+
                 start_time = time.time()
 
                 logger.debug(
@@ -198,6 +212,28 @@ class CommandRunner:
             except (CommandExecutionError, TimeoutError):
                 # Re-raise our standardized errors as-is (don't catch and re-wrap)
                 raise
+            except FileNotFoundError as e:
+                # Handle case where executable is not found (e.g. solokit not installed)
+                # This can happen if shutil.which returned None and we proceeded anyway.
+                duration = time.time() - start_time
+                error_msg = f"Command not found: {command[0]}"
+                logger.error(error_msg)
+
+                if check:
+                    raise CommandExecutionError(
+                        command=" ".join(command),
+                        returncode=127,  # Standard "command not found" exit code
+                        stderr=error_msg,
+                        stdout="",
+                    ) from e
+
+                return CommandResult(
+                    returncode=127,
+                    stdout="",
+                    stderr=error_msg,
+                    command=command,
+                    duration_seconds=duration,
+                )
             except Exception as e:
                 logger.error(f"Unexpected error running command: {e}")
 
