@@ -37,7 +37,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.0.7",
+    "eslint-config-next": "16.1.0",
     "@typescript-eslint/parser": "8.46.3",
     "@typescript-eslint/eslint-plugin": "8.46.3",
     "globals": "16.5.0",
