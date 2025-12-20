@@ -230,7 +230,7 @@ class TestCheckGitStatus:
                 validator.check_git_status()
 
         # Verify exception details
-        assert str(temp_session_dir.parent) in str(exc_info.value.context)
+        assert str(temp_session_dir.parent) == exc_info.value.context.get("path")
 
     def test_check_git_status_raises_git_error_on_branch_failure(self, temp_session_dir):
         """Test check_git_status raises GitError when branch command fails."""

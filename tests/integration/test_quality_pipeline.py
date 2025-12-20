@@ -377,6 +377,6 @@ class TestIntegrationTestExecution:
         from solokit.core.exceptions import FileNotFoundError as SolokitFileNotFoundError
 
         with pytest.raises(
-            SolokitFileNotFoundError, match="File not found: .session/specs/INTEG-001.md"
+            SolokitFileNotFoundError, match=r"File not found: .*session[/\\]specs[/\\]INTEG-001\.md"
         ):
             gates.run_integration_tests(work_item)

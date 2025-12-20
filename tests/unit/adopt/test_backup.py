@@ -13,6 +13,8 @@ import shutil
 from datetime import datetime
 from unittest.mock import patch
 
+import pytest
+
 from solokit.adopt.backup import (
     BACKUP_DIR,
     backup_file,
@@ -320,7 +322,12 @@ class TestBackupFileWithStructure:
         target.write_text("target content")
 
         link = temp_project / "link.txt"
-        link.symlink_to(target)
+        try:
+            link.symlink_to(target)
+        except OSError as e:
+            if getattr(e, "winerror", 0) == 1314:
+                pytest.skip("Symlink creation requires Administrator privileges on Windows")
+            raise
 
         backup_dir = create_backup_directory(temp_project)
         backup_path = backup_file_with_structure(link, backup_dir, temp_project)

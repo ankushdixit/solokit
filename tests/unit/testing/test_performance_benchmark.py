@@ -65,7 +65,7 @@ class TestPerformanceBenchmarkInit:
         benchmark = PerformanceBenchmark(work_item)
 
         # Assert
-        assert str(benchmark.baselines_file) == ".session/tracking/performance_baselines.json"
+        assert benchmark.baselines_file == Path(".session/tracking/performance_baselines.json")
 
 
 class TestLatencyParsing:

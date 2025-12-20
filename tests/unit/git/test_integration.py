@@ -38,6 +38,13 @@ def reset_config_manager():
     yield
 
 
+@pytest.fixture(autouse=True)
+def mock_shutil_which():
+    """Mock shutil.which to return None by default to prevent path resolution."""
+    with patch("shutil.which", return_value=None):
+        yield
+
+
 # ============================================================================
 # Test GitWorkflow Initialization
 # ============================================================================

@@ -1,6 +1,7 @@
 """Unit tests for error handlers"""
 
 import subprocess
+import sys
 import time
 
 import pytest
@@ -117,10 +118,7 @@ class TestWithTimeoutDecorator:
         result = quick_function()
         assert result == "completed"
 
-    @pytest.mark.skipif(
-        not hasattr(subprocess, "run") or not hasattr(__import__("signal"), "SIGALRM"),
-        reason="Requires Unix signals",
-    )
+    @pytest.mark.skipif(sys.platform == "win32", reason="Timeout not supported on Windows")
     def test_function_times_out(self):
         """Test function raises timeout error"""
 

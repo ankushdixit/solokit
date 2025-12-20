@@ -14,6 +14,13 @@ import pytest
 from solokit.project.tree import TreeGenerator
 
 
+@pytest.fixture(autouse=True)
+def mock_shutil_which():
+    """Mock shutil.which to return None by default to prevent path resolution."""
+    with patch("shutil.which", return_value=None):
+        yield
+
+
 @pytest.fixture
 def temp_project(tmp_path):
     """Provide a temporary project directory."""
@@ -71,8 +78,9 @@ class TestGenerateTree:
         mock_result.stdout = "project/\n├── file1.py\n└── file2.py"
 
         # Act
-        with patch("subprocess.run", return_value=mock_result):
-            tree = tree_generator.generate_tree()
+        with patch("sys.platform", "linux"):
+            with patch("subprocess.run", return_value=mock_result):
+                tree = tree_generator.generate_tree()
 
         # Assert
         assert "project/" in tree
@@ -131,8 +139,9 @@ class TestGenerateTree:
         mock_result.stdout = "tree output"
 
         # Act
-        with patch("subprocess.run", return_value=mock_result) as mock_run:
-            tree_generator.generate_tree()
+        with patch("sys.platform", "linux"):
+            with patch("subprocess.run", return_value=mock_result) as mock_run:
+                tree_generator.generate_tree()
 
         # Assert
         call_args = mock_run.call_args[0][0]
