@@ -52,6 +52,7 @@ htmlcov/
 notes/
 scratch/
 demo-projects/
+experiments/
 
 # Solokit-related patterns
 .session/briefings/
