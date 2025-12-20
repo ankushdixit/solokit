@@ -98,28 +98,25 @@ class CommandRunner:
         if isinstance(command, str):
             command = command.split()
 
+        # Create a copy to avoid mutating the caller's list
+        command = command.copy()
+
         timeout = timeout if timeout is not None else self.default_timeout
         check = check if check is not None else self.raise_on_error
         cwd = working_dir or self.working_dir
+
+        # Resolve executable path once (fixes Windows .cmd/.bat issue)
+        executable = command[0]
+        resolved_path = shutil.which(executable)
+        if resolved_path:
+            command[0] = resolved_path
 
         attempt = 0
         max_attempts = retry_count + 1
 
         while attempt < max_attempts:
+            start_time = time.time()
             try:
-                # Resolve executable path (fixes Windows .cmd/.bat issue)
-                executable = command[0]
-                resolved_path = shutil.which(executable)
-
-                if resolved_path:
-                    command[0] = resolved_path
-                elif sys.platform == "win32":
-                    # On Windows, if shutil.which fails, it's likely the command won't work
-                    # with subprocess.run(shell=False). We'll proceed to let subprocess
-                    # raise the error naturally, but we could also fail early here.
-                    pass
-
-                start_time = time.time()
 
                 logger.debug(
                     f"Running command: {' '.join(command)} "

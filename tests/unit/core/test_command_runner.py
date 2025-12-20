@@ -15,6 +15,13 @@ from solokit.core.command_runner import (
 from solokit.core.exceptions import CommandExecutionError, TimeoutError
 
 
+@pytest.fixture(autouse=True)
+def mock_shutil_which():
+    """Mock shutil.which to return None by default to prevent path resolution."""
+    with patch("shutil.which", return_value=None):
+        yield
+
+
 class TestCommandResult:
     """Tests for CommandResult dataclass."""
 
@@ -453,4 +460,20 @@ class TestConvenienceFunction:
         assert result.success is False
         assert result.returncode == 127
         assert "Command not found" in result.stderr
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_command_not_found_with_check_raises(self, mock_which, mock_run):
+        """Test that FileNotFoundError with check=True raises CommandExecutionError."""
+        mock_which.return_value = None
+        # Simulate FileNotFoundError from subprocess if executable missing
+        mock_run.side_effect = FileNotFoundError(2, "No such file or directory")
+
+        runner = CommandRunner()
+        with pytest.raises(CommandExecutionError) as exc_info:
+            runner.run(["nonexistent-cmd"], check=True)
+
+        assert "Command execution failed" in str(exc_info.value)
+        assert exc_info.value.context["returncode"] == 127
+        assert "Command not found" in exc_info.value.context["stderr"]
 

@@ -404,7 +404,7 @@ class TestStackAndTreeTracking:
 
         # Act
         result = subprocess.run(
-            ["python3", str(solokit_project_dir / "stack.py")],
+            [sys.executable, str(solokit_project_dir / "stack.py")],
             cwd=temp_solokit_project,
             capture_output=True,
             text=True,

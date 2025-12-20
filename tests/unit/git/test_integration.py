@@ -35,7 +35,15 @@ def reset_config_manager():
     ConfigManager._instance = None
     ConfigManager._config = None
     ConfigManager._config_path = None
+    ConfigManager._config_path = None
     yield
+
+
+@pytest.fixture(autouse=True)
+def mock_shutil_which():
+    """Mock shutil.which to return None by default to prevent path resolution."""
+    with patch("shutil.which", return_value=None):
+        yield
 
 
 # ============================================================================

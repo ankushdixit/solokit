@@ -84,6 +84,11 @@ class TreeGenerator:
             FileOperationError: If tree generation fails completely
         """
         try:
+            # On Windows, 'tree' command is incompatible (tree.com) or may not exist.
+            # Use Python fallback for consistent behavior.
+            if sys.platform == "win32":
+                return self._generate_tree_fallback()
+
             # Build ignore arguments
             ignore_args = []
             for pattern in self.ignore_patterns:

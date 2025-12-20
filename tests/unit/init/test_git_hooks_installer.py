@@ -10,6 +10,7 @@ Target: 90%+ coverage
 """
 
 import stat
+import sys
 from unittest.mock import Mock, patch
 
 import pytest
@@ -66,7 +67,8 @@ class TestInstallGitHooks:
             if hook_dest.exists():
                 mode = hook_dest.stat().st_mode
                 # Check if user executable bit is set
-                assert mode & stat.S_IXUSR
+                if sys.platform != "win32":
+                    assert mode & stat.S_IXUSR
 
     def test_copy_or_chmod_fails(self, mock_git_repo):
         """Test handling when copy or chmod fails."""
