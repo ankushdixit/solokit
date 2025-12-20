@@ -441,7 +441,7 @@ class TestConvenienceFunction:
 
         assert result.success is True
         mock_which.assert_called_with("echo")
-        
+
         # Verify subprocess called with resolved path
         call_args = mock_run.call_args[0][0]
         assert call_args[0] == "/usr/bin/echo"

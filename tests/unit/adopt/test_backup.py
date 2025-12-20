@@ -10,9 +10,9 @@ Target: 95%+ coverage
 """
 
 import shutil
-import sys
 from datetime import datetime
 from unittest.mock import patch
+
 import pytest
 
 from solokit.adopt.backup import (

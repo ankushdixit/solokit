@@ -6,7 +6,6 @@ a visual representation of the project directory structure.
 
 import json
 import subprocess
-import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch
 
