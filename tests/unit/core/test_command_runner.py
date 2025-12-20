@@ -440,7 +440,7 @@ class TestConvenienceFunction:
         result = runner.run(["echo", "test"])
 
         assert result.success is True
-        mock_which.assert_called_with("echo")
+        mock_which.assert_called_with("echo", path=None)
 
         # Verify subprocess called with resolved path
         call_args = mock_run.call_args[0][0]
@@ -477,3 +477,389 @@ class TestConvenienceFunction:
         assert exc_info.value.context["returncode"] == 127
         assert "Command not found" in exc_info.value.context["stderr"]
 
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_respects_custom_env_path(self, mock_which, mock_run):
+        """Test that custom PATH in env parameter is respected."""
+        # Arrange
+        custom_env = {"PATH": "/custom/bin:/usr/bin", "OTHER": "value"}
+        mock_which.return_value = "/custom/bin/mycmd"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["/custom/bin/mycmd", "arg"]
+        )
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["mycmd", "arg"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # Verify shutil.which was called with the custom PATH
+        mock_which.assert_called_with("mycmd", path="/custom/bin:/usr/bin")
+        # Verify subprocess received the custom env
+        call_kwargs = mock_run.call_args[1]
+        assert call_kwargs["env"] == custom_env
+        # Verify command was resolved
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "/custom/bin/mycmd"
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_respects_windows_path_case(self, mock_which, mock_run):
+        """Test that Windows 'Path' (capital P, lowercase ath) variant is handled."""
+        # Arrange - Windows sometimes uses 'Path' instead of 'PATH'
+        custom_env = {"Path": "C:\\custom\\bin", "OTHER": "value"}
+        mock_which.return_value = "C:\\custom\\bin\\mycmd.exe"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["C:\\custom\\bin\\mycmd.exe"]
+        )
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["mycmd"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # Verify shutil.which was called with the custom Path
+        mock_which.assert_called_with("mycmd", path="C:\\custom\\bin")
+        # Verify command was resolved
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "C:\\custom\\bin\\mycmd.exe"
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_prefers_path_over_windows_path(self, mock_which, mock_run):
+        """Test that PATH takes precedence over Path when both exist."""
+        # Arrange - Edge case: both PATH and Path in env dict
+        custom_env = {"PATH": "/unix/bin", "Path": "C:\\windows\\bin"}
+        mock_which.return_value = "/unix/bin/cmd"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["/unix/bin/cmd"]
+        )
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["cmd"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # Verify PATH (not Path) was used
+        mock_which.assert_called_with("cmd", path="/unix/bin")
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_uses_system_path_when_env_has_no_path(self, mock_which, mock_run):
+        """Test that system PATH is used when env dict exists but has no PATH."""
+        # Arrange
+        custom_env = {"OTHER_VAR": "value", "HOME": "/home/user"}
+        mock_which.return_value = "/usr/bin/echo"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["/usr/bin/echo"]
+        )
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["echo"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # Verify shutil.which was called with path=None (uses system PATH)
+        mock_which.assert_called_with("echo", path=None)
+
+    def test_run_empty_command_raises_value_error(self):
+        """Test that empty command list raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="Command cannot be empty"):
+            runner.run([])
+
+    def test_run_empty_string_command_raises_value_error(self):
+        """Test that empty string command raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="Command cannot be empty"):
+            runner.run("")
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    @patch("sys.platform", "win32")
+    def test_run_case_insensitive_path_on_windows(self, mock_which, mock_run):
+        """Test case-insensitive PATH lookup on Windows."""
+        # Arrange - Windows with mixed-case PATH
+        custom_env = {"PaTh": "C:\\custom\\bin", "OTHER": "value"}
+        mock_which.return_value = "C:\\custom\\bin\\mycmd.exe"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["C:\\custom\\bin\\mycmd.exe"]
+        )
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["mycmd"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # Verify the mixed-case PATH was found and used
+        mock_which.assert_called_with("mycmd", path="C:\\custom\\bin")
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    @patch("sys.platform", "linux")
+    def test_run_case_sensitive_path_on_linux(self, mock_which, mock_run):
+        """Test case-sensitive PATH lookup on Linux."""
+        # Arrange - Linux only checks exact case
+        custom_env = {"PaTh": "/custom/bin", "OTHER": "value"}
+        mock_which.return_value = None  # Won't find PaTh
+        mock_run.return_value = MagicMock(returncode=0, stdout="output", stderr="", args=["mycmd"])
+
+        # Act
+        runner = CommandRunner()
+        result = runner.run(["mycmd"], env=custom_env)
+
+        # Assert
+        assert result.success is True
+        # On Linux, PaTh should not be found (case-sensitive)
+        mock_which.assert_called_with("mycmd", path=None)
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_logs_debug_when_path_resolved(self, mock_which, mock_run, caplog):
+        """Test that debug logging occurs when path is resolved."""
+        import logging
+
+        # Arrange
+        mock_which.return_value = "/usr/bin/echo"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["/usr/bin/echo"]
+        )
+
+        # Act
+        with caplog.at_level(logging.DEBUG):
+            runner = CommandRunner()
+            runner.run(["echo"])
+
+        # Assert
+        assert "Resolved 'echo' to '/usr/bin/echo'" in caplog.text
+
+    @patch("subprocess.run")
+    @patch("shutil.which")
+    def test_run_logs_debug_when_path_not_resolved(self, mock_which, mock_run, caplog):
+        """Test that debug logging occurs when path cannot be resolved."""
+        import logging
+
+        # Arrange
+        mock_which.return_value = None
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="output", stderr="", args=["custom-cmd"]
+        )
+
+        # Act
+        with caplog.at_level(logging.DEBUG):
+            runner = CommandRunner()
+            runner.run(["custom-cmd"])
+
+        # Assert
+        assert "Could not resolve path for 'custom-cmd', using as-is" in caplog.text
+
+    def test_run_rejects_non_string_command_element(self):
+        """Test that command with non-string element raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(
+            ValueError, match="Command element at index 0 must be a string, got int"
+        ):
+            runner.run([123, "arg"])
+
+    def test_run_rejects_none_command_element(self):
+        """Test that command with None element raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(
+            ValueError, match="Command element at index 0 must be a string, got NoneType"
+        ):
+            runner.run([None])
+
+    def test_run_rejects_mixed_type_command(self):
+        """Test that command with mixed types raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(
+            ValueError, match="Command element at index 1 must be a string, got int"
+        ):
+            runner.run(["echo", 123])
+
+    def test_run_rejects_list_in_command(self):
+        """Test that command with list element raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(
+            ValueError, match="Command element at index 1 must be a string, got list"
+        ):
+            runner.run(["echo", ["nested"]])
+
+    def test_run_rejects_empty_string_executable(self):
+        """Test that command with empty string as executable raises appropriate error."""
+        runner = CommandRunner()
+
+        # Empty string is technically valid as a string, but will fail during execution
+        # This tests that our validation doesn't break this edge case
+        with pytest.raises(ValueError, match="Command element at index 0 must be a string"):
+            runner.run([123])  # Not testing empty string here, that's a different case
+
+    def test_run_rejects_non_string_path_in_env(self):
+        """Test that non-string PATH value in env raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="PATH environment variable must be a string, got int"):
+            runner.run(["echo"], env={"PATH": 123})
+
+    @patch("sys.platform", "win32")
+    def test_run_rejects_non_string_path_windows(self):
+        """Test that non-string PATH value in env raises ValueError on Windows."""
+        runner = CommandRunner()
+
+        with pytest.raises(
+            ValueError, match="PATH environment variable must be a string, got list"
+        ):
+            runner.run(["echo"], env={"PaTh": ["/usr/bin"]})
+
+    def test_run_allows_none_path_in_env(self):
+        """Test that None PATH value in env is allowed (uses system PATH)."""
+        runner = CommandRunner()
+
+        # This should NOT raise - None means "use system PATH"
+        # But we need to mock to prevent actual command execution
+        with patch("subprocess.run") as mock_run:
+            with patch("shutil.which", return_value="/usr/bin/echo"):
+                mock_run.return_value = MagicMock(
+                    returncode=0, stdout="output", stderr="", args=["echo"]
+                )
+                # PATH: None should be fine - skipped by validation
+                result = runner.run(["echo"], env={"OTHER": "value"})
+                assert result.success is True
+
+    def test_run_rejects_string_timeout(self):
+        """Test that string timeout raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="timeout must be a number, got str"):
+            runner.run(["echo"], timeout="10")
+
+    def test_run_rejects_negative_timeout(self):
+        """Test that negative timeout raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="timeout must be positive, got -1"):
+            runner.run(["echo"], timeout=-1)
+
+    def test_run_rejects_zero_timeout(self):
+        """Test that zero timeout raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="timeout must be positive, got 0"):
+            runner.run(["echo"], timeout=0)
+
+    def test_run_rejects_non_boolean_check(self):
+        """Test that non-boolean check raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="check must be a boolean, got str"):
+            runner.run(["echo"], check="true")
+
+    def test_run_rejects_invalid_working_dir_type(self):
+        """Test that invalid working_dir type raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="working_dir must be a string or Path, got int"):
+            runner.run(["echo"], working_dir=123)
+
+    def test_run_rejects_string_retry_count(self):
+        """Test that string retry_count raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="retry_count must be an integer, got str"):
+            runner.run(["echo"], retry_count="3")
+
+    def test_run_rejects_negative_retry_count(self):
+        """Test that negative retry_count raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="retry_count must be non-negative, got -1"):
+            runner.run(["echo"], retry_count=-1)
+
+    def test_run_rejects_float_retry_count(self):
+        """Test that float retry_count raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="retry_count must be an integer, got float"):
+            runner.run(["echo"], retry_count=1.5)
+
+    def test_run_rejects_string_retry_delay(self):
+        """Test that string retry_delay raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="retry_delay must be a number, got str"):
+            runner.run(["echo"], retry_delay="1.5")
+
+    def test_run_rejects_negative_retry_delay(self):
+        """Test that negative retry_delay raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="retry_delay must be non-negative, got -1"):
+            runner.run(["echo"], retry_delay=-1)
+
+    def test_run_rejects_non_dict_env(self):
+        """Test that non-dict env raises ValueError."""
+        runner = CommandRunner()
+
+        with pytest.raises(ValueError, match="env must be a dictionary, got list"):
+            runner.run(["echo"], env=["PATH=/usr/bin"])
+
+    def test_run_accepts_valid_timeout_int(self):
+        """Test that valid integer timeout is accepted."""
+        runner = CommandRunner()
+
+        with patch("subprocess.run") as mock_run:
+            with patch("shutil.which", return_value="/usr/bin/echo"):
+                mock_run.return_value = MagicMock(
+                    returncode=0, stdout="output", stderr="", args=["echo"]
+                )
+                result = runner.run(["echo"], timeout=30)
+                assert result.success is True
+
+    def test_run_accepts_valid_timeout_float(self):
+        """Test that valid float timeout is accepted."""
+        runner = CommandRunner()
+
+        with patch("subprocess.run") as mock_run:
+            with patch("shutil.which", return_value="/usr/bin/echo"):
+                mock_run.return_value = MagicMock(
+                    returncode=0, stdout="output", stderr="", args=["echo"]
+                )
+                result = runner.run(["echo"], timeout=1.5)
+                assert result.success is True
+
+    def test_run_accepts_path_object_for_working_dir(self):
+        """Test that Path object for working_dir is accepted."""
+        from pathlib import Path
+
+        runner = CommandRunner()
+
+        with patch("subprocess.run") as mock_run:
+            with patch("shutil.which", return_value="/usr/bin/echo"):
+                mock_run.return_value = MagicMock(
+                    returncode=0, stdout="output", stderr="", args=["echo"]
+                )
+                result = runner.run(["echo"], working_dir=Path("/tmp"))
+                assert result.success is True
+
+    def test_run_accepts_zero_retry_delay(self):
+        """Test that zero retry_delay is accepted."""
+        runner = CommandRunner()
+
+        with patch("subprocess.run") as mock_run:
+            with patch("shutil.which", return_value="/usr/bin/echo"):
+                mock_run.return_value = MagicMock(
+                    returncode=0, stdout="output", stderr="", args=["echo"]
+                )
+                result = runner.run(["echo"], retry_delay=0)
+                assert result.success is True

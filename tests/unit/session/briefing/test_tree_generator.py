@@ -77,7 +77,6 @@ class TestGenerateTree:
         mock_result.stdout = "project/\n├── file1.py\n└── file2.py"
 
         # Act
-        # Act
         with patch("sys.platform", "linux"):
             with patch("subprocess.run", return_value=mock_result):
                 tree = tree_generator.generate_tree()
@@ -138,7 +137,6 @@ class TestGenerateTree:
         mock_result.returncode = 0
         mock_result.stdout = "tree output"
 
-        # Act
         # Act
         with patch("sys.platform", "linux"):
             with patch("subprocess.run", return_value=mock_result) as mock_run:

@@ -35,7 +35,6 @@ def reset_config_manager():
     ConfigManager._instance = None
     ConfigManager._config = None
     ConfigManager._config_path = None
-    ConfigManager._config_path = None
     yield
 
 

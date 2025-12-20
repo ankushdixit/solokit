@@ -8,6 +8,7 @@ import json
 import logging
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,23 +93,101 @@ class CommandRunner:
             CommandResult with output and status
 
         Raises:
+            ValueError: If command is empty or contains non-string elements, or if
+                       parameters have invalid types or values
             CommandExecutionError: If check=True and command fails
+            TimeoutError: If command exceeds timeout
         """
+        # Validate timeout parameter
+        if timeout is not None:
+            if not isinstance(timeout, (int, float)):
+                raise ValueError(
+                    f"timeout must be a number, got {type(timeout).__name__}: {timeout!r}"
+                )
+            if timeout <= 0:
+                raise ValueError(f"timeout must be positive, got {timeout}")
+
+        # Validate check parameter
+        if check is not None and not isinstance(check, bool):
+            raise ValueError(f"check must be a boolean, got {type(check).__name__}: {check!r}")
+
+        # Validate working_dir parameter
+        if working_dir is not None and not isinstance(working_dir, (str, Path)):
+            raise ValueError(
+                f"working_dir must be a string or Path, got {type(working_dir).__name__}: {working_dir!r}"
+            )
+
+        # Validate retry_count parameter
+        if not isinstance(retry_count, int):
+            raise ValueError(
+                f"retry_count must be an integer, got {type(retry_count).__name__}: {retry_count!r}"
+            )
+        if retry_count < 0:
+            raise ValueError(f"retry_count must be non-negative, got {retry_count}")
+
+        # Validate retry_delay parameter
+        if not isinstance(retry_delay, (int, float)):
+            raise ValueError(
+                f"retry_delay must be a number, got {type(retry_delay).__name__}: {retry_delay!r}"
+            )
+        if retry_delay < 0:
+            raise ValueError(f"retry_delay must be non-negative, got {retry_delay}")
+
+        # Validate env parameter
+        if env is not None and not isinstance(env, dict):
+            raise ValueError(f"env must be a dictionary, got {type(env).__name__}: {env!r}")
+
         if isinstance(command, str):
             command = command.split()
 
+        # Validate command is not empty
+        if not command:
+            raise ValueError("Command cannot be empty")
+
         # Create a copy to avoid mutating the caller's list
         command = command.copy()
+
+        # Validate all command elements are strings
+        for i, elem in enumerate(command):
+            if not isinstance(elem, str):
+                raise ValueError(
+                    f"Command element at index {i} must be a string, got {type(elem).__name__}: {elem!r}"
+                )
 
         timeout = timeout if timeout is not None else self.default_timeout
         check = check if check is not None else self.raise_on_error
         cwd = working_dir or self.working_dir
 
-        # Resolve executable path once (fixes Windows .cmd/.bat issue)
+        # Resolve executable path once (fixes Windows .cmd/.bat issue).
+        # We must respect the PATH in the provided 'env' if present, otherwise
+        # shutil.which uses the system PATH by default.
+        path = None
+        if env:
+            # Case-insensitive PATH lookup on Windows
+            if sys.platform == "win32":
+                # Windows env vars are case-insensitive
+                for key in env:
+                    if key.upper() == "PATH":
+                        path = env[key]
+                        break
+            else:
+                # Unix-like systems: case-sensitive, check both variants
+                path = env.get("PATH", env.get("Path", None))
+
+            # Validate PATH is a string if present
+            if path is not None and not isinstance(path, str):
+                raise ValueError(
+                    f"PATH environment variable must be a string, got {type(path).__name__}: {path!r}"
+                )
+
         executable = command[0]
-        resolved_path = shutil.which(executable)
+        # shutil.which will use os.environ['PATH'] if path is None
+        resolved_path = shutil.which(executable, path=path)
         if resolved_path:
             command[0] = resolved_path
+            logger.debug(f"Resolved '{executable}' to '{resolved_path}'")
+        else:
+            logger.debug(f"Could not resolve path for '{executable}', using as-is")
 
         attempt = 0
         max_attempts = retry_count + 1
@@ -116,7 +195,6 @@ class CommandRunner:
         while attempt < max_attempts:
             start_time = time.time()
             try:
-
                 logger.debug(
                     f"Running command: {' '.join(command)} "
                     f"(timeout={timeout}s, cwd={cwd}, attempt={attempt + 1}/{max_attempts})"
