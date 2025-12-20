@@ -36,7 +36,7 @@
     "load-test": "k6 run k6/load-test.js"
   },
   "dependencies": {
-    "next": "16.0.7",
+    "next": "16.1.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "prisma": "6.19.0",
