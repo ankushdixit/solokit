@@ -20,6 +20,7 @@ def mock_shutil_which():
     with patch("shutil.which", return_value=None):
         yield
 
+
 @pytest.fixture
 def temp_project(tmp_path):
     """Provide a temporary project directory."""
