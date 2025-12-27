@@ -19,7 +19,7 @@ git diff --name-only main...HEAD | grep -q CHANGELOG.md && echo "CHANGELOG updat
 ```
 
 **If CHANGELOG needs update:**
-1. Review commits made this session with `git log --oneline HEAD~10..HEAD`
+1. Review commits made this session with `git log --oneline -10`
 2. Update CHANGELOG.md under the `## [Unreleased]` section with:
    - Features added under `### Added`
    - Bug fixes under `### Fixed`

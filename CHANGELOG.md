@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`/end` Command Fails on New Projects with Few Commits**
+  - Changed `git log --oneline HEAD~10..HEAD` to `git log --oneline -10` in end.md command
+  - The previous syntax fails when a repository has fewer than 10 commits
+  - Affects all solokit-initialized projects when running `/end` early in development
+
 - **Semgrep CI Installation Failure in ml_ai_fastapi Template**
   - Replaced unpinned `pip install semgrep` with official `returntocorp/semgrep-action@v1` GitHub Action
   - Fixes CI security workflow failures caused by semgrep dependency resolution cascade
