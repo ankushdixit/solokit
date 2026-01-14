@@ -143,3 +143,67 @@ def create_initial_commit(
         logger.warning(f"Failed to create initial commit: {e}")
         logger.warning("You may need to commit manually before starting sessions")
         return False
+
+
+def create_minimal_initial_commit(project_root: Path | None = None) -> bool:
+    """
+    Create initial commit for minimal init mode.
+
+    Args:
+        project_root: Root directory of the project
+
+    Returns:
+        True if initial commit was created or already exists.
+    """
+    if project_root is None:
+        project_root = Path.cwd()
+
+    runner = CommandRunner(default_timeout=GIT_STANDARD_TIMEOUT, working_dir=project_root)
+
+    try:
+        # Check if repository has any commits
+        result = runner.run(["git", "rev-list", "--count", "--all"], check=False)
+
+        if result.success and result.stdout.strip() and int(result.stdout.strip()) > 0:
+            logger.info("Git repository already has commits, skipping initial commit")
+            return True
+
+    except Exception:
+        pass
+
+    try:
+        # Stage all initialized files
+        result = runner.run(["git", "add", "-A"], check=True)
+        if not result.success:
+            logger.warning(f"Git add failed: {result.stderr}")
+            logger.warning("You may need to commit manually before starting sessions")
+            return False
+
+        # Create minimal commit message
+        commit_message = """chore: Initialize project with Solokit (minimal mode)
+
+Session-driven development infrastructure:
+- Session tracking (.session/)
+- Claude Code slash commands (.claude/commands/)
+- Documentation (CLAUDE.md, README.md, CHANGELOG.md)
+
+Quality gates: disabled (minimal mode)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"""
+
+        # Create initial commit
+        result = runner.run(["git", "commit", "-m", commit_message], check=True)
+        if not result.success:
+            logger.warning(f"Git commit failed: {result.stderr}")
+            logger.warning("You may need to commit manually before starting sessions")
+            return False
+
+        logger.info("Created initial commit on main branch")
+        return True
+
+    except Exception as e:
+        logger.warning(f"Failed to create initial commit: {e}")
+        logger.warning("You may need to commit manually before starting sessions")
+        return False

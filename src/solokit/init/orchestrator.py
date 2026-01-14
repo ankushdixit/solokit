@@ -3,6 +3,8 @@ Template-Based Init Orchestrator
 
 Main orchestration logic for template-based project initialization.
 Implements the complete 21-step initialization flow.
+
+Also provides minimal initialization for projects that don't need templates.
 """
 
 from __future__ import annotations
@@ -14,7 +16,7 @@ from typing import Literal, cast
 from solokit.core.output import get_output
 from solokit.github.setup import GitHubSetup
 from solokit.init.claude_commands_installer import install_claude_commands
-from solokit.init.claude_md_generator import generate_claude_md
+from solokit.init.claude_md_generator import generate_claude_md, generate_minimal_claude_md
 from solokit.init.dependency_installer import install_dependencies
 from solokit.init.docs_structure import create_docs_structure
 from solokit.init.env_generator import generate_env_files
@@ -22,11 +24,15 @@ from solokit.init.environment_validator import validate_environment
 from solokit.init.format_lint_fixer import run_format_lint_fix
 from solokit.init.git_hooks_installer import install_git_hooks
 from solokit.init.git_setup import check_blank_project_or_exit, check_or_init_git
-from solokit.init.gitignore_updater import update_gitignore
-from solokit.init.initial_commit import create_initial_commit
+from solokit.init.gitignore_updater import update_gitignore, update_minimal_gitignore
+from solokit.init.initial_commit import create_initial_commit, create_minimal_initial_commit
 from solokit.init.initial_scans import run_initial_scans
-from solokit.init.readme_generator import generate_readme
-from solokit.init.session_structure import create_session_directories, initialize_tracking_files
+from solokit.init.readme_generator import generate_minimal_readme, generate_readme
+from solokit.init.session_structure import (
+    create_session_directories,
+    initialize_minimal_tracking_files,
+    initialize_tracking_files,
+)
 from solokit.init.template_installer import get_template_info, install_template
 
 logger = logging.getLogger(__name__)
@@ -328,6 +334,229 @@ def run_template_based_init(
     output.info("   3. Create your PRD at docs/PRD.md")
     output.info("   4. Create work items from your PRD: /work-new")
     output.info("   5. Start working: /start <work-item-id>")
+    output.info("")
+
+    return 0
+
+
+def run_minimal_init(project_root: Path | None = None) -> int:
+    """
+    Run minimal initialization - session tracking only, no templates or quality tiers.
+
+    This mode is for simple projects (HTML sites, scripts, prototypes) that don't need
+    extensive testing or quality checks but still benefit from session-driven workflow.
+
+    Installs:
+    - .session/ directory structure with tracking files
+    - Guides (PRD_WRITING_GUIDE.md, STACK_GUIDE.md)
+    - Claude Code slash commands (.claude/commands/)
+    - Minimal config.json with quality gates disabled
+    - Minimal CLAUDE.md (Solokit usage guide only)
+    - Minimal README.md
+    - CHANGELOG.md starter template
+    - .gitignore updates
+    - Git hooks
+    - Initial scans (stack.txt, tree.txt)
+    - Initial commit
+    - GitHub repository setup (optional)
+
+    Args:
+        project_root: Project root directory (defaults to current directory)
+
+    Returns:
+        0 on success, non-zero on failure
+    """
+    if project_root is None:
+        project_root = Path.cwd()
+
+    # Show user-facing progress header
+    output.info("\n" + "=" * 60)
+    output.info("🚀 Initializing Solokit (Minimal Mode)")
+    output.info("=" * 60 + "\n")
+
+    logger.info("🚀 Initializing Solokit (Minimal Mode)...\n")
+
+    # =========================================================================
+    # PHASE 1: PRE-FLIGHT CHECKS
+    # =========================================================================
+
+    output.progress("Phase 1: Pre-flight validation...")
+
+    # Step 1: Check if already initialized
+    logger.info("Step 1: Pre-flight validation...")
+    session_dir = project_root / ".session"
+    if session_dir.exists():
+        output.error("❌ Project already initialized (.session/ exists)")
+        logger.error("Project already initialized (.session/ exists)")
+        return 1
+    logger.info("✓ Project directory ready for initialization\n")
+
+    # Step 2: Initialize/verify git repository
+    logger.info("Step 2: Git initialization...")
+    check_or_init_git(project_root)
+    logger.info("")
+
+    output.info("✓ Pre-flight checks passed\n")
+
+    # =========================================================================
+    # PHASE 2: SESSION STRUCTURE
+    # =========================================================================
+
+    output.progress("Phase 2: Creating session structure...")
+
+    # Step 3: Create .session directories
+    logger.info("Step 3: Creating .session structure...")
+    create_session_directories(project_root)
+    logger.info("✓ Created .session/ directories\n")
+    output.info("✓ Created .session/ directories")
+
+    # Step 4: Initialize tracking files with minimal config
+    logger.info("Step 4: Initializing tracking files...")
+    initialize_minimal_tracking_files(project_root)
+    logger.info("✓ Initialized tracking files with minimal config\n")
+    output.info("✓ Initialized tracking files (quality gates disabled)")
+
+    # =========================================================================
+    # PHASE 3: DOCUMENTATION
+    # =========================================================================
+
+    output.progress("Phase 3: Generating documentation...")
+
+    # Step 5: Generate minimal CLAUDE.md
+    logger.info("Step 5: Generating minimal CLAUDE.md...")
+    generate_minimal_claude_md(project_root)
+    logger.info("✓ Generated CLAUDE.md (Solokit usage guide)\n")
+    output.info("✓ Generated CLAUDE.md")
+
+    # Step 6: Generate minimal README.md
+    logger.info("Step 6: Generating minimal README.md...")
+    generate_minimal_readme(project_root)
+    logger.info("✓ Generated README.md\n")
+    output.info("✓ Generated README.md")
+
+    # Step 7: Initialize CHANGELOG.md
+    logger.info("Step 7: Initializing CHANGELOG.md...")
+    changelog_path = project_root / "CHANGELOG.md"
+    if not changelog_path.exists():
+        project_name = project_root.name
+        changelog_content = f"""# Changelog
+
+All notable changes to {project_name} will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Initial project setup with Solokit session management
+"""
+        changelog_path.write_text(changelog_content)
+        logger.info("✓ Created CHANGELOG.md\n")
+        output.info("✓ Created CHANGELOG.md")
+    else:
+        logger.info("CHANGELOG.md already exists, skipping\n")
+
+    # =========================================================================
+    # PHASE 4: CLAUDE CODE INTEGRATION
+    # =========================================================================
+
+    output.progress("Phase 4: Installing Claude Code integration...")
+
+    # Step 8: Install Claude Code slash commands
+    logger.info("Step 8: Installing Claude Code slash commands...")
+    try:
+        installed_commands = install_claude_commands(project_root)
+        logger.info(f"✓ Installed {len(installed_commands)} slash commands to .claude/commands/\n")
+        output.info(f"✓ Installed {len(installed_commands)} Claude Code slash commands")
+    except Exception as e:
+        logger.warning(f"Claude commands installation failed: {e}")
+        logger.warning("Slash commands may not be available. You can install them manually.\n")
+        output.warning("Claude commands installation failed (you can install them manually)")
+
+    # =========================================================================
+    # PHASE 5: GIT SETUP
+    # =========================================================================
+
+    output.progress("Phase 5: Configuring git...")
+
+    # Step 9: Update .gitignore
+    logger.info("Step 9: Updating .gitignore...")
+    update_minimal_gitignore(project_root)
+    logger.info("✓ Updated .gitignore\n")
+    output.info("✓ Updated .gitignore")
+
+    # Step 10: Install git hooks
+    logger.info("Step 10: Installing git hooks...")
+    install_git_hooks(project_root)
+    logger.info("✓ Installed git hooks\n")
+    output.info("✓ Installed git hooks")
+
+    # Step 11: Run initial scans
+    logger.info("Step 11: Running initial scans...")
+    scan_results = run_initial_scans(project_root)
+    if scan_results["stack"]:
+        logger.info("✓ Generated stack.txt")
+    if scan_results["tree"]:
+        logger.info("✓ Generated tree.txt")
+    logger.info("")
+    output.info("✓ Generated stack.txt and tree.txt")
+
+    # Step 12: Create initial commit
+    output.progress("Creating initial commit...")
+    logger.info("Step 12: Creating initial commit...")
+    commit_success = create_minimal_initial_commit(project_root)
+    if commit_success:
+        logger.info("✓ Created initial commit\n")
+        output.info("✓ Created initial commit")
+    else:
+        logger.warning("Initial commit failed (you can commit manually later)\n")
+        output.warning("Initial commit failed (you can commit manually later)")
+
+    # Step 13: GitHub repository setup (optional)
+    output.info("")
+    logger.info("Step 13: GitHub repository setup...")
+    github_setup = GitHubSetup(project_root)
+    github_result = github_setup.run_interactive()
+    if github_result.success and not github_result.skipped:
+        logger.info(f"✓ GitHub repository configured: {github_result.repo_url}\n")
+    elif github_result.skipped:
+        logger.info("GitHub setup skipped\n")
+    else:
+        logger.warning(f"GitHub setup failed: {github_result.error_message}\n")
+
+    # =========================================================================
+    # SUCCESS SUMMARY
+    # =========================================================================
+
+    output.info("\n" + "=" * 70)
+    output.info("✅ Solokit Minimal Initialization Complete!")
+    output.info("=" * 70)
+    output.info("")
+    output.info("✓ Session tracking initialized")
+    output.info("✓ Claude Code slash commands installed")
+    output.info("✓ Git repository configured")
+    output.info("✓ Quality gates disabled (minimal mode)")
+    if github_result.success and not github_result.skipped and github_result.repo_url:
+        output.info(f"✓ GitHub repository: {github_result.repo_url}")
+    output.info("")
+    output.info("=" * 70)
+    output.info("💡 Best used with Claude Code!")
+    output.info("=" * 70)
+    output.info("")
+    output.info("Open this project in Claude Code to unlock the full experience:")
+    output.info("   • /start      - Begin a session with comprehensive briefing")
+    output.info("   • /end        - Complete work with quality gates & learning capture")
+    output.info("   • /work-new   - Create work items interactively")
+    output.info("   • /work-list  - View and manage your work items")
+    output.info("")
+    output.info("Get Claude Code: https://claude.com/claude-code")
+    output.info("")
+    output.info("=" * 70)
+    output.info("")
+    output.info("🚀 Next Steps:")
+    output.info("   1. Create work items: /work-new")
+    output.info("   2. Start working: /start <work-item-id>")
     output.info("")
 
     return 0

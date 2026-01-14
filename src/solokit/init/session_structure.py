@@ -301,3 +301,165 @@ def initialize_tracking_files(
 
     logger.info(f"Initialized {len(created_files)} tracking files")
     return created_files
+
+
+def initialize_minimal_tracking_files(project_root: Path | None = None) -> list[Path]:
+    """
+    Initialize tracking files with minimal config (quality gates disabled).
+
+    This is used for minimal init mode - projects that don't need templates
+    or quality tiers but still want session tracking.
+
+    Args:
+        project_root: Project root directory
+
+    Returns:
+        List of created file paths
+
+    Raises:
+        FileOperationError: If file operations fail
+    """
+    if project_root is None:
+        project_root = Path.cwd()
+
+    session_dir = project_root / ".session"
+    template_dir = Path(__file__).parent.parent / "templates"
+    created_files = []
+
+    logger.info("Initializing minimal tracking files...")
+
+    # Copy template tracking files
+    tracking_files = [
+        ("work_items.json", "tracking/work_items.json"),
+        ("learnings.json", "tracking/learnings.json"),
+        ("status_update.json", "tracking/status_update.json"),
+    ]
+
+    for src, dst in tracking_files:
+        src_path = template_dir / src
+        dst_path = session_dir / dst
+        if src_path.exists():
+            try:
+                shutil.copy(src_path, dst_path)
+                created_files.append(dst_path)
+                logger.debug(f"Created {dst}")
+            except Exception as e:
+                raise FileOperationError(
+                    operation="copy",
+                    file_path=str(dst_path),
+                    details=f"Failed to copy tracking file template: {str(e)}",
+                    cause=e,
+                )
+
+    # Create empty update tracking files
+    try:
+        updates_files = [
+            session_dir / "tracking" / "stack_updates.json",
+            session_dir / "tracking" / "tree_updates.json",
+        ]
+        for update_file in updates_files:
+            update_file.write_text(json.dumps({"updates": []}, indent=2))
+            created_files.append(update_file)
+            logger.debug(f"Created {update_file.name}")
+    except Exception as e:
+        raise FileOperationError(
+            operation="create",
+            file_path=str(session_dir / "tracking"),
+            details=f"Failed to create tracking files: {str(e)}",
+            cause=e,
+        )
+
+    # Create minimal config.json with quality gates disabled
+    config_data = {
+        "quality_gates": {
+            "tier": "minimal",
+            "coverage_threshold": 0,
+            "test_execution": {
+                "enabled": False,
+                "required": False,
+            },
+            "linting": {
+                "enabled": False,
+                "required": False,
+            },
+            "formatting": {
+                "enabled": False,
+                "required": False,
+            },
+            "security": {
+                "enabled": False,
+                "required": False,
+            },
+            "documentation": {
+                "enabled": False,
+                "required": False,
+            },
+            "spec_completeness": {
+                "enabled": True,
+                "required": False,
+            },
+        },
+        "git_workflow": {
+            "mode": "pr",
+            "auto_push": True,
+            "auto_create_pr": True,
+            "delete_branch_after_merge": True,
+        },
+        "curation": {
+            "auto_curate": False,
+            "similarity_threshold": 0.7,
+        },
+    }
+
+    try:
+        config_path = session_dir / "config.json"
+        config_path.write_text(json.dumps(config_data, indent=2))
+        created_files.append(config_path)
+        logger.info("Created config.json with minimal settings (quality gates disabled)")
+    except Exception as e:
+        raise FileOperationError(
+            operation="create",
+            file_path=str(session_dir / "config.json"),
+            details=f"Failed to create config.json: {str(e)}",
+            cause=e,
+        )
+
+    # Copy config schema file
+    schema_source = template_dir / "config.schema.json"
+    schema_dest = session_dir / "config.schema.json"
+
+    if schema_source.exists() and not schema_dest.exists():
+        try:
+            shutil.copy(schema_source, schema_dest)
+            created_files.append(schema_dest)
+            logger.info("Created config.schema.json")
+        except Exception as e:
+            raise FileOperationError(
+                operation="copy",
+                file_path=str(schema_dest),
+                details=f"Failed to copy config schema: {str(e)}",
+                cause=e,
+            )
+
+    # Copy guide templates to .session/guides/
+    guides_source = template_dir / "guides"
+    guides_dest = session_dir / "guides"
+
+    if guides_source.exists():
+        try:
+            for guide_file in guides_source.glob("*.md"):
+                dest_file = guides_dest / guide_file.name
+                shutil.copy(guide_file, dest_file)
+                created_files.append(dest_file)
+                logger.debug(f"Created guide: {guide_file.name}")
+            logger.info(f"Copied {len(list(guides_source.glob('*.md')))} guide files")
+        except Exception as e:
+            raise FileOperationError(
+                operation="copy",
+                file_path=str(guides_dest),
+                details=f"Failed to copy guide templates: {str(e)}",
+                cause=e,
+            )
+
+    logger.info(f"Initialized {len(created_files)} minimal tracking files")
+    return created_files

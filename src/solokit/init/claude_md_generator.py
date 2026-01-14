@@ -196,3 +196,86 @@ def generate_claude_md(
             details=f"Failed to write CLAUDE.md: {str(e)}",
             cause=e,
         )
+
+
+def generate_minimal_claude_md(project_root: Path | None = None) -> Path:
+    """
+    Generate minimal CLAUDE.md with Solokit usage guide only.
+
+    This is used for minimal init mode - projects that don't need
+    stack-specific instructions or quality tier requirements.
+
+    Args:
+        project_root: Project root directory
+
+    Returns:
+        Path to generated CLAUDE.md
+
+    Raises:
+        FileOperationError: If CLAUDE.md generation fails
+    """
+    if project_root is None:
+        project_root = Path.cwd()
+
+    # Get project name from directory
+    project_name = project_root.name
+
+    claude_content = f"""# {project_name}
+
+> Add a brief description of your project here.
+
+## Solokit Usage Guide
+
+This project uses Solokit for session-driven development. Use the following slash commands in Claude Code:
+
+### Session Management
+- `/start <work-item-id>` - Begin a session with comprehensive briefing
+- `/end` - Complete work with learning capture
+- `/status` - View current session status
+- `/validate` - Validate quality gates without ending
+
+### Work Item Management
+- `/work-new` - Create work items interactively
+- `/work-list` - View and manage your work items
+- `/work-show <id>` - Show detailed work item information
+- `/work-update <id>` - Update work item fields
+- `/work-delete <id>` - Delete a work item
+- `/work-next` - Get the next recommended work item
+- `/work-graph` - Generate dependency graph visualization
+
+### Learning System
+- `/learn` - Capture a learning during development
+- `/learn-show` - Browse and filter learnings
+- `/learn-search <keyword>` - Search learnings by keyword
+- `/learn-curate` - Run learning curation process
+
+### Project Structure
+
+```
+.session/
+├── tracking/          # Work items, learnings, status
+├── briefings/         # Generated session briefings
+├── history/           # Session history
+├── specs/             # Work item specifications
+└── guides/            # Development guides
+```
+
+---
+
+*Initialized with [Solokit](https://github.com/ankushdixit/solokit) v{_get_solokit_version()} (minimal mode)*
+"""
+
+    # Write CLAUDE.md
+    claude_path = project_root / "CLAUDE.md"
+
+    try:
+        claude_path.write_text(claude_content)
+        logger.info(f"Generated minimal {claude_path.name}")
+        return claude_path
+    except Exception as e:
+        raise FileOperationError(
+            operation="write",
+            file_path=str(claude_path),
+            details=f"Failed to write CLAUDE.md: {str(e)}",
+            cause=e,
+        )

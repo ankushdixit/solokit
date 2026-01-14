@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Minimal Init Mode (`sk init --minimal`)** (PR #TBD)
+  - New `--minimal` flag for lightweight project initialization
+  - Installs only session tracking infrastructure without templates or quality tiers
+  - Ideal for simple projects (HTML sites, scripts, prototypes) that don't need testing/linting
+  - Creates: `.session/` structure, guides, Claude Code slash commands, CLAUDE.md, README.md, CHANGELOG.md
+  - Quality gates disabled by default in minimal mode config
+  - Git repository and GitHub setup still available
+  - Comprehensive test coverage: 28 unit tests, 11 integration tests
+
 ### Fixed
 - **`/end` Command Fails on New Projects with Few Commits**
   - Changed `git log --oneline HEAD~10..HEAD` to `git log --oneline -10` in end.md command

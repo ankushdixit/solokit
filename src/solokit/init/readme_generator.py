@@ -359,3 +359,76 @@ See `.session/` directory for:
             details=f"Failed to write README.md: {str(e)}",
             cause=e,
         )
+
+
+def generate_minimal_readme(project_root: Path | None = None) -> Path:
+    """
+    Generate minimal README.md without stack-specific information.
+
+    This is used for minimal init mode - projects that don't need
+    stack-specific setup instructions or quality tier information.
+
+    Args:
+        project_root: Project root directory
+
+    Returns:
+        Path to generated README.md
+
+    Raises:
+        FileOperationError: If README generation fails
+    """
+    if project_root is None:
+        project_root = Path.cwd()
+
+    # Get project name from directory
+    project_name = project_root.name
+
+    readme_content = f"""# {project_name}
+
+> Add a brief description of your project here.
+
+## Getting Started
+
+Add your project setup instructions here.
+
+## Session-Driven Development
+
+This project uses Session-Driven Development (Solokit) for organized, AI-augmented development.
+
+### Commands
+
+- `/work-new` - Create a new work item
+- `/work-list` - List all work items
+- `/start` - Start working on a work item
+- `/status` - Check current session status
+- `/end` - Complete current session
+- `/learn` - Capture a learning
+
+### Documentation
+
+See `.session/` directory for:
+
+- Work item specifications (`.session/specs/`)
+- Session briefings (`.session/briefings/`)
+- Session summaries (`.session/history/`)
+- Captured learnings (`.session/tracking/learnings.json`)
+
+---
+
+*Initialized with [Solokit](https://github.com/ankushdixit/solokit) (minimal mode)*
+"""
+
+    # Write README
+    readme_path = project_root / "README.md"
+
+    try:
+        readme_path.write_text(readme_content)
+        logger.info(f"Generated minimal {readme_path.name}")
+        return readme_path
+    except Exception as e:
+        raise FileOperationError(
+            operation="write",
+            file_path=str(readme_path),
+            details=f"Failed to write README.md: {str(e)}",
+            cause=e,
+        )
