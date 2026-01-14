@@ -133,14 +133,20 @@ def main() -> int:
     """
     Main entry point for init command with interactive mode support.
 
-    Supports both argument-based and interactive modes:
-    - With arguments: Direct initialization
-    - Without arguments: Interactive prompts
+    Supports three modes:
+    - Minimal mode (--minimal): Session tracking only, no templates or quality tiers
+    - Argument mode: Direct initialization with all required params
+    - Interactive mode: Prompts for all options
 
     Returns:
         0 on success, non-zero on failure
     """
     parser = argparse.ArgumentParser(description="Initialize Session-Driven Development project")
+    parser.add_argument(
+        "--minimal",
+        action="store_true",
+        help="Minimal initialization - session tracking only, no templates or quality tiers",
+    )
     parser.add_argument(
         "--template",
         choices=["saas_t3", "ml_ai_fastapi", "dashboard_refine", "fullstack_nextjs"],
@@ -168,6 +174,20 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+
+    # Handle minimal mode first
+    if args.minimal:
+        # Check for conflicting arguments
+        if args.template or args.tier or args.coverage:
+            logger.error("❌ --minimal cannot be used with --template, --tier, or --coverage")
+            logger.error("\nUsage:")
+            logger.error("  sk init --minimal")
+            return 1
+
+        # Import and run minimal init
+        from solokit.init.orchestrator import run_minimal_init
+
+        return run_minimal_init()
 
     # Import here to avoid circular imports
     from solokit.init.orchestrator import run_template_based_init
