@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-14
+
 ### Added
-- **Minimal Init Mode (`sk init --minimal`)** (PR #TBD)
+- **Minimal Init Mode (`sk init --minimal`)** (PR #207)
   - New `--minimal` flag for lightweight project initialization
   - Installs only session tracking infrastructure without templates or quality tiers
   - Ideal for simple projects (HTML sites, scripts, prototypes) that don't need testing/linting
@@ -1691,8 +1693,9 @@ Phase mapping to public release versions:
   - Phase 5.7: Spec-first architecture
   - Phase 5.8: Marketplace plugin support
   - Phase 5.9: Standard Python src/ layout & PyPI publishing
-- **v0.2.2** = Current release ✅ **Current** (Fix missing test_execution.commands config)
-- v0.2.1 = Previous release (Critical CVE patches for Next.js/React templates)
+- **v0.3.0** = Current release ✅ **Current** (Minimal init mode, bug fixes)
+- v0.2.2 = Previous release (Fix missing test_execution.commands config)
+- v0.2.1 = Earlier release (Critical CVE patches for Next.js/React templates)
 - v0.2.0 = Earlier release (Tailwind CSS v4 migration, CHANGELOG check fixes)
 - v0.1.7 = Earlier release (Improved /end command flow, slash command format)
 - v0.1.6 = Earlier release (Minimal scaffolding migration complete)
