@@ -61,6 +61,7 @@ When implementing from a PRD, Claude will:
 - Follow the exact acceptance criteria
 - Implement only what is specified (no "bonus" features)
 - Write tests that verify the acceptance criteria
+- **Write meaningful tests that represent real use cases** - Tests should validate actual user scenarios and business logic, not just exist to satisfy coverage metrics. A test that passes but doesn't catch real bugs provides false confidence.
 - Follow patterns documented in ARCHITECTURE.md
 - Ask for clarification when requirements are ambiguous
 - Use Solokit's session workflow (`/start`, `/end`)
@@ -393,6 +394,26 @@ Every story should specify:
 ---
 
 ## Testing Strategy
+
+### Write Meaningful Tests, Not Just Coverage
+
+**Critical principle:** Tests exist to catch bugs and validate real user scenarios, not to satisfy coverage metrics.
+
+```
+❌ BAD: Writing tests just for coverage
+- Tests that exercise code paths without meaningful assertions
+- Tests that mock everything and verify nothing real
+- Tests that pass but wouldn't catch actual bugs
+- Artificially inflating coverage with trivial tests
+
+✅ GOOD: Writing tests that represent real use cases
+- Tests that validate actual user workflows
+- Tests that verify business logic and edge cases
+- Tests that would fail if the feature broke
+- Tests derived from acceptance criteria scenarios
+```
+
+**Ask yourself:** "If this feature broke in production, would this test catch it?"
 
 ### Testing Pyramid
 
