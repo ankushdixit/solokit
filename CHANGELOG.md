@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Meaningful Test Guidance in Documentation**
+  - Added explicit guidance that tests should represent real use cases, not just satisfy coverage metrics
+  - Updated PRD_WRITING_GUIDE.md with "Write Meaningful Tests, Not Just Coverage" section
+  - Updated writing-specs.md with new tip on scenario-driven vs coverage-driven tests
+  - Key principle: "If this feature broke in production, would this test catch it?"
+  - Helps prevent false confidence from tests that pass but don't catch real bugs
+
 ## [0.3.0] - 2026-01-14
 
 ### Added

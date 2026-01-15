@@ -536,6 +536,28 @@ Future you (or Claude) will thank you:
 - What constraints were considered?
 - What assumptions are being made?
 
+### Write Meaningful Tests, Not Just Coverage
+
+Tests should validate real user scenarios, not just satisfy coverage metrics:
+
+**The test quality question:** "If this feature broke in production, would this test catch it?"
+
+```markdown
+❌ BAD: Coverage-driven tests
+- Tests that exercise code without meaningful assertions
+- Mocking everything so nothing real is verified
+- Tests that would pass even if the feature is broken
+- Writing trivial tests just to hit coverage thresholds
+
+✅ GOOD: Scenario-driven tests
+- Tests derived directly from acceptance criteria
+- Tests that verify actual user workflows end-to-end
+- Tests for edge cases and error conditions users might hit
+- Tests that would genuinely fail if functionality regressed
+```
+
+**Tip:** Each acceptance criterion should map to at least one meaningful test. If you can't write a test that would fail when the criterion isn't met, the criterion may be too vague.
+
 ---
 
 ## Common Mistakes
