@@ -1,6 +1,6 @@
 # Solokit Enhancements Summary (Planned)
 
-Quick reference guide for enhancements #12-#37. Use this to check for duplicates and understand planned features.
+Quick reference guide for enhancements #12-#40. Use this to check for duplicates and understand planned features.
 
 ---
 
@@ -515,6 +515,35 @@ Implement AI-powered automated code review: code analysis for common issues, bes
 
 ---
 
+## Enhancement #40: React Performance Best Practices Integration
+
+**Priority:** Medium-High
+
+**Problem:**
+AI assistants writing React code often produce functional but suboptimal code with common performance anti-patterns: async waterfalls (sequential data fetching), bundle size bloat (heavy client imports, missing code splitting), re-render storms (cascading useEffect, missing memoization), server/client misalignment, and framework anti-patterns (not leveraging Next.js App Router optimizations).
+
+**Solution:**
+Integrate Vercel's `react-best-practices` (40+ rules across 8 priority categories) into Solokit's quality and guidance system for React-based stacks (saas_t3, dashboard_refine, fullstack_nextjs):
+
+1. **React Performance Guide Generation** - Generate tier-appropriate `REACT_PERFORMANCE_GUIDE.md` during `sk init`
+2. **Rule Curation by Quality Tier** - Tier 1: CRITICAL only → Tier 4: all 40+ rules
+3. **Session Briefing Integration** - Include relevant React performance tips when working on components
+4. **Anti-Pattern Detection Quality Gate** - Optional checker that scans for known anti-patterns
+5. **Claude Code Integration** - Add `.claude/REACT_PERFORMANCE.md` to React templates
+
+**Key Benefits:**
+- Proactive quality: AI writes better React code from the start
+- Prioritized guidance: Focus on highest-impact issues (waterfalls, bundle size) first
+- Tier-appropriate: Don't overwhelm with advanced patterns at lower tiers
+- Self-contained: No external dependencies, rules bundled with Solokit
+- Stack-aware: Tailored guidance for T3, Refine, and Next.js stacks
+
+**Related Enhancements:** #29 (Frontend Quality & Design System Compliance)
+
+**Refer:** Lines 6315-6687 in `docs/project/ENHANCEMENTS.md` for more details.
+
+---
+
 ## Notes
 
 - **Priority Levels:**
@@ -534,7 +563,7 @@ Implement AI-powered automated code review: code analysis for common issues, bes
   - Validation & Structure: #23, #31
   - Cost Management: #38
   - Code Review: #39
-  - Frontend Specific: #29
+  - Frontend Specific: #29, #40
 
 - **Enhancement Dependencies:**
   - #27 requires #25 (MCP Server)
@@ -545,5 +574,5 @@ Implement AI-powered automated code review: code analysis for common issues, bes
 
 ---
 
-*Last Updated: 2025-11-03*
-*Total Planned Enhancements: 28 (Enhancement #12-#39)*
+*Last Updated: 2026-01-16*
+*Total Planned Enhancements: 29 (Enhancement #12-#40)*

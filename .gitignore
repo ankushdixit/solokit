@@ -69,3 +69,6 @@ marketing-copy/
 
 # Development scripts (untracked - contains GCP connection details, test scripts, test results)
 /dev-scripts/
+
+# Symlink to local ideas inbox
+docs/ideas.md

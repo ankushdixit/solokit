@@ -6311,3 +6311,377 @@ class AutomatedCodeReviewer:
 **Priority:** Low - Nice to have, not critical
 
 ---
+
+### Enhancement #40: React Performance Best Practices Integration
+
+**Status:** 🔵 IDENTIFIED
+
+**Problem:**
+
+AI assistants writing React code often produce functional but suboptimal code with common performance anti-patterns:
+
+1. **Async waterfalls**: Sequential data fetching when parallel is possible (e.g., awaiting data before early returns)
+2. **Bundle size bloat**: Heavy client-side imports, missing code splitting, unnecessary dependencies
+3. **Re-render storms**: Missing memoization, improper useEffect dependencies, cascading state updates
+4. **Server/client misalignment**: Work done on client that should be server-side, or vice versa
+5. **Framework anti-patterns**: Not leveraging Next.js App Router optimizations, RSC patterns
+
+These issues are particularly problematic for solo developers who may not have the expertise to catch them in code review.
+
+**Context:**
+
+Vercel released `react-best-practices` (January 2026) - a structured knowledge base of **40+ rules across 8 priority categories**, specifically designed for AI agent consumption:
+
+| Category | Prefix | Focus | Impact Level |
+|----------|--------|-------|--------------|
+| Eliminating Waterfalls | `async-*` | Sequential → parallel data fetching | CRITICAL |
+| Bundle Size | `bundle-*` | Code splitting, tree shaking, lazy loading | CRITICAL |
+| Server-Side Performance | `server-*` | RSC, streaming, edge runtime | HIGH |
+| Client-Side Data Fetching | `client-*` | SWR, React Query, caching | HIGH |
+| Re-render Optimization | `rerender-*` | Memoization, state management | MEDIUM-HIGH |
+| Rendering Performance | `rendering-*` | Virtual DOM, reconciliation | MEDIUM |
+| Advanced Patterns | `advanced-*` | Suspense, transitions, concurrent | LOW-MEDIUM |
+| JavaScript Performance | `js-*` | Micro-optimizations | LOW |
+
+Each rule includes:
+- Impact level classification
+- Problematic code example (what NOT to do)
+- Correct code example (what TO do)
+- Explanation of why it matters
+- References to documentation
+
+Source: https://vercel.com/blog/introducing-react-best-practices
+Repository: https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices
+
+**Applicable Solokit Stacks:**
+
+Three of four Solokit stacks use React:
+- **saas_t3** - Next.js 16 + React 19 + tRPC + Prisma
+- **dashboard_refine** - Next.js 16 + Refine 5 + shadcn/ui
+- **fullstack_nextjs** - Next.js 16 + React 19 + Prisma
+
+Only **ml_ai_fastapi** (Python/FastAPI) is out of scope.
+
+**Proposed Solution:**
+
+Integrate React performance best practices into Solokit's quality and guidance system for React-based stacks:
+
+**1. React Performance Guide Generation**
+
+Generate a `REACT_PERFORMANCE_GUIDE.md` in `.session/guides/` during `sk init` for React stacks:
+
+```python
+# src/solokit/init/react_performance_guide.py (will be created)
+class ReactPerformanceGuideGenerator:
+    def __init__(self, quality_tier: int, stack: str):
+        self.quality_tier = quality_tier
+        self.stack = stack
+
+    def generate(self) -> str:
+        """Generate tier-appropriate React performance guide."""
+        rules = self._get_rules_for_tier()
+        return self._render_guide(rules)
+
+    def _get_rules_for_tier(self) -> list[dict]:
+        """Return rules appropriate for quality tier."""
+        # Tier 1-2: CRITICAL + HIGH only
+        # Tier 3: Add MEDIUM-HIGH, MEDIUM
+        # Tier 4: Full coverage including advanced patterns
+```
+
+**2. Rule Curation by Quality Tier**
+
+Map Vercel's impact levels to Solokit's quality tiers:
+
+| Quality Tier | Included Rules | Rationale |
+|--------------|----------------|-----------|
+| Tier 1: Essential | CRITICAL only (async waterfalls, bundle size) | Focus on highest-impact issues |
+| Tier 2: Standard | CRITICAL + HIGH (+ server, client) | Add server/client optimization |
+| Tier 3: Comprehensive | All except LOW | Full performance coverage |
+| Tier 4: Production-Ready | All 40+ rules | Complete best practices |
+
+**3. Session Briefing Integration**
+
+Include relevant React performance reminders in session briefings when working on React components:
+
+```python
+# src/solokit/session/briefing.py (modified)
+def _get_react_performance_context(self, work_item: WorkItem) -> str:
+    """Include React performance guidance for component work."""
+    if self._is_react_component_work(work_item):
+        return self._load_relevant_rules(work_item)
+    return ""
+```
+
+**4. Anti-Pattern Detection Quality Gate (Optional)**
+
+Add a quality gate checker that scans for known anti-patterns:
+
+```python
+# src/solokit/quality/checkers/react_performance_checker.py (will be created)
+class ReactPerformanceChecker(BaseChecker):
+    """Detect common React performance anti-patterns."""
+
+    PATTERNS = {
+        "cascading_useeffect": r"useEffect\([^)]+\)[\s\S]*?useEffect\(",
+        "heavy_client_import": r"'use client'[\s\S]*?import.*from\s+['\"](?:lodash|moment)['\"]",
+        "missing_suspense": r"async function.*Component",
+        # ... more patterns
+    }
+
+    def check(self, files: list[str]) -> CheckResult:
+        """Scan React files for anti-patterns."""
+```
+
+**5. Claude Code Integration**
+
+Add React-specific guidance to `.claude/` for React stacks:
+
+```markdown
+# .claude/REACT_PERFORMANCE.md (will be created for React stacks)
+
+## React Performance Guidelines
+
+When writing React code in this project, follow these priority-ordered practices:
+
+### CRITICAL: Eliminate Async Waterfalls
+- Parallelize independent data fetches with Promise.all()
+- Move awaits inside conditionals when early returns exist
+- Use React Server Components for data fetching when possible
+
+### CRITICAL: Minimize Bundle Size
+- Use dynamic imports for heavy components: `const Chart = dynamic(() => import('./Chart'))`
+- Prefer server components (no 'use client' unless needed)
+- Tree-shake imports: `import { specific } from 'lib'` not `import * from 'lib'`
+
+[... more rules based on quality tier ...]
+```
+
+**6. Stack-Specific Adaptations**
+
+Different React stacks have different patterns:
+
+| Stack | Special Considerations |
+|-------|----------------------|
+| saas_t3 | tRPC batching, Prisma query optimization |
+| dashboard_refine | Refine data provider caching, table virtualization |
+| fullstack_nextjs | Server Actions, streaming, Partial Prerendering |
+
+**Implementation:**
+
+**Phase 1: Guide Generation**
+```python
+# src/solokit/init/react_performance_guide.py
+class ReactPerformanceGuideGenerator:
+    RULES_BY_IMPACT = {
+        "CRITICAL": [
+            {
+                "id": "async-parallel-fetching",
+                "title": "Parallelize Independent Data Fetches",
+                "problem": "Sequential awaits for independent data",
+                "solution": "Use Promise.all() for parallel fetching",
+                "example_bad": "const a = await fetchA(); const b = await fetchB();",
+                "example_good": "const [a, b] = await Promise.all([fetchA(), fetchB()]);",
+            },
+            {
+                "id": "async-conditional-await",
+                "title": "Move Awaits Inside Conditionals",
+                "problem": "Awaiting data before early return checks",
+                "solution": "Check conditions before awaiting when possible",
+            },
+            {
+                "id": "bundle-dynamic-imports",
+                "title": "Use Dynamic Imports for Heavy Components",
+                "problem": "Large components in initial bundle",
+                "solution": "Use next/dynamic or React.lazy for code splitting",
+            },
+            # ... more CRITICAL rules
+        ],
+        "HIGH": [
+            {
+                "id": "server-rsc-data-fetching",
+                "title": "Fetch Data in Server Components",
+                "problem": "Client-side data fetching with useEffect",
+                "solution": "Use async Server Components for initial data",
+            },
+            # ... more HIGH rules
+        ],
+        # ... MEDIUM-HIGH, MEDIUM, LOW-MEDIUM, LOW
+    }
+
+    def generate_for_tier(self, tier: int) -> str:
+        """Generate guide content for specified quality tier."""
+        included_impacts = self._get_impacts_for_tier(tier)
+        rules = []
+        for impact in included_impacts:
+            rules.extend(self.RULES_BY_IMPACT.get(impact, []))
+        return self._render_markdown(rules)
+
+    def _get_impacts_for_tier(self, tier: int) -> list[str]:
+        if tier == 1:
+            return ["CRITICAL"]
+        elif tier == 2:
+            return ["CRITICAL", "HIGH"]
+        elif tier == 3:
+            return ["CRITICAL", "HIGH", "MEDIUM-HIGH", "MEDIUM"]
+        else:  # tier 4
+            return ["CRITICAL", "HIGH", "MEDIUM-HIGH", "MEDIUM", "LOW-MEDIUM", "LOW"]
+```
+
+**Phase 2: Init Integration**
+```python
+# src/solokit/init/orchestrator.py (modified)
+def _setup_guides(self, stack: str, tier: int):
+    """Generate development guides for the project."""
+    # Existing guide generation...
+
+    # Add React performance guide for React stacks
+    if stack in ["saas_t3", "dashboard_refine", "fullstack_nextjs"]:
+        react_guide = ReactPerformanceGuideGenerator(tier, stack)
+        guide_content = react_guide.generate()
+        self._write_guide(".session/guides/REACT_PERFORMANCE_GUIDE.md", guide_content)
+```
+
+**Phase 3: Briefing Integration**
+```python
+# src/solokit/session/briefing.py (modified)
+def _build_briefing(self, work_item: WorkItem) -> str:
+    briefing_parts = [
+        self._get_header(work_item),
+        self._get_spec_summary(work_item),
+        self._get_relevant_learnings(work_item),
+        self._get_relevant_guides(work_item),  # NEW: includes React perf guide
+        self._get_git_context(),
+    ]
+    return "\n\n".join(briefing_parts)
+
+def _get_relevant_guides(self, work_item: WorkItem) -> str:
+    """Include relevant guide excerpts based on work item context."""
+    guides = []
+
+    # Include React performance tips for component work
+    if self._involves_react_components(work_item):
+        react_guide = self._load_guide("REACT_PERFORMANCE_GUIDE.md")
+        if react_guide:
+            # Include top 5 most relevant rules based on work item
+            guides.append(self._extract_relevant_rules(react_guide, work_item))
+
+    return "\n".join(guides)
+```
+
+**Phase 4: Quality Gate (Optional)**
+```python
+# src/solokit/quality/checkers/react_performance_checker.py
+from solokit.quality.checkers.base import BaseChecker, CheckResult
+
+class ReactPerformanceChecker(BaseChecker):
+    """Check for common React performance anti-patterns."""
+
+    name = "react-performance"
+    description = "React performance anti-pattern detection"
+
+    # Regex patterns for common anti-patterns
+    ANTI_PATTERNS = {
+        "sequential-await": {
+            "pattern": r"const\s+\w+\s*=\s*await\s+\w+\([^)]*\);\s*\n\s*const\s+\w+\s*=\s*await",
+            "message": "Consider using Promise.all() for parallel data fetching",
+            "severity": "warning",
+            "impact": "CRITICAL",
+        },
+        "use-client-with-heavy-import": {
+            "pattern": r"['\"]use client['\"][\s\S]{0,500}import.*from\s+['\"](?:lodash|moment|date-fns)['\"]",
+            "message": "Heavy library imported in client component - consider server component or dynamic import",
+            "severity": "warning",
+            "impact": "CRITICAL",
+        },
+        "cascading-useeffect": {
+            "pattern": r"useEffect\(\s*\(\)\s*=>\s*\{[^}]+set\w+\([^)]+\)[^}]+\}\s*,\s*\[[^\]]+\]\s*\)[\s\S]{0,200}useEffect",
+            "message": "Cascading useEffect calls detected - consider combining or using derived state",
+            "severity": "info",
+            "impact": "MEDIUM-HIGH",
+        },
+    }
+
+    def check(self, context: CheckContext) -> CheckResult:
+        """Scan React/TSX files for anti-patterns."""
+        issues = []
+        react_files = self._find_react_files(context.project_root)
+
+        for file_path in react_files:
+            content = self._read_file(file_path)
+            for pattern_name, pattern_info in self.ANTI_PATTERNS.items():
+                if re.search(pattern_info["pattern"], content):
+                    issues.append({
+                        "file": file_path,
+                        "pattern": pattern_name,
+                        "message": pattern_info["message"],
+                        "severity": pattern_info["severity"],
+                    })
+
+        return CheckResult(
+            passed=len([i for i in issues if i["severity"] == "error"]) == 0,
+            issues=issues,
+            summary=f"Found {len(issues)} potential React performance issues",
+        )
+```
+
+**Files Affected:**
+
+**New:**
+- `src/solokit/init/react_performance_guide.py` - Guide generator with curated rules
+- `src/solokit/quality/checkers/react_performance_checker.py` - Anti-pattern detector
+- `src/solokit/templates/saas_t3/base/.claude/REACT_PERFORMANCE.md` - Claude guidance
+- `src/solokit/templates/dashboard_refine/base/.claude/REACT_PERFORMANCE.md` - Claude guidance
+- `src/solokit/templates/fullstack_nextjs/base/.claude/REACT_PERFORMANCE.md` - Claude guidance
+- `src/solokit/data/react_performance_rules.py` - Curated rule definitions
+- Tests for React performance modules
+
+**Modified:**
+- `src/solokit/init/orchestrator.py` - Add React guide generation for React stacks
+- `src/solokit/session/briefing.py` - Include React performance context in briefings
+- `src/solokit/quality/gates.py` - Register React performance checker
+- `.session/config.json` schema - Add react_performance checker config
+- Template `package.json` files - No changes (no runtime dependencies)
+
+**Testing Requirements:**
+
+1. **Unit Tests:**
+   - Guide generator produces correct rules for each tier
+   - Anti-pattern regex patterns detect known bad patterns
+   - Stack detection correctly identifies React stacks
+
+2. **Integration Tests:**
+   - `sk init` generates REACT_PERFORMANCE_GUIDE.md for React stacks
+   - `sk init` does NOT generate guide for ml_ai_fastapi
+   - Session briefings include React guidance when appropriate
+   - Quality gate reports anti-patterns correctly
+
+3. **E2E Tests:**
+   - Full init → start → develop → end cycle with React performance guidance
+   - Verify guide content matches quality tier selection
+
+**Benefits:**
+
+1. **Proactive quality**: AI writes better React code from the start
+2. **Prioritized guidance**: Focus on highest-impact issues first (waterfalls, bundle size)
+3. **Tier-appropriate**: Don't overwhelm beginners with advanced patterns
+4. **Self-contained**: No external dependencies, rules bundled with Solokit
+5. **Stack-aware**: Guidance tailored to specific React stack (T3, Refine, Next.js)
+6. **Continuous improvement**: Rules can be updated with Solokit releases
+7. **Learning capture**: Developers learn best practices through usage
+
+**Priority:** Medium-High - Significant quality improvement for React stacks (75% of templates)
+
+**Notes:**
+- Rules should be curated from Vercel's repository, not copied verbatim (licensing)
+- Consider periodic updates as React/Next.js evolves
+- Anti-pattern checker should be non-blocking by default (warnings, not errors)
+- May want to add `/sk:react-audit` command in future for on-demand review
+- Integration with Enhancement #29 (Frontend Quality & Design System Compliance)
+
+**References:**
+- Vercel Blog: https://vercel.com/blog/introducing-react-best-practices
+- Agent Skills Repo: https://github.com/vercel-labs/agent-skills
+- React Performance Docs: https://react.dev/learn/render-and-commit
+
+---
